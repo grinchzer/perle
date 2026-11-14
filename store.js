@@ -90,7 +90,7 @@
       clientBooking: async function (ref, phone) { return ok(await sb.rpc('client_booking', { p_ref: ref, p_phone: phone })); },
       cancelBooking: async function (ref, phone) { return ok(await sb.rpc('cancel_booking', { p_ref: ref, p_phone: phone })); },
       session: async function () { var s = await sb.auth.getSession(); return s.data.session ? s.data.session.user : null; },
-      signUp: async function (email, pw) { var d = ok(await sb.auth.signUp({ email: email, password: pw })); return d.session ? d.user : null; },
+      signUp: async function (email, pw) { var d = ok(await sb.auth.signUp({ email: email, password: pw, options: { emailRedirectTo: location.origin + location.pathname } })); return d.session ? d.user : null; },
       signIn: async function (email, pw) { return ok(await sb.auth.signInWithPassword({ email: email, password: pw })).user; },
       signOut: async function () { await sb.auth.signOut(); },
       myPro: async function () { var id = await uid(); if (!id) return null; return ok(await sb.from('pros').select('*').eq('id', id).maybeSingle()); },
