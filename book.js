@@ -371,7 +371,7 @@
       }).join('') + '</div>'; return;
     }
     if (!dir.list) { box.innerHTML = dir.view === 'map' ? '' : sk(2, 220); return; }
-    if (!dir.list.length) { box.innerHTML = '<p class="note info">Les premières coiffeuses arrivent bientôt.</p>'; return; }
+    if (!dir.list.length) { box.innerHTML = '<p class="note info">Les premières coiffeuses arrivent bientôt.' + (AP ? '' : ' <a href="./?demo=1">Voir un exemple de l’appli</a>') + '</p>'; return; }
     if (dir.view === 'date') return drawDate(box);
     if (dir.view === 'map') return drawMap(box);
     if (dir.view === 'calc') return drawCalc(box);
