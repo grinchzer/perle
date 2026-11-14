@@ -231,6 +231,26 @@
     var out = []; Object.keys(grp).forEach(function (k) { var g = grp[k], n = g.length, cols = n > 5 ? 2 : 1, rows = Math.ceil(n / cols); g.forEach(function (p, i) { out.push({ p: p, lat: Number(p.lat), lng: Number(p.lng), dx: cols === 2 ? (i % 2 ? 25 : -25) : 0, dy: Math.round((Math.floor(i / cols) - (rows - 1) / 2) * 48) }); }); });
     return out;
   }
+  // fond de carte épuré (routes blanches, parcs menthe, eau turquoise) : tuiles OpenFreeMap dessinées par MapLibre, avec nos couleurs
+  function perleStyle(st) {
+    var LAND = '#E9EBF1', LAND2 = '#E4E6EE', WATER = '#A9DCD8', PARK = '#C6EAD3', BLD = '#DDE0E9', ROAD = '#FFFFFF', RAIL = '#D3D6E0', TXT = '#858A9E';
+    function sc(w, k) { if (typeof w === 'number') return w * k; if (w && w.stops) return { base: w.base, stops: w.stops.map(function (s) { return [s[0], s[1] * k]; }) }; return w; }
+    st.layers = st.layers.filter(function (l) { return !/shield|airport|aeroway|boundary|ice|glacier|dashline|highway-name-path|highway-name-minor|waterway_line_label|subtle|casing|label_other/.test(l.id); });
+    st.layers.forEach(function (l) {
+      var p = l.paint = l.paint || {}, sl = l['source-layer'] || '';
+      if (l.type === 'background') p['background-color'] = LAND;
+      else if (l.type === 'fill') { p['fill-color'] = sl === 'water' ? WATER : (sl === 'park' || l.id === 'landcover_wood') ? PARK : sl === 'building' ? BLD : LAND2; delete p['fill-outline-color']; delete p['fill-pattern']; p['fill-opacity'] = 1; if (sl === 'building') p['fill-antialias'] = false; }
+      else if (l.type === 'line') { var rail = /rail/.test(l.id); p['line-color'] = sl === 'waterway' ? WATER : rail ? RAIL : ROAD; p['line-opacity'] = 1; if (sl === 'transportation' && !rail) p['line-width'] = sc(p['line-width'], 2.1); }
+      else if (l.type === 'symbol') { p['text-color'] = TXT; p['text-halo-color'] = 'rgba(255,255,255,.85)'; p['text-halo-width'] = 1.2; l.layout = l.layout || {}; l.layout['text-field'] = '{name}'; }
+    });
+    return st;
+  }
+  function glLayer(L, m) {
+    function ld(u) { return new Promise(function (res, rej) { var s = document.createElement('script'); s.src = u; s.onload = res; s.onerror = function () { rej(new Error('CARTE')); }; document.head.appendChild(s); }); }
+    var css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'; document.head.appendChild(css);
+    var job = (window.maplibregl ? Promise.resolve() : ld('https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js')).then(function () { return L.maplibreGL ? null : ld('https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js'); }).then(function () { return fetch('https://tiles.openfreemap.org/styles/positron'); }).then(function (r) { if (!r.ok) throw new Error('CARTE'); return r.json(); }).then(function (st) { if (dir.map !== m) return; L.maplibreGL({ style: perleStyle(st) }).addTo(m); });
+    return Promise.race([job, new Promise(function (_, rej) { setTimeout(function () { rej(new Error('CARTE')); }, 9000); })]);
+  }
   function markHtml(p, on) {
     var t = dir.busy ? whenS(nextFree(p)) : 'dès ' + U.eur(minPrice(p)), ph = (p.avatar_url || p.cover_url) ? '<span class="mph ph" style="' + U.bg(p.avatar_url || p.cover_url) + '"></span>' : '<span class="mph noi">' + esc(inits(p)) + '</span>';
     return on ? '<span class="mk on">' + ph + '<span class="mtx"><b>' + esc(p.name.split(' ').slice(0, 2).join(' ')) + '</b><em>' + esc(t) + '</em></span><i></i></span>' : '<span class="mk">' + ph + '</span>';
@@ -253,7 +273,7 @@
       dir.mapLoading = false; var el = document.getElementById('map'); if (!el || dir.view !== 'map' || dir.map) return;
       var m = L.map(el, { zoomControl: false, attributionControl: false }); dir.map = m;
       if (AP) L.circle([48.8589, 2.347], { radius: 5300, color: '#5B2A86', weight: 1.5, dashArray: '6 6', fillColor: '#fff', fillOpacity: .7, interactive: false }).addTo(m).bindTooltip('Paris', { permanent: true, direction: 'center', className: 'maplab' });
-      else L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(m);
+      else glLayer(L, m).catch(function () { el.classList.add('rast'); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(m); });
       var pts = refreshMarks() || [];
       if (pts.length) m.fitBounds(L.latLngBounds(pts.map(function (x) { return [x.lat, x.lng]; })).pad(0.3), { maxZoom: 14, paddingTopLeft: [30, 150], paddingBottomRight: [30, 250] }); else m.setView([48.8589, 2.347], 11);
       drawDir();
@@ -291,7 +311,7 @@
     var pts = onMap(), key = pts.map(function (x) { return x.p.slug; }).join('|') + '/' + !!dir.busy + '/' + !!dir.me;
     if (key !== dir.carKey || !document.getElementById('car')) {
       dir.carKey = key;
-      var off = dir.list.filter(function (x) { return x.lat == null; }).length, osm = AP ? '' : '<a class="osm" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a>';
+      var off = dir.list.filter(function (x) { return x.lat == null; }).length, osm = AP ? '' : '<span class="osm"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> · <a href="https://openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> · <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a></span>';
       if (!pts.length) { box.innerHTML = '<div class="lglass pcard" style="margin:0 12px"><span class="grow" style="padding:10px 12px">Aucune coiffeuse sur la carte avec ces filtres.</span></div>'; return; }
       box.innerHTML = osm + '<div class="car" id="car">' + pts.map(function (x) {
         var p = x.p, nf = dir.busy ? nextFree(p) : null, km = dir.me ? U.dist(dir.me, x) : null;
