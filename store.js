@@ -1,7 +1,9 @@
 // Données : Supabase si config.js est rempli, sinon mode essai dans le navigateur.
 (function () {
   var C = window.PERLE || {};
-  var LIVE = !!(C.SUPABASE_URL && C.SUPABASE_KEY && window.supabase);
+  // ?demo=1 ouvre le mode essai (coiffeuses d'exemple) même quand la vraie base est branchée ; ?demo=0 en sort
+  var DEMO = false; try { if (/[?&]demo=1/.test(location.search)) sessionStorage.setItem('perle-demo', '1'); if (/[?&]demo=0/.test(location.search)) sessionStorage.removeItem('perle-demo'); DEMO = sessionStorage.getItem('perle-demo') === '1'; } catch (e) { }
+  var LIVE = !DEMO && !!(C.SUPABASE_URL && C.SUPABASE_KEY && window.supabase);
 
   // ---------- outils communs ----------
   var U = {
