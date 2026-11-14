@@ -38,7 +38,7 @@
   }
   function home() {
     var p = st.pro, ph = photos(), prices = st.svcs.map(function (s) { return Number(s.price); });
-    var h = hero(p.cover_url, null, ph.length > 1 ? '<span class="count">' + svg(I.photo, 14, 2.2) + ph.length + ' photos</span>' : '') + '<div class="sheet"><h1>' + esc(p.name) + '</h1><div class="meta">';
+    var h = hero(p.cover_url, null, ph.length > 1 ? '<span class="count">' + svg(I.photo, 14, 2.2) + ph.length + ' photos</span>' : '') + '<div class="sheet"><div class="row">' + (p.avatar_url ? '<span class="ava ph" style="' + U.bg(p.avatar_url) + '"></span>' : '') + '<h1 class="grow">' + esc(p.name) + '</h1></div><div class="meta">';
     if (p.city) h += '<span>' + svg(I.pin, 16) + esc(p.city) + '</span>';
     if (prices.length) h += '<span>' + svg(I.euro, 16) + (Math.min.apply(0, prices) === Math.max.apply(0, prices) ? U.eur(prices[0]) : 'de ' + U.eur(Math.min.apply(0, prices)).replace(' €', '') + ' à ' + U.eur(Math.max.apply(0, prices))) + '</span>';
     h += '</div>';
@@ -127,17 +127,24 @@
     h += '<p class="soft" style="margin-top:16px">' + esc(p.name) + ' confirme ton rendez-vous dès réception de l’acompte. Garde cette page ou fais une capture d’écran.</p></div>';
     app.innerHTML = h; setBar();
   }
-  var dir = { list: null, busy: null, day: null, mom: 'all', me: null, sel: '', ck: '', csel: {}, q: '', cat: 'Tout', view: (window.PERLE_VIEW != null ? window.PERLE_VIEW : new URLSearchParams(location.search).get('v')) || 'home', rdv: null };
+  function seen() { try { return localStorage.getItem('perle-vu') === '1'; } catch (e) { return true; } }
+  var dir = { list: null, busy: null, day: null, mom: 'all', me: null, sel: '', ck: '', csel: {}, q: '', cat: 'Tout', f: { max: null, when: 'all', pour: [], ou: [], sort: 'soon' }, view: (window.PERLE_VIEW != null ? window.PERLE_VIEW : new URLSearchParams(location.search).get('v')) || (seen() ? 'home' : 'open'), rdv: null };
   var CATS = [['Tresses', /braid|tresse|natte|knotless|fulani|cornrow|vanille/], ['Locks', /lock|locs|retwist/], ['Twists', /twist/], ['Perruques', /perruque|lace|wig|closure/], ['Cils', /cil|lash/], ['Hommes', /homme|barbe|degrade|coupe/]];
   I.home = '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>'; I.grid = '<rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/>';
   function saved() { try { return JSON.parse(localStorage.getItem('perle-rdv') || '[]'); } catch (e) { return []; } }
-  function cnav() { return '<nav class="nav" aria-label="Menu">' + [['home', 'Accueil', I.home], ['ideas', 'Idées de coiffures', I.grid], ['rdv', 'Mes rendez-vous', I.cal]].map(function (t) { return '<button data-view="' + t[0] + '" aria-selected="' + (dir.view === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '</button>'; }).join('') + '</nav>'; }
+  I.search = '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>'; I.filt = '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'; I.chev = '<path d="M9 6l6 6-6 6"/>';
+  function cnav() { var cur = /^(search|filters|date|map|calc)$/.test(dir.view) ? 'search' : dir.view; return '<nav class="nav" aria-label="Menu">' + [['home', 'Accueil', I.home], ['search', 'Rechercher', I.search], ['rdv', 'Mes rendez-vous', I.cal], ['ideas', 'Idées de coiffures', I.grid]].map(function (t) { return '<button data-view="' + t[0] + '" aria-selected="' + (cur === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '</button>'; }).join('') + '</nav>'; }
+  function anim() { app.classList.remove('anim'); void app.offsetWidth; app.classList.add('anim'); }
+  function sk(n, h) { var o = ''; for (var i = 0; i < n; i++) o += '<div class="sk" style="height:' + h + 'px"></div>'; return '<div aria-label="Chargement" role="status" style="margin-top:16px">' + o + '</div>'; }
   function catOf(p) { var t = U.norm(p.services.map(function (s) { return s.name; }).join(' ')); return CATS.filter(function (c) { return c[1].test(t); }).map(function (c) { return c[0]; }); }
   function proCta() { return '<div class="vio" style="margin-top:22px"><div class="b" style="font-size:20px;font-family:var(--hb)">Tu coiffes ?</div><div class="mut" style="margin:4px 0 14px">Crée ta page de réservation : tes photos, tes prix, tes créneaux, et un acompte pour chaque rendez-vous.</div><a class="btn" href="pro.html">Créer ma page' + ARROW + '</a></div>'; }
   function landing() {
     if (dir.map) { try { dir.map.remove(); } catch (e) { } dir.map = null; dir.marks = null; }
-    var h = top();
-    if (dir.view === 'how') {
+    document.body.classList.toggle('dark', dir.view === 'open');
+    var h = top(), me = {}; try { me = JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (e) { }
+    if (dir.view === 'open') {
+      h = '<div class="dark-screen open" style="background-image:url(img/bgKnotless.jpg)"><div class="top">' + U.logo() + badge() + '</div><div class="openb"><h1>Trouve <span class="hl" style="color:var(--noir)">ta perle</span> près de chez toi</h1><p class="soft" style="font-size:15px;margin:0">Perle te met en relation avec des coiffeuses et des coiffeurs près de chez toi. Tu réserves en ligne et tu bloques ta place avec un acompte.</p><button class="btn obtn" style="margin-top:8px" data-view="home">Je veux me faire coiffer<span class="oarr">' + svg(I.arrow, 18) + '</span></button><a class="btn glass obtn" href="pro.html">Je coiffe, je veux des clients<span class="oarr w">' + svg(I.arrow, 18) + '</span></a><button class="olink" data-view="how">Comment ça marche ?</button></div></div>';
+    } else if (dir.view === 'how') {
       h += '<h1 style="font-size:30px">Comment ça <span class="hl">marche</span></h1>';
       [['1', 'Tu choisis ta coiffure', 'Tu vois le prix exact selon la taille et la longueur, avant de réserver.'], ['2', 'Tu prends ton créneau', 'Seuls les créneaux vraiment libres s’affichent. Tu en choisis un en deux touches.'], ['3', 'Tu bloques ta place', 'Tu envoies un acompte à ta coiffeuse. Elle confirme, et le reste se règle sur place.']].forEach(function (s) { h += '<div class="card row" style="margin-top:12px;align-items:flex-start;border-radius:28px;padding:16px"><span class="stepn">' + s[0] + '</span><span class="grow"><span class="b" style="font-size:17px">' + s[1] + '</span><br><span class="mut">' + s[2] + '</span></span></div>'; });
       h += '<p class="note info">Tu peux annuler toi-même depuis « Mes rendez-vous », jusqu’au délai fixé par ta coiffeuse.</p><button class="btn" style="margin-top:16px" data-view="home">Trouver ma coiffure' + ARROW + '</button>';
@@ -146,26 +153,30 @@
     } else if (dir.view === 'date') {
       h = sub('Par date', '<label class="sr" for="fcat">Type de coiffure</label><select id="fcat" class="catsel"></select>') + '<h1>Tu es libre <span class="hl">quand</span> ?</h1><div id="fdays"></div><div id="fmom"></div><div id="dir"></div>';
     } else if (dir.view === 'map') {
-      h = '<div class="mapfull"><div id="map" role="region" aria-label="Carte des coiffeuses"></div><div class="maptop"><div class="row"><button class="round lglass" data-view="home" aria-label="Retour">' + svg(I.back, 20) + '</button><span class="lglass mapwhere">' + svg(I.pin, 18) + '<span id="mapwhere">Coiffeuses par quartier</span></span></div><div class="maprow"><span class="seg" role="group" aria-label="Affichage"><button data-view="home">' + svg(I.list, 15, 2.2) + 'Liste</button><button aria-pressed="true" data-view="map">' + svg(I.map, 15, 2.2) + 'Carte</button></span><button class="pill" data-view="date">' + svg(I.cal, 16) + 'Choisir une date</button><span id="chips" class="mapchips"></span></div><p class="mapnote" id="mapmsg">' + (AP ? 'Aperçu : le fond de carte et la localisation ne s’affichent pas ici.' : '') + '</p></div>' + (AP || !navigator.geolocation ? '' : '<button class="round lglass locate" data-locate="1" aria-label="Me localiser">' + svg(I.target, 20) + '</button>') + '<div id="dir" class="mapcard"></div></div>';
+      h = '<div class="mapfull"><div id="map" role="region" aria-label="Carte des coiffeuses"></div><div class="maptop"><div class="row"><button class="round lglass" data-view="search" aria-label="Retour">' + svg(I.back, 20) + '</button><span class="lglass mapwhere">' + svg(I.pin, 18) + '<span id="mapwhere">Coiffeuses par quartier</span></span></div><div class="maprow"><span class="seg" role="group" aria-label="Affichage"><button data-view="search">' + svg(I.list, 15, 2.2) + 'Liste</button><button aria-pressed="true" data-view="map">' + svg(I.map, 15, 2.2) + 'Carte</button></span><button class="pill" data-view="date">' + svg(I.cal, 16) + 'Choisir une date</button><span id="chips" class="mapchips"></span></div><p class="mapnote" id="mapmsg">' + (AP ? 'Aperçu : le fond de carte et la localisation ne s’affichent pas ici.' : '') + '</p></div>' + (AP || !navigator.geolocation ? '' : '<button class="round lglass locate" data-locate="1" aria-label="Me localiser">' + svg(I.target, 20) + '</button>') + '<div id="dir" class="mapcard"></div></div>';
     } else if (dir.view === 'calc') {
       h = sub('Mon prix') + '<h1>Ton prix, <span class="hl">avant</span> de réserver.</h1><p class="sub">Choisis ta coiffure et tes options : tu vois le prix chez chaque coiffeuse.</p><div id="dir"></div>';
     } else if (dir.view === 'rdv') {
       h += '<h1>Tes <span class="hl">rendez-vous</span>.</h1><div id="dir"></div>';
+    } else if (dir.view === 'filters') {
+      h = sub('Filtres', '<button class="link mutl" data-fclear="1">Tout effacer</button>') + '<div id="dir"></div>';
+    } else if (dir.view === 'search') {
+      h = '<h1 style="font-size:38px;margin-top:8px">Qui te coiffe <span class="hl">bientôt</span> ?</h1><div class="row" style="margin-top:16px;gap:10px"><label for="q" class="sr">Chercher une coiffure, une coiffeuse ou un quartier</label><span class="sbox grow">' + svg(I.search, 20) + '<input id="q" type="text" placeholder="Tresses, locks, Paris 19e" value="' + esc(dir.q) + '" autocomplete="off"></span><button class="round fbtn" data-view="filters" aria-label="Filtres" id="fbtn">' + svg(I.filt, 23) + '</button></div><div id="chips2"></div><div id="dir"></div>';
     } else {
-      h += '<h1>Trouve ta <span class="hl">coiffure</span>.</h1><p class="sub">Tresses, locks, twists. Le prix exact selon tes options, et ta place bloquée avec un acompte. <button class="link" data-view="how">Comment ça marche ?</button></p>';
-      h += '<label for="q" class="sr">Chercher une coiffure, une coiffeuse ou un quartier</label><input id="q" class="search" type="text" placeholder="Knotless, locks, Paris 19e…" value="' + esc(dir.q) + '" autocomplete="off"><div class="quick"><button data-view="date">' + svg(I.cal, 22) + '<span>Par date</span></button><button data-view="map">' + svg(I.pin, 22) + '<span>Sur la carte</span></button><button data-view="calc">' + svg(I.euro, 22) + '<span>Mon prix</span></button></div><div id="chips"></div><div id="dir"></div>' + proCta();
+      var nm = String(me.n || '').trim().split(' ')[0];
+      h = '<div class="top">' + (nm ? '<span class="hi">' + esc(nm.slice(0, 2).toUpperCase()) + '</span><span class="b grow" style="font-size:16px">Salut, ' + esc(nm) + '</span>' : U.logo()) + badge() + '</div><div class="row" style="align-items:flex-end;gap:12px"><h1 class="grow" style="font-size:38px">Trouve <span class="hl">ta</span><br>coiffure.</h1><button class="round big" data-view="search" aria-label="Rechercher">' + svg(I.search, 23) + '</button></div><div id="chips"></div><div id="tip"></div><div id="dir"></div><p style="text-align:center;margin:18px 0 0"><button class="link" data-view="how">Comment ça marche ?</button></p>' + proCta();
     }
-    app.innerHTML = h + cnav(); setBar(); drawDir();
+    app.innerHTML = h + (dir.view === 'open' || dir.view === 'filters' ? '' : cnav()); setBar(); anim(); drawDir();
     var q = document.getElementById('q'); if (q) q.addEventListener('input', function () { dir.q = q.value; drawDir(); });
     if (!dir.list) S.listPros().then(function (l) { dir.list = l || []; drawDir(); }).catch(function () { dir.list = []; drawDir(); });
-    if (dir.view === 'rdv') loadRdv();
+    if (dir.view === 'rdv' || (dir.view === 'home' && !dir.rdv && saved().length)) loadRdv();
   }
   // ----- recherche par date, carte, calculateur (écrans V_Date et V_Carte de la maquette) -----
   var AP = !!(window.PERLE || {}).APERCU;
   I.target = '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>';
   I.list = '<path d="M4 7h16M4 12h16M4 17h16"/>'; I.map = '<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>'; I.go = '<path d="M7 17L17 7M9 7h8v8"/>';
   var MOM = [['all', 'Toute la journée', 0, 24], ['am', 'Matin', 0, 12], ['pm', 'Après-midi', 12, 17], ['eve', 'Soir', 17, 24]];
-  function sub(title, right) { return '<div class="top"><button class="round" data-view="home" aria-label="Retour">' + svg(I.back, 20) + '</button><span class="ttl">' + title + '</span>' + (right || badge()) + '</div>'; }
+  function sub(title, right) { return '<div class="top"><button class="round" data-view="search" aria-label="Retour">' + svg(I.back, 20) + '</button><span class="ttl">' + title + '</span>' + (right || badge()) + '</div>'; }
   function minPrice(p) { return Math.min.apply(0, p.services.map(function (s) { return Number(s.price); })); }
   function cats() { return CATS.map(function (c) { return c[0]; }).filter(function (c) { return dir.list.some(function (p) { return catOf(p).indexOf(c) >= 0; }); }); }
   function svcsOf(p) { return dir.cat === 'Tout' ? p.services : p.services.filter(function (s) { var t = U.norm(s.name); return CATS.some(function (c) { return c[0] === dir.cat && c[1].test(t); }); }); }
@@ -216,12 +227,12 @@
   function leaflet() { return new Promise(function (res, rej) { if (window.L) return res(window.L); var s = document.createElement('script'); s.src = 'vendor/leaflet.js'; s.onload = function () { window.L ? res(window.L) : rej(new Error('CARTE')); }; s.onerror = function () { rej(new Error('CARTE')); }; document.head.appendChild(s); }); }
   // plusieurs coiffeuses du même quartier : même point, étiquettes empilées (décalage en pixels, quel que soit le zoom)
   function onMap() {
-    var grp = {}; dir.list.forEach(function (p) { if (p.lat != null && p.lng != null && (dir.cat === 'Tout' || catOf(p).indexOf(dir.cat) >= 0)) (grp[p.lat + ',' + p.lng] = grp[p.lat + ',' + p.lng] || []).push(p); });
+    var grp = {}; results().forEach(function (x) { var p = x.p; if (p.lat != null && p.lng != null) (grp[p.lat + ',' + p.lng] = grp[p.lat + ',' + p.lng] || []).push(p); });
     var out = []; Object.keys(grp).forEach(function (k) { var g = grp[k], n = g.length, cols = n > 5 ? 2 : 1, rows = Math.ceil(n / cols); g.forEach(function (p, i) { out.push({ p: p, lat: Number(p.lat), lng: Number(p.lng), dx: cols === 2 ? (i % 2 ? 64 : -64) : 0, dy: Math.round((Math.floor(i / cols) - (rows - 1) / 2) * 50) }); }); });
     return out;
   }
   function markHtml(p, on) {
-    var t = dir.busy ? whenS(nextFree(p)) : 'dès ' + U.eur(minPrice(p)), ph = '<span class="mph ph" style="' + U.bg(p.cover_url) + '"></span>';
+    var t = dir.busy ? whenS(nextFree(p)) : 'dès ' + U.eur(minPrice(p)), ph = '<span class="mph ph" style="' + U.bg(p.avatar_url || p.cover_url) + '"></span>';
     return on ? '<span class="mk on">' + ph + '<span class="mtx"><b>' + esc(p.name.split(' ').slice(0, 2).join(' ')) + '</b><em>' + esc(t) + '</em></span><i></i></span>' : '<span class="mk">' + ph + '<b>' + esc(t) + '</b></span>';
   }
   function refreshMarks() {
@@ -310,7 +321,7 @@
         return h;
       }).join('') + '</div>'; return;
     }
-    if (!dir.list) { box.innerHTML = '<p class="mut" style="margin-top:14px">Chargement…</p>'; return; }
+    if (!dir.list) { box.innerHTML = dir.view === 'map' ? '' : sk(2, 220); return; }
     if (!dir.list.length) { box.innerHTML = '<p class="note info">Les premières coiffeuses arrivent bientôt.</p>'; return; }
     if (dir.view === 'date') return drawDate(box);
     if (dir.view === 'map') return drawMap(box);
@@ -321,29 +332,80 @@
       var cols = ['', '']; tiles.forEach(function (t, k) { cols[k % 2] += '<a class="tile ph" href="./?c=' + encodeURIComponent(t.p.slug) + '&s=' + encodeURIComponent(t.s.id) + '" style="height:' + [230, 170, 200][k % 3] + 'px;' + U.bg(t.s.photo_url) + '"><span><b>' + esc(t.s.name) + '</b>' + esc(t.p.name.split(' ')[0]) + ', dès ' + U.eur(t.s.price) + '</span></a>'; });
       box.innerHTML = '<div class="masonry"><div>' + cols[0] + '</div><div>' + cols[1] + '</div></div>'; return;
     }
+    if (dir.view === 'filters') return drawFilters(box);
+    if (dir.view === 'search') return drawSearch(box);
+    return drawHome(box);
+  }
+  // ----- accueil, recherche, filtres (écrans V_Accueil, V_Recherche, V_Filtres de la maquette) -----
+  var TAGL = { femme: 'Femme', homme: 'Homme', enfant: 'Enfant', chez: 'Chez elle ou lui', domicile: 'À domicile', salon: 'En salon' };
+  function results(plain) {
+    var k = plain ? '' : U.norm(dir.q), f = plain ? { max: null, when: 'all', pour: [], ou: [], sort: 'soon' } : dir.f, n = new Date(), d0 = new Date(n.getFullYear(), n.getMonth(), n.getDate()).getTime();
+    function has(p, a) { return !a.length || a.some(function (t) { return (p.tags || []).indexOf(t) >= 0; }); }
+    var l = dir.list.filter(function (p) { return (dir.cat === 'Tout' || catOf(p).indexOf(dir.cat) >= 0) && (!k || U.norm([p.name, p.city].concat(p.services.map(function (s) { return s.name; })).join(' ')).indexOf(k) >= 0) && (!f.max || minPrice(p) <= f.max) && has(p, f.pour) && has(p, f.ou); })
+      .map(function (p) { return { p: p, nf: dir.busy ? nextFree(p) : null, km: dir.me && p.lat != null ? U.dist(dir.me, { lat: Number(p.lat), lng: Number(p.lng) }) : null }; });
+    if (dir.busy && f.when !== 'all') l = l.filter(function (x) { return x.nf && x.nf.getTime() < d0 + (f.when === 'today' ? 1 : 7) * 864e5; });
+    var big = 1e15;
+    return l.sort(function (a, c) { return f.sort === 'price' ? minPrice(a.p) - minPrice(c.p) : f.sort === 'near' && dir.me ? (a.km == null ? big : a.km) - (c.km == null ? big : c.km) : (a.nf ? +a.nf : big) - (c.nf ? +c.nf : big); });
+  }
+  function nfilters() { var f = dir.f; return (f.max ? 1 : 0) + (f.when !== 'all' ? 1 : 0) + f.pour.length + f.ou.length + (f.sort !== 'soon' ? 1 : 0); }
+  function pcard(x, hgt) {
+    var p = x.p;
+    return '<a class="photo-card ph" href="./?c=' + encodeURIComponent(p.slug) + (x.nf ? '&d=' + U.ymd(x.nf) : '') + '" style="display:block;text-decoration:none;height:' + hgt + 'px;' + U.bg(p.cover_url) + (p.cover_url ? '' : ';background:var(--vio)') + '"><span class="when">' + esc(dir.busy ? whenL(x.nf) : 'dès ' + U.eur(minPrice(p))) + '</span><span class="plate glass pl2"><b>' + esc(p.name) + '</b>' + esc([p.city, 'dès ' + U.eur(minPrice(p)), x.km != null ? U.near(x.km) : ''].filter(Boolean).join(', ')) + '</span><span class="pgo cgo">' + svg(I.go, 20) + '</span></a>';
+  }
+  function drawHome(box) {
+    if (!dir.busy) { box.innerHTML = sk(2, 240); return loadBusyAll(); }
     drawChips();
-    var k = U.norm(dir.q), l = dir.list.filter(function (p) { return (dir.cat === 'Tout' || catOf(p).indexOf(dir.cat) >= 0) && (!k || U.norm([p.name, p.city].concat(p.services.map(function (s) { return s.name; })).join(' ')).indexOf(k) >= 0); });
-    if (!l.length) { box.innerHTML = '<p class="note info">Aucun résultat pour cette recherche. Essaie un autre mot.</p>'; return; }
-    box.innerHTML = '<div style="margin-top:14px">' + l.map(function (p) {
-      var min = Math.min.apply(0, p.services.map(function (s) { return Number(s.price); }));
-      return '<a class="photo-card ph" href="./?c=' + encodeURIComponent(p.slug) + '" style="display:block;text-decoration:none;height:250px;' + U.bg(p.cover_url) + (p.cover_url ? '' : ';background:var(--vio)') + '"><span class="when">dès ' + U.eur(min) + '</span><span class="plate glass"><b>' + esc(p.name) + '</b>' + esc([p.city, p.services.slice(0, 3).map(function (s) { return s.name; }).join(', ')].filter(Boolean).join(' · ')) + '</span></a>';
-    }).join('') + '</div>';
+    var tip = document.getElementById('tip'), ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !navigator.standalone && !AP, hid = false; try { hid = localStorage.getItem('perle-tip') === '1'; } catch (e) { }
+    if (tip) tip.innerHTML = ios && !hid ? '<div class="card row" style="margin-top:14px;border-radius:24px;align-items:flex-start"><span class="grow mut" style="color:var(--ink2)"><b style="color:var(--noir)">Garde Perle comme une appli.</b><br>Touche le bouton Partager de Safari, puis « Sur l’écran d’accueil ».</span><button class="round sm" data-tipx="1" aria-label="Fermer">×</button></div>' : '';
+    var l = results(true);
+    if (!l.length) { box.innerHTML = '<p class="note info">Personne pour ce type de coiffure pour l’instant.</p>'; return; }
+    var now = Date.now(), nx = (dir.rdv || []).filter(function (r) { return (r.status === 'confirme' || (r.status === 'attente' && now - new Date(r.created_at).getTime() < 864e5)) && new Date(r.starts_at).getTime() > now; })[0], rv = '';
+    if (nx) { var s = new Date(nx.starts_at); rv = '<button class="rdvrow" data-view="rdv"><span class="dsq"><span>' + s.toLocaleDateString('fr-FR', { weekday: 'short' }) + '</span><b>' + s.getDate() + '</b></span><span class="grow"><span class="b" style="font-size:15px">Ton rendez-vous, ' + esc(s.toLocaleDateString('fr-FR', { weekday: 'long' })) + ' à ' + U.hm(s) + '</span><br><span class="mut">' + esc(nx.service) + ' chez ' + esc(nx.pro_name) + '</span></span>' + svg(I.chev, 18) + '</button>'; }
+    box.innerHTML = '<div class="row" style="justify-content:space-between;align-items:baseline;margin:18px 0 12px"><h2 style="margin:0">Disponibles bientôt</h2><button class="link mutl" data-view="search">Tout voir</button></div>' + pcard(l[0], 268) + rv + l.slice(1, 3).map(function (x) { return pcard(x, 220); }).join('') + (l.length > 3 ? '<button class="btn ghost" data-view="search">Voir les ' + l.length + ' coiffeuses' + ARROW + '</button>' : '');
+  }
+  function drawSearch(box) {
+    if (!dir.busy) loadBusyAll();
+    var c2 = document.getElementById('chips2'), near = dir.me && dir.f.sort === 'near';
+    if (c2) c2.innerHTML = '<div class="chips" style="margin-top:14px">' + (AP || !navigator.geolocation ? '' : '<button class="pill" data-near="1" aria-pressed="' + !!near + '">Près de moi</button>') + '<button class="pill" data-view="date" style="gap:7px">' + svg(I.cal, 16) + 'Choisir une date</button>' + cats().map(function (x) { return '<button class="pill" data-cat="' + x + '" aria-pressed="' + (dir.cat === x) + '">' + x + '</button>'; }).join('') + '<button class="pill" data-view="calc">Comparer les prix</button></div>';
+    var fb = document.getElementById('fbtn'); if (fb) fb.classList.toggle('dot', nfilters() > 0);
+    if (!dir.busy) { box.innerHTML = sk(3, 196); return; }
+    var l = results();
+    box.innerHTML = (dir.geoErr ? '<p class="note info">Localisation refusée ou indisponible. Les coiffeuses restent classées par disponibilité.</p>' : '') + '<div class="row" style="justify-content:space-between;margin:16px 0 12px"><h2 style="margin:0">' + l.length + ' coiffeuse' + (l.length > 1 ? 's' : '') + (near ? ' près de toi' : '') + '</h2><span class="seg" role="group" aria-label="Affichage"><button aria-pressed="true" data-view="search">' + svg(I.list, 15, 2.2) + 'Liste</button><button data-view="map">' + svg(I.map, 15, 2.2) + 'Carte</button></span></div>' + (l.length ? l.map(function (x) { return pcard(x, 196); }).join('') : '<p class="note info">Aucun résultat. Essaie un autre mot, ou enlève des filtres.</p>' + (nfilters() ? '<button class="btn ghost" style="margin-top:10px" data-fclear="1">Enlever les filtres</button>' : ''));
+  }
+  function fbar() { var n = results().length; setBar(n + ' coiffeuse' + (n > 1 ? 's' : ''), 'sur ' + dir.list.length, 'Voir', function () { dir.view = 'search'; landing(); window.scrollTo(0, 0); }); }
+  function drawFilters(box) {
+    if (!dir.busy) loadBusyAll();
+    var f = dir.f, pr = dir.list.map(minPrice), lo = Math.floor(Math.min.apply(0, pr) / 5) * 5, hi = Math.ceil(Math.max.apply(0, pr) / 5) * 5;
+    function grp(t, items) { return '<div class="fgrp"><span class="flab">' + t + '</span><div class="pills" role="group" aria-label="' + t + '">' + items.join('') + '</div></div>'; }
+    function one(k, v, l) { return '<button class="pill fp" data-f="' + k + ':' + v + '" aria-pressed="' + (f[k] === v) + '">' + l + '</button>'; }
+    function many(k, v) { return '<button class="pill fp" data-f="' + k + ':' + v + '" aria-pressed="' + (f[k].indexOf(v) >= 0) + '">' + TAGL[v] + '</button>'; }
+    box.innerHTML = (hi > lo ? '<div class="fgrp"><span class="row" style="justify-content:space-between;align-items:baseline"><label class="flab" for="fmax" style="margin:0">Budget maximum</label><span class="big" id="fmaxv">' + (f.max ? U.eur(f.max) : 'Sans limite') + '</span></span><input type="range" id="fmax" min="' + lo + '" max="' + hi + '" step="5" value="' + (f.max || hi) + '"></div>' : '') +
+      grp('Quand', [one('when', 'all', 'Peu importe'), one('when', 'today', 'Aujourd’hui'), one('when', 'week', 'Cette semaine'), '<button class="pill fp" data-view="date">Choisir une date</button>']) +
+      (cats().length ? grp('Type de coiffure', cats().map(function (x) { return '<button class="pill fp" data-cat="' + x + '" aria-pressed="' + (dir.cat === x) + '">' + x + '</button>'; })) : '') +
+      grp('Où', ['chez', 'domicile', 'salon'].map(function (v) { return many('ou', v); })) + grp('Pour', ['femme', 'homme', 'enfant'].map(function (v) { return many('pour', v); })) +
+      grp('Trier par', [one('sort', 'soon', 'Dispo le plus tôt'), one('sort', 'price', 'Moins chères')].concat(dir.me ? [one('sort', 'near', 'Plus proches')] : []));
+    fbar();
   }
   function missing() { app.innerHTML = top() + '<h1>Cette page n’existe pas.</h1><p class="sub">Vérifie le lien que la coiffeuse t’a envoyé.</p>'; setBar(); }
 
   var SCREENS = { home: home, options: options, slot: slot, me: me, done: done };
-  function go(step) { st.step = step; document.body.classList.toggle('dark', step === 'done'); SCREENS[step](); window.scrollTo(0, 0); }
+  function go(step) { st.step = step; document.body.classList.toggle('dark', step === 'done'); SCREENS[step](); anim(); window.scrollTo(0, 0); }
   async function loadBusy() {
     try { st.busy = await S.busy(slug, new Date().toISOString(), new Date(Date.now() + 29 * 864e5).toISOString()) || []; } catch (e) { st.busy = []; }
     if (st.step === 'slot') slot();
   }
 
   app.addEventListener('change', function (e) { if (e.target.id === 'fcat') { dir.cat = e.target.value; drawDir(); } });
+  app.addEventListener('input', function (e) { if (e.target.id === 'fmax') { var v = +e.target.value; dir.f.max = v >= +e.target.max ? null : v; document.getElementById('fmaxv').textContent = dir.f.max ? U.eur(dir.f.max) : 'Sans limite'; fbar(); } });
   app.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.go) return go(b.dataset.go);
-    if (b.dataset.view) { dir.view = b.dataset.view; landing(); return window.scrollTo(0, 0); }
-    if (b.dataset.cat) { dir.cat = b.dataset.cat; if (dir.view === 'map') { dir.sel = ''; refreshMarks(); } return drawDir(); }
+    if (b.dataset.view) { if (dir.view === 'open') { try { localStorage.setItem('perle-vu', '1'); } catch (x) { } } dir.view = b.dataset.view; landing(); return window.scrollTo(0, 0); }
+    if (b.dataset.tipx) { try { localStorage.setItem('perle-tip', '1'); } catch (x) { } return drawDir(); }
+    if (b.dataset.fclear) { dir.f = { max: null, when: 'all', pour: [], ou: [], sort: 'soon' }; dir.cat = 'Tout'; dir.q = ''; var qi = document.getElementById('q'); if (qi) qi.value = ''; return drawDir(); }
+    if (b.dataset.f) { var kv = b.dataset.f.split(':'), fk = kv[0], fv = kv[1]; if (fk === 'pour' || fk === 'ou') { var ix = dir.f[fk].indexOf(fv); ix >= 0 ? dir.f[fk].splice(ix, 1) : dir.f[fk].push(fv); } else dir.f[fk] = fv; var yf = window.scrollY; drawDir(); return window.scrollTo(0, yf); }
+    if (b.dataset.near) { if (dir.me && dir.f.sort === 'near') { dir.f.sort = 'soon'; return drawDir(); } if (dir.me) { dir.f.sort = 'near'; return drawDir(); } b.disabled = true; return navigator.geolocation.getCurrentPosition(function (pos) { dir.me = { lat: pos.coords.latitude, lng: pos.coords.longitude }; dir.f.sort = 'near'; dir.geoErr = false; drawDir(); }, function () { dir.geoErr = true; drawDir(); }, { timeout: 10000, maximumAge: 6e5 }); }
+    if (b.dataset.cat) { dir.cat = (dir.view !== 'home' && dir.cat === b.dataset.cat) ? 'Tout' : b.dataset.cat; if (dir.view === 'map') { dir.sel = ''; refreshMarks(); } return drawDir(); }
     if (b.dataset.fday) { dir.day = days()[+b.dataset.fday]; return drawDir(); }
     if (b.dataset.mom) { dir.mom = b.dataset.mom; return drawDir(); }
     if (b.dataset.locate) return locate(b);

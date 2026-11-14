@@ -33,8 +33,10 @@
   // ----- ma page -----
   function profile(first) {
     var p = st.pro || { name: '', slug: '', city: '', bio: '', whatsapp: '', pay_info: '', deposit_pct: 30, cover_url: '', gallery: [] };
+    function tg(t) { return '<label class="check" style="margin:0;color:inherit"><input type="checkbox" data-tag="' + t[0] + '"' + ((p.tags || []).indexOf(t[0]) >= 0 ? ' checked' : '') + '>' + t[1] + '</label>'; }
     var h = (first ? '<h1>Ta <span class="hl">page</span>.</h1><p class="sub">Ces informations s’affichent sur ton lien de réservation.</p>' : '') + note() + '<form id="fp">';
     if (!first) {
+      h += '<label>Ta photo de profil</label>' + picker('avatar', p.avatar_url, 'Choisir une photo');
       h += '<label>Ta photo de couverture</label>' + picker('cover', p.cover_url, 'Choisir une photo');
       h += '<label>Tes autres photos (8 au maximum)</label><div class="gpick">';
       (p.gallery || []).forEach(function (u, i) { h += '<span class="ph" style="' + U.bg(u) + '"><button type="button" class="x" data-rm="' + i + '" aria-label="Retirer cette photo">×</button></span>'; });
@@ -44,6 +46,7 @@
     h += '<label for="pn">Ton nom ou celui de ton activité</label><input id="pn" type="text" maxlength="60" required value="' + esc(p.name) + '">' +
       '<label for="ps">Le nom de ton lien</label><input id="ps" type="text" maxlength="30" required placeholder="awabraids" value="' + esc(p.slug) + '"><span class="mut">Lettres minuscules, chiffres et tirets, 3 caractères au moins.</span>' +
       '<label for="pc">Ta ville ou ton quartier</label><input id="pc" type="text" maxlength="60" placeholder="Paris 19e, ou 93200 Saint-Denis" value="' + esc(p.city) + '"><span class="mut">Sert à t’afficher sur la carte : seul ton quartier est montré, jamais ton adresse.' + (st.pro && p.city && p.lat == null ? ' Ton quartier n’a pas été trouvé : écris une ville, ou « Paris 19e ».' : '') + '</span>' +
+      '<label>Tu coiffes</label><div class="tagrow">' + [['femme', 'Femmes'], ['homme', 'Hommes'], ['enfant', 'Enfants']].map(tg).join('') + '</div><label>Où</label><div class="tagrow">' + [['chez', 'Chez moi'], ['domicile', 'À domicile'], ['salon', 'En salon']].map(tg).join('') + '</div><span class="mut">Sert aux filtres de recherche des clientes.</span>' +
       '<label for="pb">Quelques mots sur toi (facultatif)</label><textarea id="pb" maxlength="400">' + esc(p.bio) + '</textarea>' +
       '<label for="pw2">Ton numéro WhatsApp (facultatif)</label><input id="pw2" type="tel" maxlength="20" placeholder="06 12 34 56 78" value="' + esc(p.whatsapp) + '">' +
       '<label for="pd">Acompte demandé, en % du prix</label><input id="pd" type="number" min="0" max="100" step="5" value="' + esc(p.deposit_pct) + '">' +
@@ -181,7 +184,7 @@
     try {
       var url = await S.upload(await U.shrink(f, S.live ? 1400 : 900));
       if (k === 'sphoto') { keepForm(); st.edit.photo_url = url; return render(); }
-      var p = base(); if (k === 'cover') p.cover_url = url; else p.gallery = (st.pro.gallery || []).concat([url]).slice(0, 8);
+      var p = base(); if (k === 'cover') p.cover_url = url; else if (k === 'avatar') p.avatar_url = url; else p.gallery = (st.pro.gallery || []).concat([url]).slice(0, 8);
       st.pro = await S.savePro(p); st.msg = ['ok', 'Photo enregistrée.']; render();
     } catch (err) { fail(err); }
   });
@@ -225,7 +228,7 @@
         var slug = U.slug(val('ps')); if (slug.length < 3 || val('pn').length < 2) { st.msg = ['err', 'Écris ton nom et un lien de 3 caractères au moins.']; return render(); }
         var first = !st.pro;
         var g = await U.geo(val('pc'));
-        st.pro = await S.savePro({ name: val('pn'), slug: slug, city: val('pc'), lat: g ? g.lat : null, lng: g ? g.lng : null, bio: val('pb'), whatsapp: val('pw2'), pay_info: val('pp'), cancel_hours: parseInt(val('ph'), 10) || 0, deposit_pct: Math.max(0, Math.min(100, parseInt(val('pd'), 10) || 0)) });
+        st.pro = await S.savePro({ name: val('pn'), slug: slug, city: val('pc'), lat: g ? g.lat : null, lng: g ? g.lng : null, tags: Array.prototype.map.call(document.querySelectorAll('[data-tag]:checked'), function (x) { return x.dataset.tag; }), bio: val('pb'), whatsapp: val('pw2'), pay_info: val('pp'), cancel_hours: parseInt(val('ph'), 10) || 0, deposit_pct: Math.max(0, Math.min(100, parseInt(val('pd'), 10) || 0)) });
         st.msg = ['ok', (first ? 'Ta page est créée. Ajoute maintenant tes prestations et tes photos.' : 'C’est enregistré.') + (val('pc') ? (g ? ' Sur la carte, tu es placée au centre de ' + g.label + '. Si ce n’est pas le bon endroit, ajoute le code postal.' : ' Ton quartier n’a pas été trouvé pour la carte : écris une ville avec son code postal, ou « Paris 19e ».') : '')]; if (first) st.tab = 'svc'; return refresh();
       }
       if (f === 'fs') {
