@@ -169,7 +169,7 @@
     if (!st.pro) { app.innerHTML = top() + profile(true); return; }
     var T = { rdv: ['Bonjour, <span class="hl">' + esc(st.pro.name.split(' ')[0]) + '</span>.', rdv], svc: ['Tes <span class="hl">prestations</span>.', services], hrs: ['Tes <span class="hl">horaires</span>.', hours], pro: ['Ta <span class="hl">page</span>.', function () { return profile(false) + '<button class="btn ghost" style="margin-top:10px" data-act="out">Me déconnecter</button>'; }] }[st.tab];
     app.innerHTML = top() + '<h1>' + T[0] + '</h1><div style="margin-top:14px">' + T[1]() + '</div>' +
-      '<nav class="nav" aria-label="Menu">' + TABS.map(function (t) { return '<button data-tab="' + t[0] + '" aria-selected="' + (st.tab === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '</button>'; }).join('') + '</nav>';
+      '<nav class="nav" aria-label="Menu">' + TABS.map(function (t) { return '<button data-tab="' + t[0] + '" aria-selected="' + (st.tab === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '<span>' + t[1] + '</span></button>'; }).join('') + '</nav>';
   }
   async function refresh() {
     st.user = await S.session();
