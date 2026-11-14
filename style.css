@@ -351,3 +351,32 @@ h1.t2{font-family:'DM Sans',system-ui,sans-serif;font-weight:500;font-size:33px;
 h2{font-weight:600}
 .photo-card .fprice{top:16px;left:16px;background:var(--or);color:var(--noir);border-radius:18px;padding:7px 14px 8px;display:flex;flex-direction:column;line-height:1.1;font-family:var(--hb);font-weight:700;font-size:21px;letter-spacing:-.02em;box-shadow:0 4px 14px rgba(21,11,31,.25)}
 .fprice small{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:600;letter-spacing:0;opacity:.72;margin-bottom:1px}
+
+/* --- 6e passe : même style sobre partout, étiquette de prix commune --- */
+h1{font-family:'DM Sans',system-ui,sans-serif;font-weight:500;letter-spacing:-.035em}
+.hl{background:none;padding:0;border-radius:0;color:inherit !important;font-weight:700}
+.dark-screen .hl,.openb .hl{color:var(--or) !important}
+.big,.pname,.ref,.dayb b,.week span b,.stat b,.stepn{font-family:'DM Sans',system-ui,sans-serif;font-weight:600}
+.tabs{gap:2px;margin:18px 0 6px}
+.tab{flex:0 0 auto;min-height:0;border:0;background:none;padding:9px 15px;border-radius:999px;font-size:15px;font-weight:500;color:#8D859A}
+.tab[aria-selected="true"]{background:var(--or);color:var(--noir);font-weight:600;border:0}
+.pill{border:0;background:var(--soft);font-weight:600}
+.pill[aria-pressed="true"]{background:var(--or);color:var(--noir)}
+.dayb,.time,.week span{border:0;background:var(--soft)}
+.dayb[aria-pressed="true"],.week span.on{background:var(--noir);color:#fff}
+.time[aria-pressed="true"]{background:var(--or)}
+.fprice{background:var(--or);color:var(--noir);border-radius:18px;padding:7px 14px 8px;display:inline-flex;flex-direction:column;line-height:1.1;font-family:'DM Sans',system-ui,sans-serif;font-weight:700;font-size:21px;letter-spacing:-.02em;white-space:nowrap}
+.photo-card .fprice{font-family:'DM Sans',system-ui,sans-serif}
+.photo-card .fprice.r{left:auto;right:14px;top:14px;font-size:18px;padding:6px 12px 7px}
+.hero .fprice.hp{position:absolute;left:20px;bottom:54px;z-index:2;box-shadow:0 4px 14px rgba(21,11,31,.25)}
+.fprice.in{flex-shrink:0;font-size:18px;padding:6px 12px 7px;border-radius:16px;align-self:center}
+.svc .big{background:var(--or);border-radius:14px;padding:6px 12px 7px;font-size:17px;font-weight:700}
+.foot a{color:inherit;text-underline-offset:3px}
+.legal h1{font-size:30px;margin-top:8px}
+.legal h2{font-size:20px;margin:30px 0 8px;scroll-margin-top:16px}
+.legal h3{font-size:16px;margin:18px 0 4px}
+.legal p,.legal li{font-size:15px;color:var(--ink2);margin:6px 0}
+.legal ul{padding-left:20px;margin:6px 0}
+.legal .todo{background:var(--wab);color:var(--wat);border-radius:8px;padding:1px 6px;font-weight:600}
+.legal nav{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px}
+.legal nav a{background:var(--soft);border-radius:999px;padding:9px 14px;font-size:14px;font-weight:600;text-decoration:none}
