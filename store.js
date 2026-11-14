@@ -105,12 +105,32 @@
   // ---------- mode essai (dans ce navigateur seulement) ----------
   function local() {
     var K = 'perle-essai-v4';
-    function place(d) { d.pros.forEach(function (p) { if (!p.tags && (p.id === 'demo' || p.id === 'demo2')) p.tags = p.id === 'demo' ? ['femme', 'homme', 'enfant', 'chez', 'domicile'] : ['femme', 'homme', 'chez']; if (p.lat == null) { var g = U.geoParis(p.city); if (g) { p.lat = g.lat; p.lng = g.lng; } } }); return d; }
+    function place(d) { var ex = extra(); ex.pros.forEach(function (p) { if (!d.pros.some(function (q) { return q.id === p.id || q.slug === p.slug; })) { d.pros.push(p); ex.services.forEach(function (sv) { if (sv.pro_id === p.id) d.services.push(sv); }); } }); d.pros.forEach(function (p) { if (!p.tags && (p.id === 'demo' || p.id === 'demo2')) p.tags = p.id === 'demo' ? ['femme', 'homme', 'enfant', 'chez', 'domicile'] : ['femme', 'homme', 'chez']; if (p.lat == null) { var g = U.geoParis(p.city); if (g) { p.lat = g.lat; p.lng = g.lng; } } }); return d; }
     function load() { try { var d = JSON.parse(localStorage.getItem(K)); if (d && d.pros) return place(d); } catch (e) { } return place(seed()); }
     var mem = null;
     function db() { if (!mem) mem = load(); return mem; }
     function save() { try { localStorage.setItem(K, JSON.stringify(mem)); } catch (e) { } }
     function id() { return 'x' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
+    // coiffeuses d'exemple supplémentaires du mode essai (fictives), ajoutées aussi aux essais déjà commencés
+    function extra() {
+      function hrs(days, a, b) { var h = {}; days.forEach(function (d) { h[d] = [[a, b]]; }); return h; }
+      var B = { whatsapp: '', deposit_pct: 30, slot_step: 30, published: true, gallery: [], avatar_url: '' }, P = [
+        { id: 'demo3', slug: 'tressesbyfatou', name: 'Tresses by Fatou', city: 'Paris 18e', cover_url: 'img/fFulani.jpg', tags: ['femme', 'enfant', 'chez'], hours: hrs(['3', '4', '5', '6', '0'], '10:00', '19:00'), gallery: ['img/fKnotless.jpg', 'img/bgKnotless.jpg'] },
+        { id: 'demo4', slug: 'bintabraids', name: 'Binta Braids', city: 'Pantin', lat: 48.8966, lng: 2.4017, cover_url: 'img/fPerles.jpg', tags: ['femme', 'homme', 'domicile'], hours: hrs(['1', '2', '3', '4', '5'], '09:00', '17:00') },
+        { id: 'demo5', slug: 'lashbynaomi', name: 'Lash by Naomi', city: 'Paris 11e', cover_url: 'img/fCils.jpg', tags: ['femme', 'salon'], hours: hrs(['2', '3', '4', '5', '6'], '11:00', '20:00') },
+        { id: 'demo6', slug: 'koficuts', name: 'Kofi Cuts', city: 'Paris 10e', cover_url: '', tags: ['homme', 'enfant', 'salon'], hours: hrs(['0', '1', '2', '3', '4', '5', '6'], '10:00', '20:00') },
+        { id: 'demo7', slug: 'siraperruques', name: 'Sira Perruques', city: 'Montreuil', lat: 48.8637, lng: 2.4494, cover_url: 'img/fLace.jpg', tags: ['femme', 'chez', 'domicile'], hours: hrs(['4', '5', '6'], '09:00', '18:00') }
+      ].map(function (p) { for (var k in B) if (p[k] == null) p[k] = B[k]; p.bio = 'Exemple fictif pour essayer.'; p.pay_info = 'Wero au 06 00 00 00 00, en indiquant ta référence.'; return p; });
+      var LG = { group: 'Longueur', choices: [{ label: 'Épaules', plus: 0 }, { label: 'Milieu du dos', plus: 15, minutes: 60 }, { label: 'Taille', plus: 35, minutes: 90 }] };
+      var S2 = [
+        ['demo3', 'Fulani braids', 210, 70, 'img/fFulani.jpg'], ['demo3', 'Knotless braids', 270, 90, 'img/fKnotless.jpg', [{ group: 'Taille des tresses', choices: [{ label: 'S', plus: 0, minutes: 60 }, { label: 'M', plus: 10, minutes: 0 }, { label: 'L', plus: 20, minutes: -30 }] }, LG]], ['demo3', 'Vanilles', 150, 55, 'img/bgKnotless.jpg'],
+        ['demo4', 'Fulani braids', 240, 85, 'img/fPerles.jpg'], ['demo4', 'Cornrows', 90, 40, ''], ['demo4', 'Knotless braids', 300, 95, 'img/fKnotless.jpg', [LG]],
+        ['demo5', 'Extensions de cils', 90, 60, 'img/fCils.jpg'], ['demo5', 'Remplissage de cils', 60, 35, ''],
+        ['demo6', 'Dégradé', 30, 20, ''], ['demo6', 'Coupe et barbe', 45, 30, ''], ['demo6', 'Retwist locks', 75, 50, ''],
+        ['demo7', 'Pose de perruque lace', 120, 70, 'img/fLace.jpg'], ['demo7', 'Tissage', 150, 80, '']
+      ].map(function (a, i) { return { id: 'x' + (i + 1), pro_id: a[0], name: a[1], minutes: a[2], price: a[3], photo_url: a[4], options: a[5] || [], active: true, position: i }; });
+      return { pros: P, services: S2 };
+    }
     function seed() {
       var H = { '2': [['09:00', '18:00']], '3': [['09:00', '18:00']], '4': [['09:00', '18:00']], '5': [['09:00', '19:00']], '6': [['09:00', '19:00']] };
       return {
