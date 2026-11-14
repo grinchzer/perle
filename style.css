@@ -298,3 +298,54 @@ a.photo-card:active,.tile:active{transform:scale(.985)}
 .mk:not(.on){padding:3px;gap:0;box-shadow:0 6px 16px rgba(21,11,31,.28)}
 .mk:not(.on) .mph{width:38px;height:38px;border-radius:19px}
 .mkw:hover{z-index:2000 !important}
+/* --- 5e passe : accueil et recherche plus sobres (onglets en texte, grande carte, menu en barre) --- */
+.nav{left:0;right:0;bottom:0;transform:none;max-width:480px;margin:0 auto;border-radius:0;padding:10px 22px calc(10px + env(safe-area-inset-bottom));justify-content:space-between;background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;border:0;border-top:1px solid var(--line);box-shadow:none}
+.nav button{width:auto;min-width:46px;height:46px;border-radius:23px;padding:0 12px;gap:8px;font-size:14px;font-weight:600}
+.nav button span{display:none}
+.nav button[aria-selected="true"]{padding:0 18px}
+.nav button[aria-selected="true"] span{display:inline}
+.mapcard{bottom:calc(74px + env(safe-area-inset-bottom))}
+.hd{gap:10px;margin-bottom:16px}
+.hdt{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.hdt small{font-size:12px;color:var(--mut)}
+.hdt b{font-size:15px}
+.round.wb{width:44px;height:44px;border-radius:22px;background:var(--soft);border:0}
+.t1{font-size:22px;color:#A49CB0;margin:0;font-weight:400;letter-spacing:-.01em}
+h1.t2{font-family:'DM Sans',system-ui,sans-serif;font-weight:500;font-size:33px;letter-spacing:-.035em;line-height:1.1;margin:2px 0 0}
+.tabs2{display:flex;gap:2px;overflow-x:auto;margin:18px -20px 0;padding:0 20px 2px;scrollbar-width:none}
+.tabs2::-webkit-scrollbar{display:none}
+.tabs2 button{flex-shrink:0;padding:9px 15px;border-radius:999px;font-size:15px;font-weight:500;color:#8D859A;transition:background-color .15s ease,color .15s ease}
+.tabs2 button[aria-pressed="true"]{background:var(--or);color:var(--noir);font-weight:600}
+.feat{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:16px -20px 0;padding:0 20px 6px;scrollbar-width:none}
+.feat::-webkit-scrollbar{display:none}
+.feat .pwrap{flex:0 0 88%;scroll-snap-align:center}
+.feat .pwrap:only-child{flex-basis:100%}
+.photo-card.fc{border-radius:28px}
+.photo-card.fc::after{background:linear-gradient(180deg,rgba(21,11,31,0) 34%,rgba(21,11,31,.86) 100%)}
+.photo-card .fcb{left:18px;right:18px;bottom:18px;display:flex;flex-direction:column;gap:7px}
+.fcity{font-size:13px;display:inline-flex;gap:5px;align-items:center;opacity:.92}
+.fname{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.fname b{font-size:24px;font-weight:500;line-height:1.12;letter-spacing:-.02em}
+.fname em{font-style:normal;color:var(--or);font-weight:600;font-size:16px;white-space:nowrap;padding-bottom:2px}
+.fc.sm .fname b{font-size:20px}
+.fchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
+.fchips i{font-style:normal;font-size:12px;font-weight:500;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.26);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:inline-flex;gap:5px;align-items:center;white-space:nowrap}
+.heart.wb2{background:#fff;border:0;box-shadow:0 4px 14px rgba(21,11,31,.2);top:16px;right:16px}
+.qrow{display:flex;gap:18px;overflow-x:auto;margin:0 -20px;padding:2px 20px 4px;scrollbar-width:none}
+.qrow::-webkit-scrollbar{display:none}
+.qrow button{display:flex;align-items:center;gap:9px;flex-shrink:0;font-size:15px;font-weight:500}
+.qimg{width:44px;height:44px;border-radius:22px;flex-shrink:0}
+.qimg.noi{font-size:16px}
+.rdvrow{margin:14px 0 0}
+.scard{background:var(--soft);border-radius:28px;padding:18px 14px 14px;margin-top:4px}
+.st{font-size:21px;color:#8D859A;margin:0 4px 14px;letter-spacing:-.01em}
+.st b{color:var(--noir);font-weight:600}
+.fld{display:flex;align-items:center;gap:10px;background:#fff;border-radius:999px;padding:0 16px;min-height:50px;margin-bottom:8px;color:#8D859A}
+.fld svg{flex-shrink:0}
+.fld input,.fld select{border:0 !important;background:none !important;min-height:48px !important;padding:0 !important;font-size:15px !important;flex:1;min-width:0;width:auto;border-radius:0 !important;outline:none;color:var(--noir)}
+.fld:focus-within{outline:3px solid var(--vio);outline-offset:2px}
+.scard .tabs2{margin:6px -2px 14px;padding:0 2px;gap:6px}
+.scard .tabs2 button{background:#fff;padding:8px 14px;font-size:14px}
+.scard .tabs2 button[aria-pressed="true"]{background:var(--or)}
+.pill.dot::after{content:"";width:8px;height:8px;border-radius:4px;background:var(--or)}
+h2{font-weight:600}
