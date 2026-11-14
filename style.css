@@ -349,3 +349,5 @@ h1.t2{font-family:'DM Sans',system-ui,sans-serif;font-weight:500;font-size:33px;
 .scard .tabs2 button[aria-pressed="true"]{background:var(--or)}
 .pill.dot::after{content:"";width:8px;height:8px;border-radius:4px;background:var(--or)}
 h2{font-weight:600}
+.photo-card .fprice{top:16px;left:16px;background:var(--or);color:var(--noir);border-radius:18px;padding:7px 14px 8px;display:flex;flex-direction:column;line-height:1.1;font-family:var(--hb);font-weight:700;font-size:21px;letter-spacing:-.02em;box-shadow:0 4px 14px rgba(21,11,31,.25)}
+.fprice small{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:600;letter-spacing:0;opacity:.72;margin-bottom:1px}
