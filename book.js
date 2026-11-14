@@ -271,11 +271,11 @@
     if (dir.map || dir.mapLoading) return; dir.mapLoading = true;
     leaflet().then(function (L) {
       dir.mapLoading = false; var el = document.getElementById('map'); if (!el || dir.view !== 'map' || dir.map) return;
-      var m = L.map(el, { zoomControl: false, attributionControl: false }); dir.map = m;
+      var m = L.map(el, { zoomControl: false, attributionControl: false, zoomSnap: 0.5 }); dir.map = m;
       if (AP) L.circle([48.8589, 2.347], { radius: 5300, color: '#5B2A86', weight: 1.5, dashArray: '6 6', fillColor: '#fff', fillOpacity: .7, interactive: false }).addTo(m).bindTooltip('Paris', { permanent: true, direction: 'center', className: 'maplab' });
       else glLayer(L, m).catch(function () { el.classList.add('rast'); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(m); });
       var pts = refreshMarks() || [];
-      if (pts.length) m.fitBounds(L.latLngBounds(pts.map(function (x) { return [x.lat, x.lng]; })).pad(0.3), { maxZoom: 14, paddingTopLeft: [30, 150], paddingBottomRight: [30, 250] }); else m.setView([48.8589, 2.347], 11);
+      if (pts.length) m.fitBounds(L.latLngBounds(pts.map(function (x) { return [x.lat, x.lng]; })).pad(0.04), { maxZoom: 14, paddingTopLeft: [24, 130], paddingBottomRight: [24, 215] }); else m.setView([48.8589, 2.347], 11);
       drawDir();
     }).catch(function () { dir.mapLoading = false; var e = document.getElementById('mapmsg'); if (e) e.textContent = 'La carte n’a pas pu se charger. Vérifie ta connexion, ou passe par la liste.'; });
   }
