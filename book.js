@@ -132,12 +132,12 @@
   var CATS = [['Tresses', /braid|tresse|natte|knotless|fulani|cornrow|vanille/], ['Locks', /lock|locs|retwist/], ['Twists', /twist/], ['Perruques', /perruque|lace|wig|closure/], ['Cils', /cil|lash/], ['Hommes', /homme|barbe|degrade|coupe/]];
   I.home = '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>'; I.grid = '<rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/>';
   function saved() { try { return JSON.parse(localStorage.getItem('perle-rdv') || '[]'); } catch (e) { return []; } }
-  I.search = '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>'; I.filt = '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'; I.chev = '<path d="M9 6l6 6-6 6"/>';
-  function cnav() { var cur = /^(search|filters|date|map|calc)$/.test(dir.view) ? 'search' : dir.view; return '<nav class="nav" aria-label="Menu">' + [['home', 'Accueil', I.home], ['search', 'Rechercher', I.search], ['rdv', 'Mes rendez-vous', I.cal], ['ideas', 'Idées de coiffures', I.grid]].map(function (t) { return '<button data-view="' + t[0] + '" aria-selected="' + (cur === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '</button>'; }).join('') + '</nav>'; }
+  I.search = '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>'; I.user = '<circle cx="12" cy="8" r="4"/><path d="M4 20c1.500-4 5-5 8-5s6.500 1 8 5"/>'; I.tagi = '<path d="M4 4h7l9 9-7 7-9-9z"/><circle cx="8.500" cy="8.500" r="1.500"/>'; I.filt = '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'; I.chev = '<path d="M9 6l6 6-6 6"/>';
+  function cnav() { var cur = /^(search|filters|date|map|calc)$/.test(dir.view) ? 'search' : dir.view; return '<nav class="nav" aria-label="Menu">' + [['home', 'Accueil', I.home], ['search', 'Rechercher', I.search], ['rdv', 'Rendez-vous', I.cal], ['ideas', 'Idées', I.grid]].map(function (t) { return '<button data-view="' + t[0] + '" aria-selected="' + (cur === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '<span>' + t[1] + '</span></button>'; }).join('') + '</nav>'; }
   function anim() { app.classList.remove('anim'); void app.offsetWidth; app.classList.add('anim'); }
   function sk(n, h) { var o = ''; for (var i = 0; i < n; i++) o += '<div class="sk" style="height:' + h + 'px"></div>'; return '<div aria-label="Chargement" role="status" style="margin-top:16px">' + o + '</div>'; }
   function catOf(p) { var t = U.norm(p.services.map(function (s) { return s.name; }).join(' ')); return CATS.filter(function (c) { return c[1].test(t); }).map(function (c) { return c[0]; }); }
-  function proCta() { return '<div class="vio" style="margin-top:22px"><div class="b" style="font-size:20px;font-family:var(--hb)">Tu coiffes ?</div><div class="mut" style="margin:4px 0 14px">Crée ta page de réservation : tes photos, tes prix, tes créneaux, et un acompte pour chaque rendez-vous.</div><a class="btn" href="pro.html">Créer ma page' + ARROW + '</a></div>'; }
+  function proCta() { return '<div class="card" style="margin-top:22px;border-radius:28px;padding:18px"><div class="b" style="font-size:18px">Tu coiffes ?</div><div class="mut" style="margin:4px 0 14px">Crée ta page de réservation : tes photos, tes prix, tes créneaux, et un acompte pour chaque rendez-vous.</div><a class="btn dark" href="pro.html">Créer ma page' + ARROW + '</a></div>'; }
   function landing() {
     if (dir.map) { try { dir.map.remove(); } catch (e) { } dir.map = null; dir.marks = null; }
     document.body.classList.toggle('dark', dir.view === 'open');
@@ -161,10 +161,11 @@
     } else if (dir.view === 'filters') {
       h = sub('Filtres', '<button class="link mutl" data-fclear="1">Tout effacer</button>') + '<div id="dir"></div>';
     } else if (dir.view === 'search') {
-      h = '<h1 style="font-size:38px;margin-top:8px">Qui te coiffe <span class="hl">bientôt</span> ?</h1><div class="row" style="margin-top:16px;gap:10px"><label for="q" class="sr">Chercher une coiffure, une coiffeuse ou un quartier</label><span class="sbox grow">' + svg(I.search, 20) + '<input id="q" type="text" placeholder="Tresses, locks, Paris 19e" value="' + esc(dir.q) + '" autocomplete="off"></span><button class="round fbtn" data-view="filters" aria-label="Filtres" id="fbtn">' + svg(I.filt, 23) + '</button></div><div id="chips2"></div><div id="dir"></div>';
+      var fld = function (ic, inner) { return '<span class="fld">' + svg(ic, 18) + inner + '</span>'; };
+      h = top() + '<div class="scard"><p class="st">Trouve <b>ta coiffeuse</b></p><label for="q" class="sr">Chercher une coiffure, une coiffeuse ou un quartier</label>' + fld(I.search, '<input id="q" type="text" placeholder="Coiffure, coiffeuse, quartier" value="' + esc(dir.q) + '" autocomplete="off">') + fld(I.pin, '<select id="fcity" aria-label="Quartier"></select>') + fld(I.cal, '<select id="fwhen" aria-label="Quand"><option value="all">Peu importe le jour</option><option value="today">Aujourd’hui</option><option value="week">Cette semaine</option><option value="date">Choisir une date…</option></select>') + '<div class="grid2">' + fld(I.user, '<select id="fpour" aria-label="Pour qui"><option value="">Pour qui ?</option><option value="femme">Femme</option><option value="homme">Homme</option><option value="enfant">Enfant</option></select>') + fld(I.euro, '<select id="fbud" aria-label="Budget"><option value="">Budget</option><option value="40">40 € max</option><option value="60">60 € max</option><option value="80">80 € max</option><option value="100">100 € max</option></select>') + '</div><div id="stabs"></div><button class="btn" data-res="1">Rechercher</button></div><div id="chips2"></div><div id="dir"></div>';
     } else {
       var nm = String(me.n || '').trim().split(' ')[0];
-      h = '<div class="top">' + (nm ? '<span class="hi">' + esc(nm.slice(0, 2).toUpperCase()) + '</span><span class="b grow" style="font-size:16px">Salut, ' + esc(nm) + '</span>' : U.logo()) + badge() + '</div><div class="row" style="align-items:flex-end;gap:12px"><h1 class="grow" style="font-size:38px">Trouve <span class="hl">ta</span><br>coiffure.</h1><button class="round big" data-view="search" aria-label="Rechercher">' + svg(I.search, 23) + '</button></div><div id="chips"></div><div id="tip"></div><div id="dir"></div><p style="text-align:center;margin:18px 0 0"><button class="link" data-view="how">Comment ça marche ?</button></p>' + proCta();
+      h = '<div class="top hd">' + (nm ? '<span class="hi">' + esc(nm.slice(0, 2).toUpperCase()) + '</span>' : '<svg viewBox="0 0 100 100" width="44" height="44" aria-hidden="true" style="flex-shrink:0"><rect width="100" height="100" rx="50" fill="#5B2A86"></rect><g transform="translate(50 52) scale(.72) translate(-50 -50)"><circle cx="50" cy="38" r="26" fill="#D9A441"></circle><circle cx="50" cy="52" r="13" fill="#FFFFFF"></circle><path d="M24 88 Q24 68 50 68 Q76 68 76 88 Z" fill="#FFFFFF"></path></g></svg>') + '<span class="grow hdt"><small>' + (nm ? 'Bonjour' : 'Bienvenue sur') + '</small><b>' + (nm ? esc(nm) : 'Perle') + '</b></span><button class="round wb" data-view="map" aria-label="Voir la carte">' + svg(I.map, 20) + '</button><button class="round wb" data-view="filters" aria-label="Filtres">' + svg(I.filt, 20) + '</button></div><div class="row"><p class="t1 grow">Trouve</p>' + badge() + '</div><h1 class="t2">ta coiffure aujourd’hui</h1><div id="chips"></div><div id="tip"></div><div id="dir"></div><p style="text-align:center;margin:22px 0 0"><button class="link mutl" data-view="how">Comment ça marche ?</button></p>' + proCta();
     }
     app.innerHTML = h + (dir.view === 'open' || dir.view === 'filters' ? '' : cnav()); setBar(); anim(); drawDir();
     var q = document.getElementById('q'); if (q) q.addEventListener('input', function () { dir.q = q.value; drawDir(); });
@@ -389,7 +390,7 @@
   function results(plain) {
     var k = plain ? '' : U.norm(dir.q), f = plain ? { max: null, when: 'all', pour: [], ou: [], sort: 'soon' } : dir.f, fl = f.fav ? favs() : null, n = new Date(), d0 = new Date(n.getFullYear(), n.getMonth(), n.getDate()).getTime();
     function has(p, a) { return !a.length || a.some(function (t) { return (p.tags || []).indexOf(t) >= 0; }); }
-    var l = dir.list.filter(function (p) { return (dir.cat === 'Tout' || catOf(p).indexOf(dir.cat) >= 0) && (!k || U.norm([p.name, p.city].concat(p.services.map(function (s) { return s.name; })).join(' ')).indexOf(k) >= 0) && (!fl || fl.indexOf(p.slug) >= 0) && (!f.max || minPrice(p) <= f.max) && has(p, f.pour) && has(p, f.ou); })
+    var l = dir.list.filter(function (p) { return (dir.cat === 'Tout' || catOf(p).indexOf(dir.cat) >= 0) && (!k || U.norm([p.name, p.city].concat(p.services.map(function (s) { return s.name; })).join(' ')).indexOf(k) >= 0) && (!fl || fl.indexOf(p.slug) >= 0) && (!f.city || p.city === f.city) && (!f.max || minPrice(p) <= f.max) && has(p, f.pour) && has(p, f.ou); })
       .map(function (p) { return { p: p, nf: dir.busy ? nextFree(p) : null, km: dir.me && p.lat != null ? U.dist(dir.me, { lat: Number(p.lat), lng: Number(p.lng) }) : null }; });
     if (dir.busy && f.when !== 'all') l = l.filter(function (x) { return x.nf && x.nf.getTime() < d0 + (f.when === 'today' ? 1 : 7) * 864e5; });
     var big = 1e15;
@@ -400,30 +401,42 @@
   function ini(p) { return p.cover_url ? '' : '<span class="ini" aria-hidden="true">' + esc(inits(p)) + '</span>'; }
   function favs() { try { return JSON.parse(localStorage.getItem('perle-fav') || '[]'); } catch (e) { return []; } }
   I.heart = '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.600a5.500 5.500 0 0 0 0-7.800z"/>';
-  function nfilters() { var f = dir.f; return (f.fav ? 1 : 0) + (f.max ? 1 : 0) + (f.when !== 'all' ? 1 : 0) + f.pour.length + f.ou.length + (f.sort !== 'soon' ? 1 : 0); }
+  function nfilters() { var f = dir.f; return (f.city ? 1 : 0) + (f.fav ? 1 : 0) + (f.max ? 1 : 0) + (f.when !== 'all' ? 1 : 0) + f.pour.length + f.ou.length + (f.sort !== 'soon' ? 1 : 0); }
+  // carte photo : quartier, nom, prix, puis de petites infos (prochain créneau, nombre de prestations, lieu)
   function pcard(x, hgt) {
-    var p = x.p, fv = favs().indexOf(p.slug) >= 0;
-    return '<div class="pwrap"><a class="photo-card ph" href="./?c=' + encodeURIComponent(p.slug) + (x.nf ? '&d=' + U.ymd(x.nf) : '') + '" style="display:block;text-decoration:none;height:' + hgt + 'px;' + cov(p) + '">' + ini(p) + '<span class="when">' + esc(dir.busy ? whenL(x.nf) : 'dès ' + U.eur(minPrice(p))) + '</span><span class="plate glass pl2"><b>' + esc(p.name) + '</b>' + esc([p.city, 'dès ' + U.eur(minPrice(p)), x.km != null ? U.near(x.km) : ''].filter(Boolean).join(', ')) + '</span><span class="pgo cgo">' + svg(I.go, 20) + '</span></a><button class="heart lglass" data-fav="' + esc(p.slug) + '" aria-pressed="' + fv + '" aria-label="' + (fv ? 'Retirer des favoris : ' : 'Ajouter aux favoris : ') + esc(p.name) + '">' + svg(I.heart, 18) + '</button></div>';
+    var p = x.p, fv = favs().indexOf(p.slug) >= 0, ou = (p.tags || []).filter(function (t) { return t === 'domicile' || t === 'salon' || t === 'chez'; })[0], chips = [];
+    if (dir.busy) chips.push(svg(I.clock, 13, 2.2) + esc(whenS(x.nf)));
+    chips.push(svg(I.tagi, 13, 2.2) + p.services.length + ' prestation' + (p.services.length > 1 ? 's' : ''));
+    if (x.km != null) chips.push(esc(U.near(x.km))); else if (ou) chips.push(esc({ domicile: 'À domicile', salon: 'En salon', chez: 'Chez elle ou lui' }[ou]));
+    return '<div class="pwrap"><a class="photo-card ph fc' + (hgt < 260 ? ' sm' : '') + '" href="./?c=' + encodeURIComponent(p.slug) + (x.nf ? '&d=' + U.ymd(x.nf) : '') + '" style="display:block;text-decoration:none;height:' + hgt + 'px;' + cov(p) + '">' + ini(p) + '<span class="fcb">' + (p.city ? '<span class="fcity">' + svg(I.pin, 14) + esc(p.city) + '</span>' : '') + '<span class="fname"><b>' + esc(p.name) + '</b><em>dès ' + U.eur(minPrice(p)) + '</em></span><span class="fchips">' + chips.map(function (c) { return '<i>' + c + '</i>'; }).join('') + '</span></span></a><button class="heart wb2" data-fav="' + esc(p.slug) + '" aria-pressed="' + fv + '" aria-label="' + (fv ? 'Retirer des favoris : ' : 'Ajouter aux favoris : ') + esc(p.name) + '">' + svg(I.heart, 18) + '</button></div>';
   }
+  function tabs(id) { var el = document.getElementById(id); if (el) el.innerHTML = '<div class="tabs2" role="group" aria-label="Type de coiffure">' + ['Tout'].concat(cats()).map(function (c) { return '<button data-cat="' + c + '" aria-pressed="' + (dir.cat === c) + '">' + (c === 'Tout' && id === 'stabs' ? 'Toutes' : c) + '</button>'; }).join('') + '</div>'; }
   function drawHome(box) {
-    if (!dir.busy) { box.innerHTML = sk(2, 240); return loadBusyAll(); }
-    drawChips();
+    tabs('chips');
+    if (!dir.busy) { box.innerHTML = sk(1, 340); return loadBusyAll(); }
     var tip = document.getElementById('tip'), ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !navigator.standalone && !AP, hid = false; try { hid = localStorage.getItem('perle-tip') === '1'; } catch (e) { }
     if (tip) tip.innerHTML = ios && !hid ? '<div class="card row" style="margin-top:14px;border-radius:24px;align-items:flex-start"><span class="grow mut" style="color:var(--ink2)"><b style="color:var(--noir)">Garde Perle comme une appli.</b><br>Touche le bouton Partager de Safari, puis « Sur l’écran d’accueil ».</span><button class="round sm" data-tipx="1" aria-label="Fermer">×</button></div>' : '';
     var l = results(true);
     if (!l.length) { box.innerHTML = '<p class="note info">Personne pour ce type de coiffure pour l’instant.</p>'; return; }
     var now = Date.now(), nx = (dir.rdv || []).filter(function (r) { return (r.status === 'confirme' || (r.status === 'attente' && now - new Date(r.created_at).getTime() < 864e5)) && new Date(r.starts_at).getTime() > now; })[0], rv = '';
     if (nx) { var s = new Date(nx.starts_at); rv = '<button class="rdvrow" data-view="rdv"><span class="dsq"><span>' + s.toLocaleDateString('fr-FR', { weekday: 'short' }) + '</span><b>' + s.getDate() + '</b></span><span class="grow"><span class="b" style="font-size:15px">Ton rendez-vous, ' + esc(s.toLocaleDateString('fr-FR', { weekday: 'long' })) + ' à ' + U.hm(s) + '</span><br><span class="mut">' + esc(nx.service) + ' chez ' + esc(nx.pro_name) + '</span></span>' + svg(I.chev, 18) + '</button>'; }
-    box.innerHTML = '<div class="row" style="justify-content:space-between;align-items:baseline;margin:18px 0 12px"><h2 style="margin:0">Disponibles bientôt</h2><button class="link mutl" data-view="search">Tout voir</button></div>' + pcard(l[0], 268) + rv + l.slice(1, 3).map(function (x) { return pcard(x, 220); }).join('') + (l.length > 3 ? '<button class="btn ghost" data-view="search">Voir les ' + l.length + ' coiffeuses' + ARROW + '</button>' : '');
+    var qs = {}, ql = []; dir.list.forEach(function (p) { if (!p.city) return; if (!qs[p.city]) { qs[p.city] = { city: p.city, n: 0, img: '' }; ql.push(qs[p.city]); } qs[p.city].n++; if (!qs[p.city].img) qs[p.city].img = p.cover_url || ''; }); ql.sort(function (a, c) { return c.n - a.n; });
+    box.innerHTML = '<div class="feat" id="feat">' + l.slice(0, 8).map(function (x) { return pcard(x, 340); }).join('') + '</div>' + rv +
+      (ql.length > 1 ? '<div class="row" style="justify-content:space-between;align-items:baseline;margin:20px 0 12px"><h2 style="margin:0">Par quartier</h2><button class="link mutl" data-view="map">Voir la carte</button></div><div class="qrow">' + ql.map(function (q) { return '<button data-qcity="' + esc(q.city) + '">' + (q.img ? '<span class="qimg ph" style="' + U.bg(q.img) + '"></span>' : '<span class="qimg noi">' + esc(q.city.charAt(0)) + '</span>') + esc(q.city) + '</button>'; }).join('') + '</div>' : '') +
+      (l.length > 1 ? '<button class="btn ghost" style="margin-top:18px" data-view="search">Voir les ' + l.length + ' coiffeuses' + ARROW + '</button>' : '');
+    var ft = document.getElementById('feat'); if (ft) ft.scrollLeft = 0;
   }
   function drawSearch(box) {
     if (!dir.busy) loadBusyAll();
-    var c2 = document.getElementById('chips2'), near = dir.me && dir.f.sort === 'near';
-    if (c2) c2.innerHTML = '<div class="chips" style="margin-top:14px">' + (AP || !navigator.geolocation ? '' : '<button class="pill" data-near="1" aria-pressed="' + !!near + '">Près de moi</button>') + '<button class="pill" data-view="date" style="gap:7px">' + svg(I.cal, 16) + 'Choisir une date</button>' + (favs().length || dir.f.fav ? '<button class="pill" data-favonly="1" aria-pressed="' + !!dir.f.fav + '" style="gap:7px">' + svg(I.heart, 15) + 'Favoris</button>' : '') + cats().map(function (x) { return '<button class="pill" data-cat="' + x + '" aria-pressed="' + (dir.cat === x) + '">' + x + '</button>'; }).join('') + '<button class="pill" data-view="calc">Comparer les prix</button></div>';
-    var fb = document.getElementById('fbtn'); if (fb) fb.classList.toggle('dot', nfilters() > 0);
-    if (!dir.busy) { box.innerHTML = sk(3, 196); return; }
+    var f = dir.f, near = dir.me && f.sort === 'near', fc = document.getElementById('fcity');
+    if (fc && dir.list && !fc.options.length) { var seenC = {}; fc.innerHTML = '<option value="">Tous les quartiers</option>' + dir.list.map(function (p) { return p.city; }).filter(function (c) { return c && !seenC[c] && (seenC[c] = 1); }).sort().map(function (c) { return '<option>' + esc(c) + '</option>'; }).join(''); }
+    if (fc) fc.value = f.city || ''; var fw = document.getElementById('fwhen'); if (fw) fw.value = f.when; var fp = document.getElementById('fpour'); if (fp) fp.value = f.pour.length === 1 ? f.pour[0] : ''; var fb2 = document.getElementById('fbud'); if (fb2) fb2.value = f.max && [40, 60, 80, 100].indexOf(f.max) >= 0 ? String(f.max) : '';
+    tabs('stabs');
+    var c2 = document.getElementById('chips2');
+    if (c2) c2.innerHTML = '<div class="chips" style="margin-top:14px">' + (AP || !navigator.geolocation ? '' : '<button class="pill" data-near="1" aria-pressed="' + !!near + '">Près de moi</button>') + '<button class="pill" data-view="date" style="gap:7px">' + svg(I.cal, 16) + 'Choisir une date</button>' + (favs().length || f.fav ? '<button class="pill" data-favonly="1" aria-pressed="' + !!f.fav + '" style="gap:7px">' + svg(I.heart, 15) + 'Favoris</button>' : '') + '<button class="pill' + (nfilters() ? ' dot' : '') + '" data-view="filters" id="fbtn" style="gap:7px">' + svg(I.filt, 16) + 'Plus de filtres</button><button class="pill" data-view="calc">Comparer les prix</button></div>';
+    if (!dir.busy) { box.innerHTML = sk(3, 220); return; }
     var l = results();
-    box.innerHTML = (dir.geoErr ? '<p class="note info">Localisation refusée ou indisponible. Les coiffeuses restent classées par disponibilité.</p>' : '') + '<div class="row" style="justify-content:space-between;margin:16px 0 12px"><h2 style="margin:0">' + l.length + ' coiffeuse' + (l.length > 1 ? 's' : '') + (near ? ' près de toi' : '') + '</h2><span class="seg" role="group" aria-label="Affichage"><button aria-pressed="true" data-view="search">' + svg(I.list, 15, 2.2) + 'Liste</button><button data-view="map">' + svg(I.map, 15, 2.2) + 'Carte</button></span></div>' + (l.length ? l.map(function (x) { return pcard(x, 196); }).join('') : '<p class="note info">Aucun résultat. Essaie un autre mot, ou enlève des filtres.</p>' + (nfilters() ? '<button class="btn ghost" style="margin-top:10px" data-fclear="1">Enlever les filtres</button>' : ''));
+    box.innerHTML = (dir.geoErr ? '<p class="note info">Localisation refusée ou indisponible. Les coiffeuses restent classées par disponibilité.</p>' : '') + '<div class="row" style="justify-content:space-between;margin:16px 0 12px"><h2 style="margin:0">' + l.length + ' coiffeuse' + (l.length > 1 ? 's' : '') + (near ? ' près de toi' : '') + '</h2><span class="seg" role="group" aria-label="Affichage"><button aria-pressed="true" data-view="search">' + svg(I.list, 15, 2.2) + 'Liste</button><button data-view="map">' + svg(I.map, 15, 2.2) + 'Carte</button></span></div>' + (l.length ? l.map(function (x) { return pcard(x, 230); }).join('') : '<p class="note info">Aucun résultat. Essaie un autre mot, ou enlève des filtres.</p>' + (nfilters() || dir.cat !== 'Tout' ? '<button class="btn ghost" style="margin-top:10px" data-fclear="1">Enlever les filtres</button>' : ''));
   }
   function fbar() { var n = results().length; setBar(n + ' coiffeuse' + (n > 1 ? 's' : ''), 'sur ' + dir.list.length, 'Voir', function () { dir.view = 'search'; landing(); window.scrollTo(0, 0); }); }
   function drawFilters(box) {
@@ -448,7 +461,14 @@
     if (st.step === 'slot') slot();
   }
 
-  app.addEventListener('change', function (e) { if (e.target.id === 'fcat') { dir.cat = e.target.value; drawDir(); } });
+  app.addEventListener('change', function (e) {
+    var id = e.target.id, v = e.target.value;
+    if (id === 'fcat') { dir.cat = v; return drawDir(); }
+    if (id === 'fcity') { dir.f.city = v; return drawDir(); }
+    if (id === 'fwhen') { if (v === 'date') { dir.view = 'date'; landing(); return window.scrollTo(0, 0); } dir.f.when = v; return drawDir(); }
+    if (id === 'fpour') { dir.f.pour = v ? [v] : []; return drawDir(); }
+    if (id === 'fbud') { dir.f.max = v ? +v : null; return drawDir(); }
+  });
   app.addEventListener('input', function (e) { if (e.target.id === 'fmax') { var v = +e.target.value; dir.f.max = v >= +e.target.max ? null : v; document.getElementById('fmaxv').textContent = dir.f.max ? U.eur(dir.f.max) : 'Sans limite'; fbar(); } });
   app.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
@@ -458,8 +478,10 @@
     if (b.dataset.favonly) { dir.f.fav = !dir.f.fav; return drawDir(); }
     if (b.dataset.city) { dir.cityOpen = !dir.cityOpen; return drawDir(); }
     if (b.dataset.cityv != null) return goCity(b.dataset.cityv);
+    if (b.dataset.qcity) { dir.f.city = b.dataset.qcity; dir.view = 'search'; landing(); return window.scrollTo(0, 0); }
+    if (b.dataset.res) { var rs = document.getElementById('chips2'); if (rs) rs.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     if (b.dataset.tipx) { try { localStorage.setItem('perle-tip', '1'); } catch (x) { } return drawDir(); }
-    if (b.dataset.fclear) { dir.f = { fav: false, max: null, when: 'all', pour: [], ou: [], sort: 'soon' }; dir.cat = 'Tout'; dir.q = ''; var qi = document.getElementById('q'); if (qi) qi.value = ''; return drawDir(); }
+    if (b.dataset.fclear) { dir.f = { city: '', fav: false, max: null, when: 'all', pour: [], ou: [], sort: 'soon' }; dir.cat = 'Tout'; dir.q = ''; var qi = document.getElementById('q'); if (qi) qi.value = ''; return drawDir(); }
     if (b.dataset.f) { var kv = b.dataset.f.split(':'), fk = kv[0], fv = kv[1]; if (fk === 'pour' || fk === 'ou') { var ix = dir.f[fk].indexOf(fv); ix >= 0 ? dir.f[fk].splice(ix, 1) : dir.f[fk].push(fv); } else dir.f[fk] = fv; var yf = window.scrollY; drawDir(); return window.scrollTo(0, yf); }
     if (b.dataset.near) { if (dir.me && dir.f.sort === 'near') { dir.f.sort = 'soon'; return drawDir(); } if (dir.me) { dir.f.sort = 'near'; return drawDir(); } b.disabled = true; return navigator.geolocation.getCurrentPosition(function (pos) { dir.me = { lat: pos.coords.latitude, lng: pos.coords.longitude }; dir.f.sort = 'near'; dir.geoErr = false; drawDir(); }, function () { dir.geoErr = true; drawDir(); }, { timeout: 10000, maximumAge: 6e5 }); }
     if (b.dataset.cat) { dir.cat = (dir.view !== 'home' && dir.cat === b.dataset.cat) ? 'Tout' : b.dataset.cat; if (dir.view === 'map') { dir.sel = ''; refreshMarks(); dir.carKey = ''; } return drawDir(); }
