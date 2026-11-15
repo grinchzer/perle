@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Perle arrive · Liste d’attente</title>
+<meta name="description" content="Perle, la réservation de coiffure afro en Île-de-France. Laisse ton contact pour être prévenue à l’ouverture.">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#150B1F">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=DM+Sans:wght@400;500;600;700&family=Syne:wght@800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=12">
+<style>
+body{background:var(--noir);color:#fff}
+.wl{padding-bottom:48px}
+.wl .logo{color:#fff}
+.wl h1{margin-top:26px}
+.wl h1 em{font-style:normal;color:var(--or)}
+.wl .sub{color:#D9CFE4;font-size:16px;margin-top:12px}
+.wl .choice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:26px}
+.wl .choice button{min-height:92px;border-radius:26px;background:#24143A;color:#fff;font-weight:700;font-size:15px;padding:12px;line-height:1.25;border:2px solid transparent}
+.wl .choice button small{display:block;font-weight:500;font-size:13px;color:#BFB2CF;margin-top:4px}
+.wl .choice button[aria-pressed="true"]{border-color:var(--or);background:#2E1A4A}
+.wl form{background:#fff;color:var(--noir);border-radius:28px;padding:6px 18px 18px;margin-top:14px}
+.wl .promise{font-size:15px;color:var(--ink2);margin:14px 0 0}
+.wl .check{display:flex;gap:10px;align-items:flex-start;font-weight:500;color:var(--ink2);font-size:13px;margin:16px 0 14px}
+.wl .check input{width:22px;height:22px;flex-shrink:0;accent-color:var(--vio);margin:0}
+.wl .msg{border-radius:18px;padding:10px 14px;font-size:14px;font-weight:600;margin:0 0 12px;background:var(--errb);color:var(--err)}
+.wl .done{background:#fff;color:var(--noir);border-radius:28px;padding:22px 18px;margin-top:14px;text-align:center}
+.wl .done b{font-family:var(--hb);font-size:22px;display:block;margin-bottom:6px}
+.wl .foot{color:#9F92B0;font-size:13px;margin-top:22px;text-align:center}
+.wl .foot a{color:#D9CFE4}
+</style>
+</head>
+<body>
+<main class="wrap wl">
+<a class="logo" href="./" aria-label="Perle, accueil"><svg viewBox="0 0 100 100" width="34" height="34" aria-hidden="true"><rect x="0" y="0" width="100" height="100" rx="24" fill="#5B2A86"></rect><circle cx="50" cy="38" r="26" fill="#D9A441"></circle><circle cx="40.9" cy="28.9" r="5.700" fill="#FFFFFF" fill-opacity="0.850"></circle><circle cx="50" cy="52" r="13" fill="#FFFFFF"></circle><path d="M24 88 Q24 68 50 68 Q76 68 76 88 Z" fill="#FFFFFF"></path></svg><span>perle</span></a>
+<h1>Réserver sa coiffure afro, <em>sans dix messages.</em></h1>
+<p class="sub">Tresses, locks, perruques, coupes : les prix affichés, les créneaux en direct, l’acompte qui bloque la place. Perle ouvre bientôt en Île-de-France.</p>
+
+<div class="choice" role="group" aria-label="Tu es">
+<button type="button" id="rCli" aria-pressed="true">Je cherche une coiffeuse<small>Préviens-moi à l’ouverture</small></button>
+<button type="button" id="rPro" aria-pressed="false">Je coiffe<small>Je veux ma page de réservation</small></button>
+</div>
+
+<form id="f" novalidate>
+<p class="promise" id="promise"></p>
+<label for="contact">Ton e-mail ou ton @Instagram</label>
+<input type="text" id="contact" name="contact" autocomplete="email" maxlength="120" placeholder="toi@exemple.fr ou @toncompte" required>
+<label for="city">Ta ville</label>
+<input type="text" id="city" name="city" autocomplete="address-level2" maxlength="80" placeholder="Saint-Denis, Paris 19e…" required>
+<label class="check" for="ok"><input type="checkbox" id="ok"><span>J’accepte que Perle garde ce contact pour me prévenir de l’ouverture. Rien d’autre, et je peux demander sa suppression à tout moment. <a href="legal.html#confidentialite">En savoir plus</a></span></label>
+<p class="msg" id="msg" role="alert" hidden></p>
+<button class="btn" id="go" type="submit">Me prévenir</button>
+</form>
+
+<div class="done" id="done" hidden><b>C’est noté.</b><span id="doneT"></span></div>
+
+<p class="foot">Déjà prête à essayer ? <a href="./">Voir l’appli</a> · <a href="pro.html">Créer ma page de coiffeuse</a></p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=12"></script>
+<script>
+(function () {
+  var C = window.PERLE || {}, role = 'cliente';
+  var $ = function (id) { return document.getElementById(id); };
+  var TXT = {
+    cliente: ['Laisse ton contact : on te prévient dès que des coiffeuses de ta ville sont réservables.', 'Me prévenir', 'On te prévient dès que des coiffeuses sont réservables près de chez toi.'],
+    coiffeuse: ['Ta page avec tes prix, tes créneaux et ton acompte, à mettre en lien dans ta bio. Laisse ton contact : on te recontacte pour la créer avec toi.', 'Je veux ma page', 'On te recontacte très vite pour créer ta page avec toi.']
+  };
+  function setRole(r) {
+    role = r;
+    $('rCli').setAttribute('aria-pressed', r === 'cliente'); $('rPro').setAttribute('aria-pressed', r === 'coiffeuse');
+    $('promise').textContent = TXT[r][0]; $('go').textContent = TXT[r][1];
+  }
+  $('rCli').onclick = function () { setRole('cliente'); }; $('rPro').onclick = function () { setRole('coiffeuse'); };
+  var m = location.search.match(/[?&]je=(coiffeuse|cliente)/); setRole(m ? m[1] : 'cliente');
+  var src = (location.search.match(/[?&]s=([a-z0-9_-]{1,40})/i) || [])[1] || null;
+  function err(t) { $('msg').textContent = t; $('msg').hidden = false; }
+  $('f').onsubmit = async function (e) {
+    e.preventDefault(); $('msg').hidden = true;
+    var contact = $('contact').value.trim(), city = $('city').value.trim();
+    var mail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contact), insta = /^@?[A-Za-z0-9._]{2,30}$/.test(contact);
+    if (!mail && !insta) return err('Écris un e-mail ou un @Instagram valide.');
+    if (!mail && contact.charAt(0) !== '@') contact = '@' + contact;
+    if (city.length < 2) return err('Indique ta ville.');
+    if (!$('ok').checked) return err('Coche la case pour qu’on puisse te prévenir.');
+    if (!(C.SUPABASE_URL && C.SUPABASE_KEY && window.supabase)) return err('L’inscription est indisponible pour le moment. Réessaie plus tard.');
+    $('go').disabled = true;
+    try {
+      var sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_KEY, { auth: { persistSession: false } });
+      var r = await sb.from('waitlist').insert({ role: role, contact: contact, city: city, source: src });
+      if (r.error && r.error.code !== '23505') throw r.error;
+      $('f').hidden = true; document.querySelector('.choice').hidden = true;
+      $('doneT').textContent = TXT[role][2]; $('done').hidden = false;
+    } catch (x) { $('go').disabled = false; err('L’inscription n’a pas pu être enregistrée. Vérifie ta connexion et réessaie.'); }
+  };
+})();
+</script>
+</body>
+</html>
