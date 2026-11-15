@@ -4,72 +4,109 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Perle arrive · Liste d’attente</title>
-<meta name="description" content="Perle, la réservation de coiffure afro en Île-de-France. Laisse ton contact pour être prévenue à l’ouverture.">
+<meta name="description" content="Perle, la réservation de coiffure afro en Île-de-France. Laisse ton e-mail pour être prévenue à l’ouverture.">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#150B1F">
+<meta name="theme-color" content="#5B2A86">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=DM+Sans:wght@400;500;600;700&family=Syne:wght@800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=12">
+<link rel="stylesheet" href="style.css?v=13">
 <style>
-body{background:var(--noir);color:#fff}
-.wl{padding-bottom:48px}
-.wl .logo{color:#fff}
-.wl h1{margin-top:26px}
-.wl h1 em{font-style:normal;color:var(--or)}
-.wl .sub{color:#D9CFE4;font-size:16px;margin-top:12px}
-.wl .choice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:26px}
-.wl .choice button{min-height:92px;border-radius:26px;background:#24143A;color:#fff;font-weight:700;font-size:15px;padding:12px;line-height:1.25;border:2px solid transparent}
-.wl .choice button small{display:block;font-weight:500;font-size:13px;color:#BFB2CF;margin-top:4px}
-.wl .choice button[aria-pressed="true"]{border-color:var(--or);background:#2E1A4A}
-.wl form{background:#fff;color:var(--noir);border-radius:28px;padding:6px 18px 18px;margin-top:14px}
-.wl .promise{font-size:15px;color:var(--ink2);margin:14px 0 0}
-.wl .check{display:flex;gap:10px;align-items:flex-start;font-weight:500;color:var(--ink2);font-size:13px;margin:16px 0 14px}
-.wl .check input{width:22px;height:22px;flex-shrink:0;accent-color:var(--vio);margin:0}
-.wl .msg{border-radius:18px;padding:10px 14px;font-size:14px;font-weight:600;margin:0 0 12px;background:var(--errb);color:var(--err)}
-.wl .done{background:#fff;color:var(--noir);border-radius:28px;padding:22px 18px;margin-top:14px;text-align:center}
-.wl .done b{font-family:var(--hb);font-size:22px;display:block;margin-bottom:6px}
-.wl .foot{color:#9F92B0;font-size:13px;margin-top:22px;text-align:center}
-.wl .foot a{color:#D9CFE4}
+html,body{min-height:100%}
+body{background:var(--vio)}
+.wl{max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.whero{position:relative;height:330px;flex-shrink:0;color:#fff}
+.whero::before,.whero::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.08)}
+.whero::before{width:300px;height:300px;right:-120px;top:-90px}
+.whero::after{width:230px;height:230px;left:-110px;bottom:-40px}
+.whero .dot{position:absolute;border-radius:50%;background:var(--or)}
+.whero .d1{width:14px;height:14px;left:42px;top:118px}
+.whero .d2{width:9px;height:9px;right:54px;top:214px;background:#fff;opacity:.55}
+.whero .logo{position:absolute;left:20px;top:18px;color:#fff;z-index:2}
+.fan{position:absolute;left:0;right:0;top:78px;height:220px;z-index:1}
+.fan i{position:absolute;top:22px;width:118px;height:158px;border-radius:26px;background-size:cover;background-position:center;box-shadow:0 14px 30px rgba(21,11,31,.35);border:4px solid #fff}
+.fan .a{left:calc(50% - 158px);transform:rotate(-9deg)}
+.fan .c{left:calc(50% + 40px);transform:rotate(9deg)}
+.fan .b{left:calc(50% - 72px);top:0;width:144px;height:194px;border-radius:30px;z-index:2}
+.fan .tag{position:absolute;z-index:3;background:var(--or);color:var(--noir);font-weight:700;font-size:13px;border-radius:999px;padding:7px 13px;box-shadow:0 6px 16px rgba(21,11,31,.25);white-space:nowrap}
+.fan .t1{left:calc(50% - 170px);top:150px;transform:rotate(-6deg)}
+.fan .t2{left:calc(50% + 22px);top:-8px;transform:rotate(5deg);background:#fff}
+.wsheet{background:#fff;color:var(--noir);border-radius:36px 36px 0 0;margin-top:-26px;position:relative;z-index:4;flex:1;padding:26px 22px 30px}
+.wsheet h1{font-size:31px;text-align:center}
+.wsheet h1 em{font-style:normal;background:linear-gradient(transparent 58%,#F1D48F 58%)}
+.wsheet .sub{text-align:center;font-size:15px;margin:10px auto 0;max-width:340px}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--soft);border-radius:26px;padding:4px;margin-top:20px}
+.seg2 button{min-height:46px;border-radius:22px;font-weight:700;font-size:14px;color:var(--ink2)}
+.seg2 button[aria-pressed="true"]{background:var(--noir);color:#fff}
+.wsheet .promise{font-size:14px;color:var(--ink2);margin:14px 2px 0;text-align:center}
+.wsheet label{margin-top:12px}
+.check{display:flex !important;gap:10px;align-items:flex-start;font-weight:500 !important;color:var(--ink2) !important;font-size:13px !important;margin:14px 0 !important}
+.check input{width:22px;height:22px;flex-shrink:0;accent-color:var(--vio);margin:0}
+.msg{border-radius:18px;padding:10px 14px;font-size:14px;font-weight:600;margin:0 0 12px;background:var(--errb);color:var(--err)}
+.or{display:flex;align-items:center;gap:12px;color:var(--mut);font-size:13px;margin:14px 0}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.wdone{text-align:center;padding:18px 0 6px}
+.wdone .ring{width:74px;height:74px;border-radius:50%;background:var(--okb);color:var(--ok);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.wdone b{font-family:var(--hb);font-size:26px;display:block;margin-bottom:6px}
+.wdone span{color:var(--ink2);font-size:15px}
+.foot{color:var(--mut);font-size:13px;margin-top:20px;text-align:center}
+@media (max-height:700px){.whero{height:270px}.fan{top:62px;transform:scale(.86);transform-origin:top center}}
 </style>
 </head>
 <body>
-<main class="wrap wl">
-<a class="logo" href="./" aria-label="Perle, accueil"><svg viewBox="0 0 100 100" width="34" height="34" aria-hidden="true"><rect x="0" y="0" width="100" height="100" rx="24" fill="#5B2A86"></rect><circle cx="50" cy="38" r="26" fill="#D9A441"></circle><circle cx="40.9" cy="28.9" r="5.700" fill="#FFFFFF" fill-opacity="0.850"></circle><circle cx="50" cy="52" r="13" fill="#FFFFFF"></circle><path d="M24 88 Q24 68 50 68 Q76 68 76 88 Z" fill="#FFFFFF"></path></svg><span>perle</span></a>
-<h1>Réserver sa coiffure afro, <em>sans dix messages.</em></h1>
-<p class="sub">Tresses, locks, perruques, coupes : les prix affichés, les créneaux en direct, l’acompte qui bloque la place. Perle ouvre bientôt en Île-de-France.</p>
-
-<div class="choice" role="group" aria-label="Tu es">
-<button type="button" id="rCli" aria-pressed="true">Je cherche une coiffeuse<small>Préviens-moi à l’ouverture</small></button>
-<button type="button" id="rPro" aria-pressed="false">Je coiffe<small>Je veux ma page de réservation</small></button>
+<main class="wl">
+<div class="whero">
+<a class="logo" href="./" aria-label="Perle, accueil"><svg viewBox="0 0 100 100" width="34" height="34" aria-hidden="true"><rect x="0" y="0" width="100" height="100" rx="24" fill="#150B1F"></rect><circle cx="50" cy="38" r="26" fill="#D9A441"></circle><circle cx="40.9" cy="28.9" r="5.700" fill="#FFFFFF" fill-opacity="0.850"></circle><circle cx="50" cy="52" r="13" fill="#FFFFFF"></circle><path d="M24 88 Q24 68 50 68 Q76 68 76 88 Z" fill="#FFFFFF"></path></svg><span>perle</span></a>
+<span class="dot d1"></span><span class="dot d2"></span>
+<div class="fan" aria-hidden="true">
+<i class="a" style="background-image:url('img/fLocks.jpg')"></i>
+<i class="c" style="background-image:url('img/fLace.jpg')"></i>
+<i class="b" style="background-image:url('img/fKnotless.jpg')"></i>
+<span class="tag t1">Prix affichés</span>
+<span class="tag t2">Créneaux en direct</span>
+</div>
 </div>
 
+<div class="wsheet">
+<h1>Ta coiffure afro, <em>réservée en 1 minute</em></h1>
+<p class="sub" id="lead">Fini les dix messages pour un prix. Perle ouvre bientôt en Île-de-France.</p>
+
+<div id="box">
+<div class="seg2" role="group" aria-label="Tu es">
+<button type="button" id="rCli" aria-pressed="true">Je cherche une coiffeuse</button>
+<button type="button" id="rPro" aria-pressed="false">Je coiffe</button>
+</div>
 <form id="f" novalidate>
 <p class="promise" id="promise"></p>
-<label for="contact">Ton e-mail ou ton @Instagram</label>
-<input type="text" id="contact" name="contact" autocomplete="email" maxlength="120" placeholder="toi@exemple.fr ou @toncompte" required>
 <label for="city">Ta ville</label>
 <input type="text" id="city" name="city" autocomplete="address-level2" maxlength="80" placeholder="Saint-Denis, Paris 19e…" required>
-<label class="check" for="ok"><input type="checkbox" id="ok"><span>J’accepte que Perle garde ce contact pour me prévenir de l’ouverture. Rien d’autre, et je peux demander sa suppression à tout moment. <a href="legal.html#confidentialite">En savoir plus</a></span></label>
+<label for="contact">Ton e-mail</label>
+<input type="email" id="contact" name="contact" autocomplete="email" inputmode="email" maxlength="120" placeholder="toi@exemple.fr">
+<label class="check" for="ok"><input type="checkbox" id="ok"><span>J’accepte que Perle garde mon e-mail et ma ville pour me prévenir de l’ouverture. Rien d’autre, et je peux demander leur suppression à tout moment. <a href="legal.html#confidentialite">En savoir plus</a></span></label>
 <p class="msg" id="msg" role="alert" hidden></p>
-<button class="btn" id="go" type="submit">Me prévenir</button>
+<button class="btn dark" id="go" type="submit">Me prévenir</button>
+<div id="gz" hidden><div class="or">ou</div><button class="btn ghost" id="gg" type="button">Continuer avec Google</button></div>
 </form>
+</div>
 
-<div class="done" id="done" hidden><b>C’est noté.</b><span id="doneT"></span></div>
+<div class="wdone" id="done" hidden><div class="ring"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></div><b>C’est noté.</b><span id="doneT"></span></div>
 
 <p class="foot">Déjà prête à essayer ? <a href="./">Voir l’appli</a> · <a href="pro.html">Créer ma page de coiffeuse</a></p>
+</div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=12"></script>
+<script src="config.js?v=13"></script>
 <script>
 (function () {
-  var C = window.PERLE || {}, role = 'cliente';
+  var C = window.PERLE || {}, role = 'cliente', KEY = 'perle-attente-en-cours';
   var $ = function (id) { return document.getElementById(id); };
   var TXT = {
-    cliente: ['Laisse ton contact : on te prévient dès que des coiffeuses de ta ville sont réservables.', 'Me prévenir', 'On te prévient dès que des coiffeuses sont réservables près de chez toi.'],
-    coiffeuse: ['Ta page avec tes prix, tes créneaux et ton acompte, à mettre en lien dans ta bio. Laisse ton contact : on te recontacte pour la créer avec toi.', 'Je veux ma page', 'On te recontacte très vite pour créer ta page avec toi.']
+    cliente: ['On te prévient dès que des coiffeuses de ta ville sont réservables.', 'Me prévenir', 'On te prévient dès que des coiffeuses sont réservables près de chez toi.'],
+    coiffeuse: ['Ta page avec tes prix, tes créneaux et ton acompte, à mettre dans ta bio. On te recontacte pour la créer avec toi.', 'Je veux ma page', 'On te recontacte très vite pour créer ta page avec toi.']
   };
+  var live = !!(C.SUPABASE_URL && C.SUPABASE_KEY && window.supabase), sb = null;
+  function client() { return sb || (sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_KEY, { auth: { storageKey: 'perle-attente', persistSession: true, detectSessionInUrl: true } })); }
   function setRole(r) {
     role = r;
     $('rCli').setAttribute('aria-pressed', r === 'cliente'); $('rPro').setAttribute('aria-pressed', r === 'coiffeuse');
@@ -79,24 +116,49 @@ body{background:var(--noir);color:#fff}
   var m = location.search.match(/[?&]je=(coiffeuse|cliente)/); setRole(m ? m[1] : 'cliente');
   var src = (location.search.match(/[?&]s=([a-z0-9_-]{1,40})/i) || [])[1] || null;
   function err(t) { $('msg').textContent = t; $('msg').hidden = false; }
+  function finish(r) { $('box').hidden = true; $('lead').hidden = true; $('doneT').textContent = TXT[r][2]; $('done').hidden = false; }
+  async function save(row) {
+    var r = await client().from('waitlist').insert(row);
+    if (r.error && r.error.code !== '23505') throw r.error;
+  }
+  // ville et accord sont demandés dans les deux cas, e-mail ou Google
+  function common() {
+    $('msg').hidden = true;
+    var city = $('city').value.trim();
+    if (city.length < 2) { err('Indique ta ville.'); return null; }
+    if (!$('ok').checked) { err('Coche la case pour qu’on puisse te prévenir.'); return null; }
+    if (!live) { err('L’inscription est indisponible pour le moment. Réessaie plus tard.'); return null; }
+    return { role: role, city: city, source: src };
+  }
   $('f').onsubmit = async function (e) {
-    e.preventDefault(); $('msg').hidden = true;
-    var contact = $('contact').value.trim(), city = $('city').value.trim();
-    var mail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contact), insta = /^@?[A-Za-z0-9._]{2,30}$/.test(contact);
-    if (!mail && !insta) return err('Écris un e-mail ou un @Instagram valide.');
-    if (!mail && contact.charAt(0) !== '@') contact = '@' + contact;
-    if (city.length < 2) return err('Indique ta ville.');
-    if (!$('ok').checked) return err('Coche la case pour qu’on puisse te prévenir.');
-    if (!(C.SUPABASE_URL && C.SUPABASE_KEY && window.supabase)) return err('L’inscription est indisponible pour le moment. Réessaie plus tard.');
-    $('go').disabled = true;
-    try {
-      var sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_KEY, { auth: { persistSession: false } });
-      var r = await sb.from('waitlist').insert({ role: role, contact: contact, city: city, source: src });
-      if (r.error && r.error.code !== '23505') throw r.error;
-      $('f').hidden = true; document.querySelector('.choice').hidden = true;
-      $('doneT').textContent = TXT[role][2]; $('done').hidden = false;
-    } catch (x) { $('go').disabled = false; err('L’inscription n’a pas pu être enregistrée. Vérifie ta connexion et réessaie.'); }
+    e.preventDefault();
+    var row = common(); if (!row) return;
+    var contact = $('contact').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contact)) return err('Écris une adresse e-mail valide.');
+    row.contact = contact; $('go').disabled = true;
+    try { await save(row); finish(role); }
+    catch (x) { $('go').disabled = false; err('L’inscription n’a pas pu être enregistrée. Vérifie ta connexion et réessaie.'); }
   };
+  if (C.GOOGLE && live) {
+    $('gz').hidden = false;
+    $('gg').onclick = async function () {
+      var row = common(); if (!row) return;
+      try { sessionStorage.setItem(KEY, JSON.stringify(row)); } catch (x) { }
+      var r = await client().auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } });
+      if (r.error) err('La connexion avec Google n’a pas fonctionné. Utilise ton e-mail.');
+    };
+    // retour de Google : on ne garde que l'adresse e-mail, puis on ferme la session
+    (async function () {
+      var row = null; try { row = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (x) { }
+      if (!row) return;
+      var s = await client().auth.getSession(), u = s.data.session && s.data.session.user;
+      if (!u || !u.email) { if (/error=/.test(location.hash + location.search)) { try { sessionStorage.removeItem(KEY); } catch (x) { } err('La connexion avec Google a été annulée. Tu peux utiliser ton e-mail.'); } return; }
+      try { sessionStorage.removeItem(KEY); } catch (x) { }
+      try { row.contact = u.email; await save(row); finish(row.role); }
+      catch (x) { err('L’inscription n’a pas pu être enregistrée. Réessaie avec ton e-mail.'); }
+      try { await client().auth.signOut(); history.replaceState(null, '', location.pathname); } catch (x) { }
+    })();
+  }
 })();
 </script>
 </body>
