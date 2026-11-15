@@ -112,6 +112,8 @@ body{background:var(--vio)}
   async function save(row) {
     var r = await client().from('waitlist').insert(row);
     if (r.error && r.error.code !== '23505') throw r.error;
+    // e-mail de confirmation, envoyé par la fonction attente-mail (sans bloquer l'écran)
+    if (!r.error) { try { client().functions.invoke('attente-mail', { body: { role: row.role, contact: row.contact } }).catch(function () { }); } catch (x) { } }
   }
   // ville et accord sont demandés dans les deux cas, e-mail ou Google
   function common() {
