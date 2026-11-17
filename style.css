@@ -611,3 +611,47 @@ h2.mp-h{font-family:var(--hb);font-weight:700;font-size:20px;letter-spacing:-.02
 .start-row .mut{color:#CDBBE3}
 .start-row.ok .b{text-decoration:line-through;opacity:.6}
 .igl{color:var(--vio);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+/* une seule règle : les boutons sont des pilules, les choix et les champs ont 14 px, les cartes 20 px ; la sélection est noire, le doré est réservé au bouton principal */
+input[type=text],input[type=tel],input[type=email],input[type=password],input[type=number],input[type=time],textarea,select,.pre{border-radius:14px}
+.card,.note{border-radius:20px}
+.stat{border-radius:18px}
+.pill{border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.pill[aria-pressed="true"]{background:var(--noir);color:#fff;box-shadow:none}
+.pill.dot::after{background:var(--noir)}
+.pill[aria-pressed="true"].dot::after{background:#fff}
+.tabs2 button{border-radius:12px}
+.tabs2 button[aria-pressed="true"]{background:var(--noir);color:#fff}
+.tab{border-radius:12px}
+.tab[aria-selected="true"]{background:var(--noir);color:#fff}
+.dayb{border-radius:16px}
+.time{border-radius:14px}
+.time[aria-pressed="true"]{background:var(--noir);color:#fff}
+.fprice{background:#fff;color:var(--noir);border-radius:12px;box-shadow:none}
+.hero .fprice.hp{box-shadow:none}
+.svc{border-radius:20px}
+.svc .big{background:none;padding:0;font-size:18px}
+.hero .count{background:rgba(21,11,31,.62);color:#fff;border-radius:12px}
+.chip span{border-radius:12px}
+.chip input:checked+span:before{display:none}
+.mp-tags .chip input:checked+span{background:var(--noir);border-color:var(--noir)}
+.seg span{border-radius:12px}
+.seg button{border-radius:12px}
+.seg button[aria-pressed="true"] svg{color:#fff}
+.bkf .tab[aria-selected="true"]{background:none;color:var(--noir)}
+/* la barre du bas ne cache plus la fin de la page */
+#app.bkf{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
+/* repère d'étape et photo moins haute sur l'écran des options */
+.stepn{font-size:13px;font-weight:600;color:var(--mut)}
+.hero .stepn{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+#app[data-step="options"] .hero{height:230px}
+/* menu de l'espace coiffeuse : chaque onglet porte son nom */
+.nav{padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
+.nav button{flex:1;min-width:0;height:54px;border-radius:14px;padding:0 2px;flex-direction:column;gap:3px;font-size:11px;font-weight:600;color:var(--mut)}
+.nav button span{display:block;white-space:nowrap}
+.nav button[aria-selected="true"]{padding:0 2px;background:none;color:var(--noir)}
+.nav button[aria-selected="true"] span{display:block}
+.nav button[aria-selected="true"] svg{color:var(--vio)}
+/* Ma page : on voit ce qui se modifie, et Enregistrer reste à portée */
+.mp .mp-name,.mp .mp-bio{border-radius:0;box-shadow:inset 0 -1px 0 #D9D0E4}
+.mp .mp-name:focus,.mp .mp-bio:focus,.mp .mp-city input:focus{border-radius:8px;box-shadow:none}
+.mp>button.btn{position:sticky;bottom:calc(86px + env(safe-area-inset-bottom));z-index:4;box-shadow:0 12px 26px rgba(21,11,31,.28)}
