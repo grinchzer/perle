@@ -51,6 +51,7 @@
     var p = st.pro, ph = photos(), prices = st.svcs.map(function (s) { return Number(s.price); });
     var h = hero(p.cover_url, null, (prices.length ? '<span class="fprice hp"><small>' + (Math.min.apply(0, prices) === Math.max.apply(0, prices) ? 'prix' : 'à partir de') + '</small>' + U.eur(Math.min.apply(0, prices)) + '</span>' : '') + (ph.length > 1 ? '<span class="count">' + svg(I.photo, 14, 2.2) + ph.length + ' photos</span>' : '')) + '<div class="sheet"><div class="row">' + (p.avatar_url ? '<span class="ava ph" style="' + U.bg(p.avatar_url) + '"></span>' : '') + '<h1 class="grow">' + esc(p.name) + '</h1></div><div class="meta">';
     if (p.city) h += '<span>' + svg(I.pin, 16) + esc(p.city) + '</span>';
+    if (p.instagram) h += '<a class="igl" href="https://www.instagram.com/' + encodeURIComponent(p.instagram) + '/" target="_blank" rel="noopener">@' + esc(p.instagram) + ' sur Instagram</a>';
     if (prices.length && Math.min.apply(0, prices) !== Math.max.apply(0, prices)) h += '<span>' + svg(I.euro, 16) + 'jusqu’à ' + U.eur(Math.max.apply(0, prices)) + '</span>';
     h += '</div>';
     if (p.bio) h += '<p class="sub">' + esc(p.bio) + '</p>';
@@ -106,17 +107,19 @@
     var h = top('slot') + '<h1>Tu verses ' + U.eur(d) + ' maintenant, le reste sur place</h1>' + recap(false, lead(esc(U.day(st.time)), U.hm(st.time) + ' à ' + U.hm(new Date(st.time.getTime() + x.minutes * 6e4))) + lead('Prix de la coiffure', U.eur(x.price)) + lead('Acompte de ' + st.pro.deposit_pct + ' %, maintenant', U.eur(d)) + lead('À régler sur place', U.eur(x.price - d), 't'));
     h += '<label for="fn">Ton prénom</label><input id="fn" type="text" autocomplete="given-name" maxlength="40" value="' + esc(saved.n || '') + '">';
     h += '<label for="ft">Ton numéro de téléphone</label><input id="ft" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="06 12 34 56 78" value="' + esc(saved.t || '') + '">';
+    h += '<label for="fe">Ton e-mail (facultatif)</label><input id="fe" type="email" autocomplete="email" inputmode="email" maxlength="120" placeholder="Pour recevoir ta confirmation" value="' + esc(saved.e || '') + '">';
     h += '<label for="fm">Un mot pour ' + esc(st.pro.name) + ' (facultatif)</label><textarea id="fm" maxlength="300"></textarea>';
     h += '<div id="err"></div><p class="note ok" style="display:flex;gap:10px;align-items:flex-start">' + svg(I.shield, 20) + '<span>L’acompte se paie directement à ' + esc(st.pro.name) + ', à l’étape suivante. Ta place est confirmée à réception.</span></p>';
     app.innerHTML = h;
     setBar(U.eur(d), 'acompte', 'Réserver', submit);
   }
   async function submit() {
-    var n = document.getElementById('fn').value, t = document.getElementById('ft').value, m = document.getElementById('fm').value, er = document.getElementById('err');
+    var n = document.getElementById('fn').value, t = document.getElementById('ft').value, m = document.getElementById('fm').value, er = document.getElementById('err'), em = ((document.getElementById('fe') || {}).value || '').trim();
     barBtn.disabled = true; er.innerHTML = '';
     try {
       var r = await S.book({ slug: slug, service: st.svc.id, choices: st.choices, start: st.time.toISOString(), name: n, phone: t, note: m });
-      try { localStorage.setItem('perle-moi', JSON.stringify({ n: n, t: t })); } catch (e) { }
+      try { localStorage.setItem('perle-moi', JSON.stringify({ n: n, t: t, e: em })); } catch (e) { }
+      if (em && S.bookingEmail) { try { S.bookingEmail(r.ref, t, em).catch(function () { }); } catch (e) { } }
       try { var l = saved(); l.push({ ref: r.ref, phone: t }); localStorage.setItem('perle-rdv', JSON.stringify(l.slice(-20))); } catch (e) { }
       r.name = n.trim(); st.done = r; go('done');
     } catch (e) {
