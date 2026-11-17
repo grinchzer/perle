@@ -27,9 +27,9 @@
   function auth() {
     document.body.classList.add('dark');
     app.innerHTML = '<div class="dark-screen" style="background-image:url(img/bgLocks.jpg)"><div class="top">' + U.logo() + (S.live ? '' : '<span class="badge">Mode essai</span>') + '</div><h1 style="margin-top:210px">Ton espace <span class="hl" style="color:var(--noir)">coiffeuse</span>.</h1><p class="soft" style="font-size:16px;margin:10px 0 0">Crée ta page de réservation et reçois tes rendez-vous avec acompte.</p>' + note() +
-      '<form id="fa"><label for="em" style="color:#E4DBEE">Ton e-mail</label><input id="em" type="email" autocomplete="email" required style="color:var(--noir)">' +
+      (function () { try { known = !!localStorage.getItem('perle-known'); } catch (e) {} return ''; })() + '<form id="fa"><label for="em" style="color:#E4DBEE">Ton e-mail</label><input id="em" type="email" autocomplete="email" required style="color:var(--noir)">' +
       '<label for="pw" style="color:#E4DBEE">Ton mot de passe (8 caractères au moins)</label><input id="pw" type="password" autocomplete="current-password" minlength="8" required style="color:var(--noir)">' +
-      '<button class="btn" style="margin-top:18px" data-act="in">Me connecter</button><button class="btn glass" style="margin-top:10px;border-radius:28px" data-act="up">Créer mon compte</button><button type="button" class="lnk" data-act="forgot">Mot de passe oublié ?</button><p class="soft" style="margin-top:12px;font-size:13px">En créant ton compte, tu acceptes les <a href="legal.html#cgu" style="color:inherit">conditions d’utilisation</a> et la <a href="legal.html#confidentialite" style="color:inherit">politique de confidentialité</a>.</p></form>' +
+      (known ? '<button class="btn" style="margin-top:18px" data-act="in">Me connecter</button><button class="btn glass" style="margin-top:10px" data-act="up">Créer mon compte</button>' : '<button class="btn" style="margin-top:18px" data-act="up">Créer mon compte</button><button class="btn glass" style="margin-top:10px" data-act="in">J’ai déjà un compte</button>') + '<button type="button" class="lnk" data-act="forgot">Mot de passe oublié ?</button><p class="soft" style="margin-top:12px;font-size:13px">En créant ton compte, tu acceptes les <a href="legal.html#cgu" style="color:inherit">conditions d’utilisation</a> et la <a href="legal.html#confidentialite" style="color:inherit">politique de confidentialité</a>.</p></form>' +
       (S.live ? '' : '<p class="soft" style="margin-top:14px">Mode essai : n’importe quel e-mail fonctionne et tout reste dans ce navigateur.</p>') +
       '<div class="glass"><b>Comment ça marche</b><div class="soft" style="margin-top:6px">1. Tu ajoutes tes photos, tes prestations, tes prix et tes horaires.<br>2. Tu mets ton lien dans ta bio.<br>3. Tes clientes réservent et t’envoient l’acompte. Tu confirmes d’un geste.</div></div></div>';
   }
@@ -77,21 +77,17 @@
   }
   // ----- prestations -----
   // ----- profil -----
+  var known = false;
   function me() {
     var p = st.pro, em = (st.user && st.user.email) || '', n = st.svcs.length, up = st.rdv.filter(function (b) { return new Date(b.ends_at).getTime() >= Date.now() && b.status !== 'annule'; }).length;
     var pic = p.avatar_url || p.cover_url, on = p.published !== false;
     function row(ic, t, s, attr) { return '<button type="button" class="srow" ' + attr + '>' + svg(ic, 22, 1.8) + '<span class="grow"><b>' + t + '</b><span class="mut">' + s + '</span></span>' + svg(I.chev, 18) + '</button>'; }
-    var h = note() + '<section class="pass"><span class="pearl" aria-hidden="true"></span>' +
-      '<div class="pass-top"><span class="kick">Espace coiffeuse</span><span class="stamp">Découverte</span></div>' +
-      '<div class="pass-id"><span class="pass-av"' + (pic ? ' style="' + U.bg(pic) + '"' : '') + '>' + (pic ? '' : esc((p.name || '?').charAt(0).toUpperCase())) + '</span><div class="grow"><b class="pass-name">' + esc(p.name) + '</b><span class="pass-mail">' + esc(em) + '</span></div></div>' +
-      '<div class="pass-cut" aria-hidden="true"></div>' +
-      '<div class="pass-link"><div class="grow"><span class="kick">Ton lien de réservation</span><b class="pass-url">' + esc(link().replace(/^https?:\/\//, '')) + '</b></div><button type="button" class="pass-copy" data-act="copy">Copier</button></div></section>' +
+    var h = note() + '<section class="acct"><div class="acct-id"><span class="acct-av"' + (pic ? ' style="' + U.bg(pic) + '"' : '') + '>' + (pic ? '' : esc((p.name || '?').charAt(0).toUpperCase())) + '</span><div class="grow"><b class="acct-name">' + esc(p.name) + '</b><span class="mut">' + esc(em) + '</span></div></div>' +
+      '<div class="acct-link"><div class="grow"><span class="mut">Ton lien de réservation</span><b>' + esc(link().replace(/^https?:\/\//, '')) + '</b></div><button type="button" class="btn sm dark" data-act="copy">Copier</button></div></section>' +
       '<div class="nums"><div><b>' + up + '</b><span>à venir</span></div><div><b>' + n + '</b><span>prestation' + (n > 1 ? 's' : '') + '</span></div><div><b class="live' + (on ? ' on' : '') + '"><i></i>' + (on ? 'En ligne' : 'Masquée') + '</b><span>ta page</span></div></div>' +
-      '<p class="sect">Mon compte</p><div class="slist">' +
-      row(I.page, 'Ma page', 'Photos, ville, acompte, annulation', 'data-tab="pro"') +
+      '<div class="slist" style="margin-top:22px">' +
       row(I.lock, 'Mot de passe', 'En choisir un nouveau', 'data-act="pw"') +
       ((st.pw || st.recovery) ? '<form id="fw" class="spw"><label for="np">Nouveau mot de passe (8 caractères au moins)</label><input id="np" type="password" autocomplete="new-password" minlength="8" required><button class="btn" style="margin-top:12px">Enregistrer</button></form>' : '') +
-      '</div><p class="sect">Perle</p><div class="slist">' +
       row(I.page, on ? 'Mettre ma page hors ligne' : 'Remettre ma page en ligne', on ? 'Elle est visible et on peut réserver' : 'Plus personne ne peut la voir ni réserver', 'data-act="pub"') +
       row(I.help, 'Aide', 'On te répond sous 24 heures', 'data-act="help"') +
       row(I.doc, 'Conditions et confidentialité', 'Les règles d’utilisation', 'data-act="legal"') +
@@ -258,7 +254,7 @@
       '<nav class="nav" aria-label="Menu">' + TABS.map(function (t) { return '<button data-tab="' + t[0] + '" aria-selected="' + (st.tab === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '<span>' + t[1] + '</span></button>'; }).join('') + '</nav>';
   }
   async function refresh() {
-    st.user = await S.session();
+    st.user = await S.session(); if (st.user) { try { localStorage.setItem('perle-known', '1'); } catch (e) {} }
     if (st.user) { st.pro = await S.myPro(); if (st.pro) { st.svcs = await S.myServices() || []; st.rdv = await S.myBookings() || []; try { st.priv = await S.myPrivate() || {}; } catch (e) { st.priv = {}; } st.notes = {}; try { (await S.myNotes() || []).forEach(function (n) { st.notes[n.phone] = n; }); } catch (e) { } } }
     render();
   }
