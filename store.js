@@ -9,6 +9,13 @@
   var U = {
     esc: function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); },
     eur: function (v) { var r = Math.round(Number(v) * 100) / 100; return (r % 1 === 0 ? String(r) : r.toFixed(2).replace('.', ',')) + ' €'; },
+    // fichier d'agenda (.ics) avec un rappel la veille et deux heures avant
+    ics: function (o) {
+      function z(d) { return new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d+/, ''); }
+      function t(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/[,;]/g, function (c) { return '\\' + c; }).replace(/\r?\n/g, '\\n'); }
+      var l = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Perle//FR', 'BEGIN:VEVENT', 'UID:' + o.ref + '@perleapp.fr', 'DTSTAMP:' + z(Date.now()), 'DTSTART:' + z(o.start), 'DTEND:' + z(o.end), 'SUMMARY:' + t(o.title), 'LOCATION:' + t(o.where), 'DESCRIPTION:' + t(o.desc), 'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', 'DESCRIPTION:' + t(o.title), 'END:VALARM', 'BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', 'DESCRIPTION:' + t(o.title), 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'];
+      return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(l.join('\r\n'));
+    },
     dur: function (m) { var h = Math.floor(m / 60), r = m % 60; return h ? (h + ' h' + (r ? ' ' + (r < 10 ? '0' : '') + r : '')) : r + ' min'; },
     hm: function (d) { var m = d.getMinutes(); return d.getHours() + ' h' + (m ? ' ' + (m < 10 ? '0' : '') + m : ''); },
     dayS: function (d) { return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }); },
@@ -98,6 +105,8 @@
       onRecovery: function (cb) { sb.auth.onAuthStateChange(function (ev) { if (ev === 'PASSWORD_RECOVERY') cb(); }); },
       myPro: async function () { var id = await uid(); if (!id) return null; return ok(await sb.from('pros').select('*').eq('id', id).maybeSingle()); },
       savePro: async function (f) { var id = await uid(); f.id = id; return ok(await sb.from('pros').upsert(f).select().single()); },
+      myPrivate: async function () { var id = await uid(); if (!id) return {}; return ok(await sb.from('pro_private').select('address').eq('id', id).maybeSingle()) || {}; },
+      savePrivate: async function (f) { var id = await uid(); return ok(await sb.from('pro_private').upsert({ id: id, address: String(f.address || '').slice(0, 200) }).select().single()); },
       myServices: async function () { var id = await uid(); return ok(await sb.from('services').select('*').eq('pro_id', id).order('position').order('created_at')); },
       saveService: async function (s) { var id = await uid(); s.pro_id = id; return ok(await sb.from('services').upsert(s).select().single()); },
       deleteService: async function (sid) { ok(await sb.from('services').delete().eq('id', sid)); },
@@ -174,7 +183,7 @@
         d.bookings.push(r); save();
         return { ref: r.ref, price: r.price, deposit: r.deposit, starts_at: r.starts_at, ends_at: r.ends_at, service: r.service_name, options: r.options_text };
       },
-      clientBooking: async function (ref, phone) { var d = db(), ph = String(phone || '').replace(/[^0-9+]/g, ''), b = d.bookings.filter(function (x) { return x.ref === String(ref).toUpperCase().trim() && x.client_phone === ph; })[0]; if (!b) return null; var p = d.pros.filter(function (x) { return x.id === b.pro_id; })[0] || {}; return { ref: b.ref, status: b.status, starts_at: b.starts_at, ends_at: b.ends_at, created_at: b.created_at, service: b.service_name, options: b.options_text, price: b.price, deposit: b.deposit, pro_name: p.name, pro_slug: p.slug, pro_city: p.city, cover_url: p.cover_url, pay_info: p.pay_info, cancel_hours: p.cancel_hours == null ? 48 : p.cancel_hours }; },
+      clientBooking: async function (ref, phone) { var d = db(), ph = String(phone || '').replace(/[^0-9+]/g, ''), b = d.bookings.filter(function (x) { return x.ref === String(ref).toUpperCase().trim() && x.client_phone === ph; })[0]; if (!b) return null; var p = d.pros.filter(function (x) { return x.id === b.pro_id; })[0] || {}; return { ref: b.ref, status: b.status, starts_at: b.starts_at, ends_at: b.ends_at, created_at: b.created_at, service: b.service_name, options: b.options_text, price: b.price, deposit: b.deposit, pro_name: p.name, pro_slug: p.slug, pro_city: p.city, cover_url: p.cover_url, pay_info: p.pay_info, cancel_hours: p.cancel_hours == null ? 48 : p.cancel_hours, service_id: b.service_id, prep: (d.services.filter(function (x) { return x.id === b.service_id; })[0] || {}).prep || '', address: (b.status === 'confirme' || b.status === 'fait') ? ((d.priv || {})[p.id] || '') : '' }; },
       cancelBooking: async function (ref, phone) { var d = db(), ph = String(phone || '').replace(/[^0-9+]/g, ''), b = d.bookings.filter(function (x) { return x.ref === String(ref).toUpperCase().trim() && x.client_phone === ph; })[0]; if (!b) throw err('INTROUVABLE'); if (b.status !== 'attente' && b.status !== 'confirme') throw err('STATUT'); var p = d.pros.filter(function (x) { return x.id === b.pro_id; })[0] || {}; if (new Date(b.starts_at).getTime() - Date.now() < (p.cancel_hours == null ? 48 : p.cancel_hours) * 36e5) throw err('TARD'); b.status = 'annule'; save(); return 'annule'; },
       session: async function () { return me(); },
       signUp: async function (email) { var d = db(); if (!d.users[email]) d.users[email] = id(); d.user = { id: d.users[email], email: email }; save(); return d.user; },
@@ -183,6 +192,8 @@
       resetPw: async function () { }, setPw: async function () { }, onRecovery: function () { },
       myPro: async function () { var u = me(); if (!u) return null; return db().pros.filter(function (p) { return p.id === u.id; })[0] || null; },
       savePro: async function (f) { var d = db(), u = me(); if (d.pros.some(function (p) { return p.slug === f.slug && p.id !== u.id; })) { var e = err('SLUG'); e.code = '23505'; throw e; } var p = d.pros.filter(function (x) { return x.id === u.id; })[0]; if (!p) { p = { id: u.id, published: true, deposit_pct: 30, cancel_hours: 48, slot_step: 30, hours: { '2': [['09:00', '18:00']], '3': [['09:00', '18:00']], '4': [['09:00', '18:00']], '5': [['09:00', '18:00']], '6': [['09:00', '18:00']] }, whatsapp: '', pay_info: '', bio: '', city: '', cover_url: '', avatar_url: '', tags: [], gallery: [] }; d.pros.push(p); } for (var k in f) p[k] = f[k]; p.id = u.id; save(); return p; },
+      myPrivate: async function () { var d = db(), u = me(); return { address: (d.priv || {})[u.id] || '' }; },
+      savePrivate: async function (f) { var d = db(), u = me(); d.priv = d.priv || {}; d.priv[u.id] = String(f.address || '').slice(0, 200); save(); return { address: d.priv[u.id] }; },
       myServices: async function () { var u = me(); return db().services.filter(function (s) { return s.pro_id === u.id; }).sort(function (a, b) { return a.position - b.position; }); },
       saveService: async function (s) { var d = db(), u = me(); s.pro_id = u.id; if (!s.id) { s.id = id(); s.active = s.active !== false; d.services.push(s); } else { var o = d.services.filter(function (x) { return x.id === s.id; })[0]; for (var k in s) o[k] = s[k]; } save(); return s; },
       deleteService: async function (sid) { var d = db(); d.services = d.services.filter(function (s) { return s.id !== sid; }); save(); },
