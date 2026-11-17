@@ -59,6 +59,7 @@
     h += sec(k + 1, 'Ton identité', 'Ce que la cliente lit en premier') +
       '<label for="pn">Ton nom ou celui de ton activité</label><input id="pn" type="text" maxlength="60" required value="' + esc(p.name) + '">' +
       '<label for="ps">Le nom de ton lien</label><div class="pre"><span>perleapp.fr/?c=</span><input id="ps" type="text" maxlength="30" required placeholder="awabraids" value="' + esc(p.slug) + '"></div><span class="mut">Lettres minuscules, chiffres et tirets, 3 caractères au moins.</span>' +
+      '<label for="pa">Ton adresse exacte (facultatif)</label><input id="pa" type="text" maxlength="200" autocomplete="off" placeholder="12 rue de Crimée, 75019 Paris, interphone B" value="' + esc((st.priv || {}).address || '') + '"><span class="mut">Jamais affichée sur ta page. La cliente ne la voit qu’une fois que tu as confirmé son acompte.</span>' +
       '<label for="pc">Ta ville ou ton quartier</label><input id="pc" type="text" maxlength="60" placeholder="Paris 19e, ou 93200 Saint-Denis" value="' + esc(p.city) + '"><span class="mut">Sert à t’afficher sur la carte : seul ton quartier est montré, jamais ton adresse.' + (st.pro && p.city && p.lat == null ? ' Ton quartier n’a pas été trouvé : écris une ville, ou « Paris 19e ».' : '') + '</span>' +
       '<label for="pb">Quelques mots sur toi (facultatif)</label><textarea id="pb" maxlength="400">' + esc(p.bio) + '</textarea>' +
       '<label for="pw2">Ton numéro WhatsApp (facultatif)</label><input id="pw2" type="tel" maxlength="20" placeholder="06 12 34 56 78" value="' + esc(p.whatsapp) + '">' +
@@ -116,7 +117,7 @@
     }); return out;
   }
   function cleanOpts(o) { return (o || []).filter(function (g) { return g.group && g.choices.length; }).slice(0, 5); }
-  function keepForm() { if (!st.edit) return; st.edit.name = val('sn'); st.edit.price = val('sp'); st.edit.minutes = val('sm'); if (document.getElementById('fs')) st.edit.options = readOpts(); }
+  function keepForm() { if (!st.edit) return; st.edit.name = val('sn'); st.edit.price = val('sp'); st.edit.minutes = val('sm'); st.edit.prep = val('sprep'); if (document.getElementById('fs')) st.edit.options = readOpts(); }
   function optEditor(o) {
     var h = '<label>Options qui changent le prix (facultatif)</label><span class="mut">Exemple : un groupe « Taille » avec S, M (+10 €) et L (+25 €). Le premier choix est celui de base.</span>';
     (o || []).forEach(function (g, gi) {
@@ -148,6 +149,7 @@
       return h + '<form id="fs"><h2 style="margin-top:0">' + (s.id ? 'Modifier la prestation' : 'Nouvelle prestation') + '</h2><label>Photo de cette coiffure</label>' + picker('sphoto', s.photo_url, 'Choisir une photo') +
         '<label for="sn">Nom</label><input id="sn" type="text" maxlength="60" required placeholder="Knotless braids" list="snl" value="' + esc(s.name || '') + '">' + dl('snl', NOMS) + '<span class="mut">Si ta coiffure est dans la liste proposée, garde ce nom : les clientes te trouvent plus facilement.</span>' +
         '<div class="grid2"><div><label for="sp">Prix de base, en €</label><input id="sp" type="number" min="0" max="2000" step="1" required value="' + esc(s.price == null ? '' : s.price) + '"></div><div><label for="sm">Durée, en minutes</label><input id="sm" type="number" min="15" max="720" step="15" required value="' + esc(s.minutes || '') + '"></div></div>' +
+        '<label for="sprep">Consignes avant le rendez-vous (facultatif)</label><textarea id="sprep" maxlength="300" placeholder="Exemple : cheveux lavés, démêlés et séchés. Mèches non fournies : 3 paquets de X-pression.">' + esc(s.prep || '') + '</textarea><span class="mut">La cliente les voit dès qu’elle réserve : plus besoin de les répéter par message.</span>' +
         '<button type="button" class="link" style="margin-top:10px" data-act="calcfrom">Combien je gagne vraiment avec ce prix ?</button>' +
         optEditor(s.options) + dl('ogl', ['Taille des tresses', 'Longueur', 'Mèches']) + dl('oll', ['S', 'M', 'L', 'Épaules', 'Milieu du dos', 'Taille', 'Fournies', 'Non fournies']) +
         '<button class="btn" style="margin-top:18px">Enregistrer</button><button type="button" class="btn ghost" style="margin-top:10px" data-act="cancel">Annuler</button>' + (s.id ? '<button type="button" class="btn ghost" style="margin-top:10px;color:var(--err)" data-act="del">Supprimer cette prestation</button>' : '') + '</form>';
@@ -179,6 +181,7 @@
     if (b.status === 'confirme' && s.getTime() < now) a += '<button class="btn sm dark" data-st="fait" data-id="' + esc(b.id) + '">Rendez-vous fait</button>';
     if (b.status === 'attente' || b.status === 'confirme') a += '<button class="btn sm ghost" data-st="annule" data-id="' + esc(b.id) + '">Annuler</button>';
     if (b.status === 'confirme' && s.getTime() < now && b.price - b.deposit > 0) { var m = encodeURIComponent(restMsg(b)); a += '<a class="btn sm" href="sms:' + esc(intl(b.client_phone)) + '?&body=' + m + '">Demander le reste par SMS</a><a class="btn sm ghost" href="https://wa.me/' + esc(intl(b.client_phone).replace('+', '')) + '?text=' + m + '" target="_blank" rel="noopener">Par WhatsApp</a>'; }
+    if ((b.status === 'attente' || b.status === 'confirme') && s.getTime() >= now) a += '<a class="btn sm ghost" href="' + U.ics({ ref: b.ref, start: b.starts_at, end: b.ends_at, title: b.client_name + ' · ' + b.service_name, where: (st.priv || {}).address || '', desc: b.client_phone + '. ' + b.service_name + (b.options_text ? ', ' + b.options_text : '') + '. Prix ' + U.eur(b.price) + ', acompte ' + U.eur(b.deposit) + ', reste ' + U.eur(b.price - b.deposit) + '.' + (b.note ? '\n« ' + b.note + ' »' : '') }) + '" download="perle-' + esc(b.ref) + '.ics">Mettre dans mon agenda</a>';
     a += '<a class="btn sm ghost" href="tel:' + esc(b.client_phone) + '">Appeler</a>';
     return '<div class="acts">' + a + '</div>';
   }
@@ -188,6 +191,8 @@
     return 'Bonjour ' + String(b.client_name || '').split(' ')[0] + ', c’est ' + st.pro.name + '. Il reste ' + U.eur(rest) + ' à régler pour ta coiffure (référence ' + b.ref + '). ' + (links.length ? 'Tu peux payer ici : ' + links.join(' ou ') : 'Tu retrouves ton rendez-vous ici : https://perleapp.fr/?v=rdv') + ' Merci !';
   }
   function intl(p) { return String(p || '').replace(/[^0-9+]/g, '').replace(/^0/, '+33'); }
+  // message prêt à envoyer pour proposer à une cliente de revenir
+  function backMsg(b) { return 'Bonjour ' + String(b.client_name || '').split(' ')[0] + ', c’est ' + st.pro.name + '. J’espère que tu es contente de ta coiffure ! Quand tu voudras la refaire, tu peux reprendre rendez-vous ici : ' + link() + (b.service_id ? (link().indexOf('?') < 0 ? '?' : '&') + 's=' + b.service_id : ''); }
   function detail(b) { return '<div class="mut" style="margin-top:8px">' + esc(b.client_phone) + ' · référence ' + esc(b.ref) + ' · acompte ' + U.eur(b.deposit) + ', reste ' + U.eur(b.price - b.deposit) + (b.note ? '<br>« ' + esc(b.note) + ' »' : '') + '</div>'; }
   function stOf(b, now) { return (b.status === 'attente' && now - new Date(b.created_at).getTime() > 864e5) ? 'expire' : b.status; }
   function rdv() {
@@ -209,7 +214,7 @@
       else h += '<div class="card" style="margin-bottom:10px;border-radius:28px;padding:10px 14px 12px 10px"><div class="row">' + thumb(photoFor(b)) + '<span class="grow"><span class="b">' + esc(U.day(s)) + ', ' + U.hm(s) + '</span><br><span class="mut">' + esc(b.client_name) + ', ' + what + '</span></span><span class="st ' + esc(stOf(b, Date.now()) === 'expire' ? 'annule' : b.status) + '">' + LAB[stOf(b, Date.now())] + '</span></div>' + detail(b) + acts(b, now) + '</div>';
     });
     h += '<div class="vio" style="margin-top:8px"><span class="mut">Ton lien de réservation, à mettre dans ta bio</span><div class="b" style="font-size:17px;word-break:break-all;margin:4px 0 12px">' + esc(link().replace(/^https?:\/\//, '')) + '</div><div class="row"><button class="btn sm" data-act="copy">Copier le lien</button><a class="btn sm ghost" href="' + esc(link()) + '" target="_blank" rel="noopener" style="color:var(--noir)">Voir ma page</a></div></div>';
-    if (old.length) { h += '<h2>Passés ou annulés</h2>'; old.slice(0, 20).forEach(function (b) { var s = new Date(b.starts_at); h += '<div class="card row" style="margin-bottom:8px;border-radius:24px;padding:10px 14px 10px 10px">' + thumb(photoFor(b), 'sm') + '<span class="grow"><span class="b">' + esc(b.client_name) + '</span><br><span class="mut">' + esc(U.day(s)) + ', ' + esc(b.service_name) + '</span></span><span class="st ' + esc(stOf(b, Date.now()) === 'expire' ? 'annule' : b.status) + '">' + LAB[stOf(b, Date.now())] + '</span></div>'; }); }
+    if (old.length) { h += '<h2>Passés ou annulés</h2>'; old.slice(0, 20).forEach(function (b) { var s = new Date(b.starts_at); h += '<div class="card row" style="margin-bottom:8px;border-radius:24px;padding:10px 14px 10px 10px">' + thumb(photoFor(b), 'sm') + '<span class="grow"><span class="b">' + esc(b.client_name) + '</span><br><span class="mut">' + esc(U.day(s)) + ', ' + esc(b.service_name) + '</span></span><span class="st ' + esc(stOf(b, Date.now()) === 'expire' ? 'annule' : b.status) + '">' + LAB[stOf(b, Date.now())] + '</span></div>'; if (b.status === 'fait') { var m = encodeURIComponent(backMsg(b)); h += '<div class="acts" style="margin:-2px 0 12px"><a class="btn sm ghost" href="sms:' + esc(intl(b.client_phone)) + '?&body=' + m + '">Proposer de revenir par SMS</a><a class="btn sm ghost" href="https://wa.me/' + esc(intl(b.client_phone).replace('+', '')) + '?text=' + m + '" target="_blank" rel="noopener">Par WhatsApp</a></div>'; } }); }
     return h;
   }
 
@@ -224,7 +229,7 @@
   }
   async function refresh() {
     st.user = await S.session();
-    if (st.user) { st.pro = await S.myPro(); if (st.pro) { st.svcs = await S.myServices() || []; st.rdv = await S.myBookings() || []; } }
+    if (st.user) { st.pro = await S.myPro(); if (st.pro) { st.svcs = await S.myServices() || []; st.rdv = await S.myBookings() || []; try { st.priv = await S.myPrivate() || {}; } catch (e) { st.priv = {}; } } }
     render();
   }
   function fail(e) { st.msg = ['err', e && e.code === '23505' ? 'Ce lien est déjà pris. Choisis-en un autre.' : (e && e.message === 'PHOTO' ? 'Cette photo n’a pas pu être lue. Essaie avec une autre.' : (e && e.message && /Invalid login|invalid/i.test(e.message) ? 'E-mail ou mot de passe incorrect.' : (e && e.message && /registered|exists/i.test(e.message) ? 'Un compte existe déjà avec cet e-mail. Connecte-toi.' : 'Ça n’a pas marché. Vérifie ta connexion et réessaie.')))]; render(); }
@@ -286,11 +291,13 @@
         var first = !st.pro;
         var g = await U.geo(val('pc'));
         var pinf = payInfo(); if (pinf === null) { st.msg = ['err', 'Ton lien PayPal ou Revolut n’est pas reconnu. Écris seulement ton nom d’utilisateur, sans espace.']; return render(); }
+        var adr = val('pa');
         st.pro = await S.savePro({ name: val('pn'), slug: slug, city: val('pc'), lat: g ? g.lat : null, lng: g ? g.lng : null, tags: Array.prototype.map.call(document.querySelectorAll('[data-tag]:checked'), function (x) { return x.dataset.tag; }), bio: val('pb'), whatsapp: val('pw2'), pay_info: pinf, cancel_hours: parseInt(val('ph'), 10) || 0, deposit_pct: Math.max(0, Math.min(100, parseInt(val('pd'), 10) || 0)) });
+        if (adr !== ((st.priv || {}).address || '')) { try { st.priv = await S.savePrivate({ address: adr }); } catch (e) { } }
         st.msg = ['ok', (first ? 'Ta page est créée. Ajoute maintenant tes prestations et tes photos.' : 'C’est enregistré.') + (val('pc') ? (g ? ' Sur la carte, tu es placée au centre de ' + g.label + '. Si ce n’est pas le bon endroit, ajoute le code postal.' : ' Ton quartier n’a pas été trouvé pour la carte : écris une ville avec son code postal, ou « Paris 19e ».') : '')]; if (first) st.tab = 'svc'; return refresh();
       }
       if (f === 'fs') {
-        var s = { name: val('sn'), price: parseFloat(val('sp').replace(',', '.')), minutes: parseInt(val('sm'), 10), options: cleanOpts(readOpts()), photo_url: st.edit.photo_url || '', position: st.edit.id ? (st.edit.position || 0) : st.svcs.length };
+        var s = { name: val('sn'), price: parseFloat(val('sp').replace(',', '.')), minutes: parseInt(val('sm'), 10), options: cleanOpts(readOpts()), prep: val('sprep').slice(0, 300), photo_url: st.edit.photo_url || '', position: st.edit.id ? (st.edit.position || 0) : st.svcs.length };
         if (st.edit.id) s.id = st.edit.id;
         if (s.name.length < 2 || !(s.price >= 0) || !(s.minutes >= 15)) { st.msg = ['err', 'Vérifie le nom, le prix et la durée.']; return render(); }
         await S.saveService(s); st.edit = null; st.msg = ['ok', 'Prestation enregistrée.']; return refresh();
