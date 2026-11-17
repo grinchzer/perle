@@ -14,7 +14,7 @@
     link: '<path d="M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1"/><path d="M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1"/>', help: '<circle cx="12" cy="12" r="8.500"/><path d="M9.500 9.500a2.500 2.500 0 1 1 3.500 2.300c-.700.400-1 1-1 1.700"/><path d="M12 17h.01"/>',
     doc: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/>', out: '<path d="M10 5H6v14h4"/><path d="M14 8l4 4-4 4M18 12H10"/>', star: '<path d="M12 4l2.400 5 5.400.700-4 3.800 1 5.400L12 16.300 7.200 18.900l1-5.400-4-3.800 5.400-.700z"/>'
   };
-  var TABS = [['rdv', 'Rendez-vous', I.cal], ['svc', 'Prestations', I.tag], ['hrs', 'Horaires', I.clock], ['pro', 'Ma page', I.page], ['me', 'Profil', I.user]];
+  var TABS = [['rdv', 'Rendez-vous', I.cal], ['svc', 'Prestations', I.tag], ['hrs', 'Horaires', I.clock], ['pro', 'Ma page', I.page], ['me', 'Compte', I.user]];
 
   function top() { return '<div class="top">' + U.logo() + (S.live ? '' : '<span class="badge">Mode essai</span>') + '</div>'; }
   function note() { var m = st.msg; st.msg = null; return m ? '<p class="note ' + m[0] + '" role="' + (m[0] === 'err' ? 'alert' : 'status') + '">' + esc(m[1]) + '</p>' : ''; }
@@ -225,8 +225,9 @@
   function rdv() {
     var now = Date.now(), up = st.rdv.filter(function (b) { var e = new Date(b.ends_at).getTime(); return (e >= now || (b.status === 'confirme' && e >= now - 2 * 864e5)) && b.status !== 'annule' && stOf(b, now) !== 'expire'; }), old = st.rdv.filter(function (b) { return up.indexOf(b) < 0; }).reverse();
     var h = note(), t = new Date(), wk = '';
-    var todo = [[true, 'pro', 'Crée ta page', 'C’est fait, elle est en ligne'], [st.svcs.length > 0, 'svc', 'Ajoute ta première coiffure', 'Avec son prix et sa durée'], [Object.keys(st.pro.hours || {}).some(function (k) { return (st.pro.hours[k] || []).length; }), 'hrs', 'Règle tes horaires', 'Les jours et les heures où tu coiffes'], [!!st.pro.pay_info, 'pro', 'Dis comment recevoir l’acompte', 'Ton PayPal, ton Revolut ou un autre moyen'], [!!(st.pro.cover_url || st.pro.avatar_url), 'pro', 'Mets une photo', 'Une page avec photo donne confiance']], left = todo.filter(function (x) { return !x[0]; }).length;
-    if (left) h += '<section class="start"><b>Encore ' + left + ' chose' + (left > 1 ? 's' : '') + ' à faire avant de partager ton lien</b><div class="start-bar" role="img" aria-label="' + (todo.length - left) + ' étapes faites sur ' + todo.length + '"><span style="width:' + Math.round(100 * (todo.length - left) / todo.length) + '%"></span></div>' + todo.map(function (x) { return '<button type="button" class="start-row' + (x[0] ? ' ok' : '') + '" data-tab="' + x[1] + '"><i aria-hidden="true">' + (x[0] ? '✓' : '') + '</i><span class="grow"><span class="b">' + x[2] + '</span><span class="mut">' + x[3] + '</span></span>' + svg(I.chev, 18) + '</button>'; }).join('') + '</section>';
+    var hrsOk = false; try { hrsOk = !!localStorage.getItem('perle-hrs-' + st.pro.id); } catch (e) {}
+    var todo = [[true, 'pro', 'Crée ta page', 'C’est fait, elle est en ligne'], [st.svcs.length > 0, 'svc', 'Ajoute ta première coiffure', 'Avec son prix et sa durée'], [hrsOk, 'hrs', 'Vérifie tes horaires', 'Ce sont des horaires par défaut : mets les tiens'], [!!st.pro.pay_info, 'pro', 'Dis comment recevoir l’acompte', 'Ton PayPal, ton Revolut ou un autre moyen'], [!!(st.pro.cover_url || st.pro.avatar_url), 'pro', 'Mets une photo', 'Une page avec photo donne confiance']], left = todo.filter(function (x) { return !x[0]; }).length;
+    if (left) h += '<section class="start"><b>Encore ' + left + ' chose' + (left > 1 ? 's' : '') + ' à faire avant de partager ton lien</b><div class="start-bar" role="img" aria-label="' + (todo.length - left) + ' étapes faites sur ' + todo.length + '"><span style="width:' + Math.round(100 * (todo.length - left) / todo.length) + '%"></span></div><p class="start-n">' + (todo.length - left) + ' sur ' + todo.length + ' déjà fait' + (todo.length - left > 1 ? 'es' : 'e') + '</p>' + todo.filter(function (x) { return !x[0]; }).map(function (x) { return '<button type="button" class="start-row' + (x[0] ? ' ok' : '') + '" data-tab="' + x[1] + '"><i aria-hidden="true">' + (x[0] ? '✓' : '') + '</i><span class="grow"><span class="b">' + x[2] + '</span><span class="mut">' + x[3] + '</span></span>' + svg(I.chev, 18) + '</button>'; }).join('') + '</section>';
     for (var i = 0; i < 7; i++) { var d = new Date(t.getFullYear(), t.getMonth(), t.getDate() + i), has = up.some(function (b) { var s = new Date(b.starts_at); return s.toDateString() === d.toDateString(); }); wk += '<span class="' + (i === 0 ? 'on' : '') + '">' + d.toLocaleDateString('fr-FR', { weekday: 'short' }) + '<b>' + d.getDate() + '</b>' + (has ? '<i></i>' : '') + '</span>'; }
     var wait = up.filter(function (b) { return b.status === 'attente'; }).length, sum = up.reduce(function (a, b) { return a + Number(b.price); }, 0);
     h += '<div class="row" style="gap:10px;margin-top:10px"><span class="stat"><b>' + up.filter(function (b) { return new Date(b.ends_at).getTime() >= now; }).length + '</b><span class="mut">rendez-vous à venir</span></span><span class="stat"><b>' + U.eur(sum) + '</b><span class="mut">' + (wait ? wait + ' acompte' + (wait > 1 ? 's' : '') + ' à recevoir' : 'prévus') + '</span></span></div>';
@@ -252,7 +253,7 @@
     if (!st.user) return auth();
     if (!st.pro) { app.innerHTML = top() + profile(true); return; }
     if (st.recovery) st.tab = 'me';
-    var T = { rdv: ['Bonjour, <span class="hl">' + esc(st.pro.name.split(' ')[0]) + '</span>.', rdv], svc: ['Tes <span class="hl">prestations</span>.', services], hrs: ['Tes <span class="hl">horaires</span>.', hours], pro: ['Ta <span class="hl">page</span>.', function () { return profile(false); }], me: ['Ton <span class="hl">profil</span>.', me] }[st.tab];
+    var T = { rdv: ['Bonjour, <span class="hl">' + esc(st.pro.name.split(' ')[0]) + '</span>.', rdv], svc: ['Tes <span class="hl">prestations</span>.', services], hrs: ['Tes <span class="hl">horaires</span>.', hours], pro: ['Ta <span class="hl">page</span>.', function () { return profile(false); }], me: ['Ton <span class="hl">compte</span>.', me] }[st.tab];
     app.innerHTML = top() + '<h1>' + T[0] + '</h1><div style="margin-top:14px">' + T[1]() + '</div>' +
       '<nav class="nav" aria-label="Menu">' + TABS.map(function (t) { return '<button data-tab="' + t[0] + '" aria-selected="' + (st.tab === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '<span>' + t[1] + '</span></button>'; }).join('') + '</nav>';
   }
@@ -352,7 +353,7 @@
       if (f === 'fh') {
         var H = {}; DAYS.forEach(function (d) { if (document.getElementById('on' + d[0]).checked) { var a = val('a' + d[0]), b = val('b' + d[0]); if (a && b && a < b) H[d[0]] = [[a, b]]; } });
         var p = base(); p.hours = H; p.slot_step = parseInt((document.querySelector('input[name="hs"]:checked') || {}).value, 10) || 30; p.buffer_min = parseInt((document.querySelector('input[name="hb"]:checked') || {}).value, 10) || 0; p.lead_hours = parseInt((document.querySelector('input[name="hl"]:checked') || {}).value, 10) || 1;
-        st.pro = await S.savePro(p); st.msg = ['ok', 'Horaires enregistrés.']; return refresh();
+        st.pro = await S.savePro(p); try { localStorage.setItem('perle-hrs-' + st.pro.id, '1'); } catch (e) {} st.msg = ['ok', 'Horaires enregistrés.']; return refresh();
       }
     } catch (err) { fail(err); }
   });
