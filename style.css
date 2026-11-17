@@ -595,3 +595,9 @@ h2.mp-h{font-family:var(--hb);font-weight:700;font-size:20px;letter-spacing:-.02
 .stub span{display:block;font-size:12px;color:var(--mut)}
 .stub b{display:block;margin-top:3px;font-family:var(--hb);font-weight:700;font-size:30px;line-height:1.05;letter-spacing:-.02em}
 .stub .ref{font-size:27px;letter-spacing:.05em}
+/* confirmation : l'important d'abord */
+.btn.pay2{background:#fff;color:var(--noir)}
+.dn-t b{color:#fff}
+.stub>div:first-child b{color:var(--vio)}
+.dn-sep{margin:26px 2px 0;font-size:13px;font-weight:600;color:#CDBBE3}
+.dn-sep+.glass{margin-top:8px;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2)}
