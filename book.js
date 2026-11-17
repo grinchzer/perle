@@ -36,7 +36,8 @@
   function thumb(u, cls) { return u ? '<span class="thumb ph ' + (cls || '') + '" style="' + U.bg(u) + '"></span>' : '<span class="thumb empty ' + (cls || '') + '">' + svg(I.photo, 20) + '</span>'; }
   function wa() { return st.pro.whatsapp ? 'https://wa.me/' + st.pro.whatsapp.replace(/[^0-9]/g, '').replace(/^0/, '33') : ''; }
   function photos() { var a = []; if (st.pro.cover_url) a.push(st.pro.cover_url); st.svcs.forEach(function (s) { if (s.photo_url && a.indexOf(s.photo_url) < 0) a.push(s.photo_url); }); (st.pro.gallery || []).forEach(function (u) { if (a.indexOf(u) < 0) a.push(u); }); return a; }
-  function recap(price) { var x = q(); return '<div class="card row" style="padding:10px 16px 10px 10px;border-radius:24px">' + thumb(photoOf(st.svc)) + '<span class="grow"><span class="b">' + esc(st.svc.name) + '</span><br><span class="mut">' + esc([x.text, U.dur(x.minutes)].filter(Boolean).join(', ')) + '</span></span>' + (price ? '<span class="big">' + U.eur(x.price) + '</span>' : '') + '</div>'; }
+  function lead(a, b, cls) { return '<div class="lead' + (cls ? ' ' + cls : '') + '"><span>' + a + '</span><i></i><b>' + b + '</b></div>'; }
+  function recap(price, rows) { var x = q(); return '<div class="tk"><div class="tk-top">' + thumb(photoOf(st.svc)) + '<span class="grow"><b>' + esc(st.svc.name) + '</b><span class="mut">' + esc([x.text, U.dur(x.minutes)].filter(Boolean).join(', ')) + '</span></span></div>' + (price || rows ? '<div class="tk-rows">' + (price ? lead('Prix de la coiffure', U.eur(x.price)) : '') + (rows || '') + '</div>' : '') + '</div>'; }
 
   // ----- créneaux libres d'un jour -----
   function slotsFor(d) { return U.slots(st.pro, q().minutes, d, st.busy); }
@@ -53,14 +54,14 @@
     if (prices.length && Math.min.apply(0, prices) !== Math.max.apply(0, prices)) h += '<span>' + svg(I.euro, 16) + 'jusqu’à ' + U.eur(Math.max.apply(0, prices)) + '</span>';
     h += '</div>';
     if (p.bio) h += '<p class="sub">' + esc(p.bio) + '</p>';
-    h += '<div class="tags"><span class="tag">' + svg(I.shield, 14, 2.2) + 'Acompte de ' + p.deposit_pct + ' % pour bloquer ta place</span>' + (p.whatsapp ? '<span class="tag">' + svg(I.msg, 14, 2.2) + 'Répond sur WhatsApp</span>' : '') + '</div>';
+    h += '<p class="dpl">' + svg(I.shield, 16, 2) + '<span>Tu verses ' + p.deposit_pct + ' % à la réservation, le reste sur place.' + (p.whatsapp ? ' Répond sur WhatsApp.' : '') + '</span></p>';
     if (ph.length > 1) h += '<div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="' + (st.tab === 'svc') + '" data-tab="svc">Prestations</button><button class="tab" role="tab" aria-selected="' + (st.tab === 'ph') + '" data-tab="ph">Photos</button></div>';
     else st.tab = 'svc';
     h += '<div style="margin-top:14px">';
     if (st.tab === 'ph') { h += '<div class="gal">'; ph.forEach(function (u) { h += '<span class="ph" style="' + U.bg(u) + '"></span>'; }); h += '</div>'; }
     else {
       if (!st.svcs.length) h += '<p class="note info">Aucune prestation en ligne pour l’instant.</p>';
-      st.svcs.forEach(function (s, i) { h += '<button class="svc" data-svc="' + i + '">' + thumb(s.photo_url) + '<span class="grow"><span class="b">' + esc(s.name) + '</span><br><span class="mut">Environ ' + U.dur(s.minutes) + '</span></span><span class="big">' + ((s.options || []).length ? 'dès ' : '') + U.eur(s.price) + '</span></button>'; });
+      st.svcs.forEach(function (s, i) { h += '<button class="svc" data-svc="' + i + '">' + thumb(s.photo_url) + '<span class="grow"><span class="lead"><b>' + esc(s.name) + '</b><i></i><b>' + ((s.options || []).length ? 'dès ' : '') + U.eur(s.price) + '</b></span><span class="mut">Environ ' + U.dur(s.minutes) + '</span></span></button>'; });
     }
     h += '</div><p class="foot">Page de réservation créée avec Perle. Ton prénom et ton numéro servent seulement à ce rendez-vous. <a href="legal.html">Mentions légales et confidentialité</a></p></div>';
     app.innerHTML = h;
@@ -79,7 +80,7 @@
     var x = q(); setBar(U.eur(x.price), 'environ ' + U.dur(x.minutes), 'Choisir le créneau', function () { go('slot'); });
   }
   function slot() {
-    var x = q(), ds = days(), h = top('options') + '<h1>Ton <span class="hl">créneau</span>.</h1><div style="margin-top:14px">' + recap(true) + '</div><h2>Quel jour ?</h2><div class="days">';
+    var x = q(), ds = days(), h = top('options') + '<h1>Choisis ton créneau</h1>' + recap(true) + '<h2>Quel jour ?</h2><div class="days">';
     if (!st.day || !slotsFor(st.day).length) { var fr = ds.filter(function (d) { return slotsFor(d).length; }), wd = st.wantDay; st.day = (wd ? fr.slice().sort(function (a, c) { return Math.abs(a - wd) - Math.abs(c - wd); })[0] : fr[0]) || null; st.time = null; }
     if (st.wantT != null && st.day && !st.time) { st.time = slotsFor(st.day).filter(function (t) { return st.wantDay && +st.day === +st.wantDay && t.getHours() * 60 + t.getMinutes() === st.wantT; })[0] || null; st.wantT = null; }
     var moved = st.wantDay && st.day && +st.day !== +st.wantDay;
@@ -92,7 +93,7 @@
     if (!st.day) h += '<p class="note info">Plus de créneau libre dans les 4 prochaines semaines.</p>';
     else {
       h += '<h2>' + esc(U.day(st.day)) + ', à quelle heure ?</h2><div class="times">';
-      slotsFor(st.day).forEach(function (t) { h += '<button class="time" data-time="' + t.getTime() + '" aria-pressed="' + (st.time && +st.time === +t) + '">' + U.hm(t) + '</button>'; });
+      slotsFor(st.day).forEach(function (t) { h += '<button class="time" data-time="' + t.getTime() + '" aria-pressed="' + (st.time && +st.time === +t) + '">' + U.hm(t) + '<small>fin ' + U.hm(new Date(t.getTime() + x.minutes * 6e4)) + '</small></button>'; });
       h += '</div>';
     }
     if (st.pro.city) h += '<h2>Où ?</h2><div class="card row" style="border-radius:24px">' + svg(I.pin, 20) + '<span class="grow"><span class="b">Chez ' + esc(st.pro.name.split(' ')[0]) + ', ' + esc(st.pro.city) + '</span><br><span class="mut">Adresse précise donnée par message</span></span></div>';
@@ -102,8 +103,7 @@
   }
   function me() {
     var x = q(), d = dep(x.price), saved = {}; try { saved = JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (e) { }
-    var h = top('slot') + '<h1>Tu paies <span class="hl">' + U.eur(d) + '</span> aujourd’hui.</h1><div style="margin-top:14px">' + recap(false) + '</div>';
-    h += '<div class="card" style="margin-top:10px"><div class="line"><span class="mut">' + esc(U.day(st.time)) + '</span><span class="b">' + U.hm(st.time) + ' à ' + U.hm(new Date(st.time.getTime() + x.minutes * 6e4)) + '</span></div><div class="line"><span class="mut">Prix de la coiffure</span><span class="b">' + U.eur(x.price) + '</span></div><div class="line"><span class="mut">Acompte de ' + st.pro.deposit_pct + ' %</span><span class="b">' + U.eur(d) + '</span></div><div class="line t"><span>À régler sur place</span><span>' + U.eur(x.price - d) + '</span></div></div>';
+    var h = top('slot') + '<h1>Tu verses ' + U.eur(d) + ' maintenant, le reste sur place</h1>' + recap(false, lead(esc(U.day(st.time)), U.hm(st.time) + ' à ' + U.hm(new Date(st.time.getTime() + x.minutes * 6e4))) + lead('Prix de la coiffure', U.eur(x.price)) + lead('Acompte de ' + st.pro.deposit_pct + ' %, maintenant', U.eur(d)) + lead('À régler sur place', U.eur(x.price - d), 't'));
     h += '<label for="fn">Ton prénom</label><input id="fn" type="text" autocomplete="given-name" maxlength="40" value="' + esc(saved.n || '') + '">';
     h += '<label for="ft">Ton numéro de téléphone</label><input id="ft" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="06 12 34 56 78" value="' + esc(saved.t || '') + '">';
     h += '<label for="fm">Un mot pour ' + esc(st.pro.name) + ' (facultatif)</label><textarea id="fm" maxlength="300"></textarea>';
@@ -127,12 +127,11 @@
   function done() {
     var r = st.done, p = st.pro, s = new Date(r.starts_at), pay = p.pay_info || '', links = payLinks(pay), ptx = payText(pay), w = wa();
     var h = '<div class="dark-screen" style="' + U.bg(photoOf(st.svc)) + '"><div class="top">' + U.logo() + badge() + '</div>';
-    h += '<h1>Presque fini, ' + esc(r.name.split(' ')[0]) + '.<br>Envoie <span class="hl" style="color:var(--noir)">' + U.eur(r.deposit) + '</span>.</h1>';
-    h += '<div class="glass"><span class="soft">Ta référence, à indiquer avec le paiement</span><div class="ref">' + esc(r.ref) + '</div></div>';
-    h += '<div class="glass"><div class="dline"><span class="ico">' + svg(I.cal, 20) + '</span><span><b>' + esc(U.day(s)) + ' à ' + U.hm(s) + '</b><br><span class="soft">' + esc(r.service) + (r.options ? ', ' + esc(r.options) : '') + '</span></span></div><div class="dline"><span class="ico">' + svg(I.pin, 20) + '</span><span><b>' + esc(p.name) + '</b><br><span class="soft">' + esc(p.city || 'Adresse précise donnée par message') + '</span></span></div><div class="dline"><span class="ico">' + svg(I.euro, 20) + '</span><span><b>Il restera ' + U.eur(r.price - r.deposit) + '</b><br><span class="soft">à régler sur place</span></span></div></div>';
     var sv0 = (st.svcs || []).filter(function (x) { return x.name === r.service; })[0], prep = sv0 && sv0.prep;
-    if (prep) h += '<div class="glass"><b>À préparer avant de venir</b><div class="soft" style="margin-top:4px;white-space:pre-line">' + esc(prep) + '</div></div>';
-    h += '<div class="glass"><b>Comment payer l’acompte</b><div class="soft" style="margin-top:4px;white-space:pre-line">' + (links.length ? 'Touche un bouton ci-dessous : il t’emmène directement chez ' + esc(p.name) + '. Indique ta référence ' + esc(r.ref) + ' dans le message du paiement.' + (ptx ? '\n' + esc(ptx) : '') : (ptx ? esc(ptx) : 'Écris à ' + esc(p.name) + ' pour régler l’acompte.')) + '</div></div>';
+    h += '<h1>C’est noté, ' + esc(r.name.split(' ')[0]) + '. Envoie l’acompte pour bloquer ta place.</h1>';
+    h += '<div class="tkd"><div class="tkd-a"><span>Ta référence, à écrire avec le paiement</span><b class="ref">' + esc(r.ref) + '</b></div><div class="tkd-b">' + lead('Coiffure', esc(r.service) + (r.options ? ', ' + esc(r.options) : '')) + lead('Quand', esc(U.day(s)) + ', ' + U.hm(s)) + lead('Chez', esc(p.name) + (p.city ? ', ' + esc(p.city) : '')) + lead('Sur place', U.eur(r.price - r.deposit)) + lead('Acompte, maintenant', U.eur(r.deposit), 't') + '</div></div>';
+    if (prep) h += '<p class="soft dn-t" style="white-space:pre-line"><b>À préparer avant de venir.</b> ' + esc(prep) + '</p>';
+    h += '<p class="soft dn-t">' + (links.length ? 'Touche un bouton : il t’emmène directement chez ' + esc(p.name) + '. Écris ' + esc(r.ref) + ' dans le message du paiement.' + (ptx ? ' ' + esc(ptx) : '') : (ptx ? esc(ptx) : 'Écris à ' + esc(p.name) + ' pour régler l’acompte.')) + '</p>';
     links.forEach(function (u, i) { h += payBtn(u, r.deposit, i === 0, i === 0 ? 14 : 10); });
     if (w) h += '<a class="btn glass" style="margin-top:10px;border-radius:28px" target="_blank" rel="noopener" href="' + w + '?text=' + encodeURIComponent('Bonjour, j’ai réservé ' + r.service + ' le ' + U.day(s) + ' à ' + U.hm(s) + ' (référence ' + r.ref + '). Je t’envoie l’acompte de ' + U.eur(r.deposit) + '.') + '">' + svg(I.msg, 18) + 'Prévenir sur WhatsApp</a>';
     h += calBtn({ ref: r.ref, start: r.starts_at, end: r.ends_at, title: r.service + ' chez ' + p.name, where: p.city || '', desc: 'Référence ' + r.ref + '. Acompte ' + U.eur(r.deposit) + ', reste ' + U.eur(r.price - r.deposit) + '.' + (prep ? '\nAvant de venir : ' + prep : '') + '\nhttps://perleapp.fr/?v=rdv' }, 'btn glass', 'margin-top:10px;border-radius:28px');
@@ -152,6 +151,7 @@
   function catOf(p) { var t = U.norm(p.services.map(function (s) { return s.name; }).join(' ')); return CATS.filter(function (c) { return c[1].test(t); }).map(function (c) { return c[0]; }); }
   function proCta() { return '<div class="card" style="margin-top:22px;border-radius:28px;padding:18px"><div class="b" style="font-size:18px">Tu coiffes ?</div><div class="mut" style="margin:4px 0 14px">Crée ta page de réservation : tes photos, tes prix, tes créneaux, et un acompte pour chaque rendez-vous.</div><a class="btn dark" href="pro.html">Créer ma page' + ARROW + '</a></div><p class="foot" style="text-align:center"><a href="legal.html">Mentions légales, confidentialité et conditions</a></p>'; }
   function landing() {
+    app.classList.remove('bkf');
     if (dir.map) { try { dir.map.remove(); } catch (e) { } dir.map = null; dir.marks = null; }
     document.body.classList.toggle('dark', dir.view === 'open');
     var h = top(), me = {}; try { me = JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (e) { }
@@ -473,7 +473,7 @@
   function missing() { app.innerHTML = top() + '<h1>Cette page n’existe pas.</h1><p class="sub">Vérifie le lien que la coiffeuse t’a envoyé.</p>'; setBar(); }
 
   var SCREENS = { home: home, options: options, slot: slot, me: me, done: done };
-  function go(step) { st.step = step; document.body.classList.toggle('dark', step === 'done'); SCREENS[step](); anim(); window.scrollTo(0, 0); }
+  function go(step) { st.step = step; app.classList.add('bkf'); document.body.classList.toggle('dark', step === 'done'); SCREENS[step](); anim(); window.scrollTo(0, 0); }
   async function loadBusy() {
     try { st.busy = await S.busy(slug, new Date().toISOString(), new Date(Date.now() + 29 * 864e5).toISOString()) || []; } catch (e) { st.busy = []; }
     if (st.step === 'slot') slot();
