@@ -34,11 +34,16 @@
       '<div class="glass"><b>Comment ça marche</b><div class="soft" style="margin-top:6px">1. Tu ajoutes tes photos, tes prestations, tes prix et tes horaires.<br>2. Tu mets ton lien dans ta bio.<br>3. Tes clientes réservent et t’envoient l’acompte. Tu confirmes d’un geste.</div></div></div>';
   }
   // ----- ma page -----
+  // moyens de paiement : lien PayPal, lien Revolut et texte libre, rangés dans pay_info
+  var RE_PP = /https?:\/\/(?:www\.)?paypal\.(?:me|com\/paypalme)\/([\w.-]+)\S*/i, RE_RV = /https?:\/\/(?:www\.)?revolut\.me\/([\w.-]+)\S*/i;
+  function payParts(s) { s = s || ''; var a = s.match(RE_PP), b = s.match(RE_RV); return { pp: a ? a[1] : '', rv: b ? b[1] : '', txt: s.replace(RE_PP, '').replace(RE_RV, '').replace(/\n{2,}/g, '\n').trim() }; }
+  function handle(v) { v = String(v || '').trim().replace(/^https?:\/\//i, '').replace(/^(www\.)?(paypal\.(me|com\/paypalme)|revolut\.me)\//i, '').replace(/^@/, '').split(/[\/?#\s]/)[0]; return v; }
+  function payInfo() { var a = handle(val('pl')), b = handle(val('rl')), ok = /^[\w.-]{2,40}$/; if ((a && !ok.test(a)) || (b && !ok.test(b))) return null; return [val('pp'), a ? 'https://paypal.me/' + a : '', b ? 'https://revolut.me/' + b : ''].filter(Boolean).join('\n').slice(0, 300); }
   function profile(first) {
     var p = st.pro || { name: '', slug: '', city: '', bio: '', whatsapp: '', pay_info: '', deposit_pct: 30, cover_url: '', gallery: [] };
     function tg(t) { return '<label class="chip"><input type="checkbox" data-tag="' + t[0] + '"' + ((p.tags || []).indexOf(t[0]) >= 0 ? ' checked' : '') + '><span>' + t[1] + '</span></label>'; }
     function sec(n, t, s) { return '<div class="fsec"><span class="fnum">' + n + '</span><div><b>' + t + '</b><span class="mut">' + s + '</span></div></div>'; }
-    var dep = p.deposit_pct == null ? 30 : p.deposit_pct, g = p.gallery || [];
+    var dep = p.deposit_pct == null ? 30 : p.deposit_pct, g = p.gallery || [], pw = payParts(p.pay_info);
     var h = (first ? '<div class="who"><span class="grow">Connectée avec <b>' + esc((st.user && st.user.email) || '') + '</b></span><button type="button" class="lnk" data-act="out">Changer de compte</button></div><h1>Ta <span class="hl">page</span>.</h1><p class="sub">Ces informations s’affichent sur ton lien de réservation.</p>' : '') + note() + '<form id="fp">';
     if (!first) {
       h += '<div class="vit"><div class="vit-cov"' + (p.cover_url ? ' style="' + U.bg(p.cover_url) + '"' : '') + '>' + (p.cover_url ? '' : '<span class="pearl" aria-hidden="true"></span>') +
@@ -62,7 +67,10 @@
       sec(k + 3, 'Acompte et annulation', 'Ce qui te protège des lapins') +
       '<div class="dep"><div class="dep-top"><span class="mut">Acompte demandé</span><b id="pdv">' + esc(dep) + ' %</b></div><input id="pd" type="range" min="0" max="100" step="5" value="' + esc(dep) + '" aria-label="Acompte demandé, en pourcentage du prix" oninput="document.getElementById(\'pdv\').textContent=this.value+\' %\';document.getElementById(\'pde\').textContent=Math.round(80*this.value/100)+\' €\'"><div class="dep-ex">Sur une coiffure à 80 €, la cliente verse <b id="pde">' + Math.round(80 * dep / 100) + ' €</b> pour bloquer son créneau.</div></div>' +
       '<label for="ph">La cliente peut annuler seule jusqu’à</label><select id="ph">' + [[0, 'la dernière minute'], [24, '24 heures avant'], [48, '48 heures avant'], [72, '3 jours avant'], [168, '7 jours avant']].map(function (o) { return '<option value="' + o[0] + '"' + ((p.cancel_hours == null ? 48 : p.cancel_hours) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><span class="mut">Passé ce délai, elle doit t’écrire. Un rendez-vous dont l’acompte n’est pas confirmé sous 24 h libère son créneau.</span>' +
-      '<label for="pp">Comment la cliente te paie l’acompte</label><textarea id="pp" maxlength="300" placeholder="Exemple : Lydia ou Wero au 06 12 34 56 78, ou ton lien PayPal. Indique la référence du rendez-vous.">' + esc(p.pay_info) + '</textarea><span class="mut">Si tu colles un lien, la cliente voit un bouton « Payer ».</span>' +
+      '<p class="sect" style="margin-top:22px">Comment la cliente te paie l’acompte</p><span class="mut">Avec un lien PayPal ou Revolut, elle voit un bouton « Payer » qui l’y emmène directement, avec le montant.</span>' +
+      '<label for="pl">Ton lien PayPal (facultatif)</label><div class="pre"><span>paypal.me/</span><input id="pl" type="text" maxlength="40" autocapitalize="none" autocomplete="off" placeholder="tonnom" value="' + esc(pw.pp) + '"></div>' +
+      '<label for="rl">Ton lien Revolut (facultatif)</label><div class="pre"><span>revolut.me/</span><input id="rl" type="text" maxlength="40" autocapitalize="none" autocomplete="off" placeholder="tonnom" value="' + esc(pw.rv) + '"></div>' +
+      '<label for="pp">Autre moyen : Wero, Lydia, virement (facultatif)</label><textarea id="pp" maxlength="200" placeholder="Exemple : Wero ou Lydia au 06 12 34 56 78.">' + esc(pw.txt) + '</textarea><span class="mut">La cliente voit toujours sa référence à indiquer avec le paiement.</span>' +
       '<button class="btn" style="margin-top:22px">' + (first ? 'Créer ma page' : 'Enregistrer') + '</button></form>' + (first ? '' : '<div class="mespace"></div>');
     return h;
   }
@@ -270,7 +278,8 @@
         var slug = U.slug(val('ps')); if (slug.length < 3 || val('pn').length < 2) { st.msg = ['err', 'Écris ton nom et un lien de 3 caractères au moins.']; return render(); }
         var first = !st.pro;
         var g = await U.geo(val('pc'));
-        st.pro = await S.savePro({ name: val('pn'), slug: slug, city: val('pc'), lat: g ? g.lat : null, lng: g ? g.lng : null, tags: Array.prototype.map.call(document.querySelectorAll('[data-tag]:checked'), function (x) { return x.dataset.tag; }), bio: val('pb'), whatsapp: val('pw2'), pay_info: val('pp'), cancel_hours: parseInt(val('ph'), 10) || 0, deposit_pct: Math.max(0, Math.min(100, parseInt(val('pd'), 10) || 0)) });
+        var pinf = payInfo(); if (pinf === null) { st.msg = ['err', 'Ton lien PayPal ou Revolut n’est pas reconnu. Écris seulement ton nom d’utilisateur, sans espace.']; return render(); }
+        st.pro = await S.savePro({ name: val('pn'), slug: slug, city: val('pc'), lat: g ? g.lat : null, lng: g ? g.lng : null, tags: Array.prototype.map.call(document.querySelectorAll('[data-tag]:checked'), function (x) { return x.dataset.tag; }), bio: val('pb'), whatsapp: val('pw2'), pay_info: pinf, cancel_hours: parseInt(val('ph'), 10) || 0, deposit_pct: Math.max(0, Math.min(100, parseInt(val('pd'), 10) || 0)) });
         st.msg = ['ok', (first ? 'Ta page est créée. Ajoute maintenant tes prestations et tes photos.' : 'C’est enregistré.') + (val('pc') ? (g ? ' Sur la carte, tu es placée au centre de ' + g.label + '. Si ce n’est pas le bon endroit, ajoute le code postal.' : ' Ton quartier n’a pas été trouvé pour la carte : écris une ville avec son code postal, ou « Paris 19e ».') : '')]; if (first) st.tab = 'svc'; return refresh();
       }
       if (f === 'fs') {
