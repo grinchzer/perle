@@ -380,3 +380,21 @@ h1{font-family:'DM Sans',system-ui,sans-serif;font-weight:500;letter-spacing:-.0
 .legal .todo{background:var(--wab);color:var(--wat);border-radius:8px;padding:1px 6px;font-weight:600}
 .legal nav{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px}
 .legal nav a{background:var(--soft);border-radius:999px;padding:9px 14px;font-size:14px;font-weight:600;text-decoration:none}
+
+/* profil */
+.who{display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:20px;padding:10px 14px;font-size:14px;margin-bottom:14px;word-break:break-word}
+.lnk{background:none;border:0;padding:8px 0;color:inherit;font-size:14px;font-weight:600;text-decoration:underline;cursor:pointer;width:auto;min-height:0}
+.dark-screen .lnk{display:block;margin:10px auto 0;color:#E4DBEE}
+.mecard{background:var(--soft);border-radius:26px;padding:16px;margin-bottom:12px}
+.mename{display:block;font-size:19px;line-height:1.2}
+.mecard .mut{word-break:break-word}
+.metag{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:700;border-radius:999px;padding:5px 11px;background:var(--or);color:var(--noir)}
+.mestats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.mestats div{display:flex;flex-direction:column;gap:2px}.mestats .mut{font-size:12px}.mestats b{font-size:17px}
+.melink{word-break:break-all;font-size:15px}
+.merow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:24px;padding:12px 14px;margin-bottom:10px;color:inherit;cursor:pointer;min-height:64px}
+.merow .grow{display:flex;flex-direction:column;gap:2px}.merow b{font-size:16px}
+.meic{width:42px;height:42px;border-radius:21px;background:var(--soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.merow.out{margin-top:6px}.merow.out b{color:var(--err)}.merow.out .meic{background:var(--errb);color:var(--err)}
+.mespace{height:96px}
+.mestats .mut{white-space:nowrap}
