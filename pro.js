@@ -62,16 +62,22 @@
   // ----- profil -----
   function me() {
     var p = st.pro, em = (st.user && st.user.email) || '', n = st.svcs.length, up = st.rdv.filter(function (b) { return new Date(b.ends_at).getTime() >= Date.now() && b.status !== 'annule'; }).length;
-    function item(ic, t, s, attr) { return '<button type="button" class="merow" ' + attr + '><span class="meic">' + svg(ic, 20) + '</span><span class="grow"><b>' + t + '</b><span class="mut">' + s + '</span></span>' + svg(I.chev, 18) + '</button>'; }
-    var h = note() + '<div class="mecard"><div class="row">' + thumb(p.avatar_url || p.cover_url, 'big') + '<div class="grow"><b class="mename">' + esc(p.name) + '</b><div class="mut">' + esc(em) + '</div><span class="metag">' + svg(I.star, 14) + 'Offre Découverte</span></div></div>' +
-      '<div class="mestats"><div><span class="mut">À venir</span><b>' + up + '</b></div><div><span class="mut">Prestations</span><b>' + n + '</b></div><div><span class="mut">Page</span><b>' + (p.published === false ? 'Masquée' : 'En ligne') + '</b></div></div></div>' +
-      '<div class="mecard"><span class="mut">Ton lien de réservation</span><div class="row" style="margin-top:6px"><b class="grow melink">' + esc(link().replace(/^https?:\/\//, '')) + '</b><button type="button" class="btn sm dark" style="color:#fff" data-act="copy">Copier</button></div></div>' +
-      item(I.page, 'Ma page', 'Photos, ville, acompte, annulation.', 'data-tab="pro"') +
-      item(I.lock, 'Mot de passe', 'Choisis un nouveau mot de passe.', 'data-act="pw"');
-    if (st.pw || st.recovery) h += '<form id="fw" class="mecard"><label for="np">Nouveau mot de passe (8 caractères au moins)</label><input id="np" type="password" autocomplete="new-password" minlength="8" required><button class="btn" style="margin-top:12px">Enregistrer</button></form>';
-    h += item(I.help, 'Aide', 'Écris-nous, on répond sous 24 heures.', 'data-act="help"') +
-      item(I.doc, 'Conditions et confidentialité', 'Les règles d’utilisation de Perle.', 'data-act="legal"') +
-      '<button type="button" class="merow out" data-act="out"><span class="meic">' + svg(I.out, 20) + '</span><span class="grow"><b>Me déconnecter</b><span class="mut">' + esc(em) + '</span></span></button>';
+    var pic = p.avatar_url || p.cover_url, on = p.published !== false;
+    function row(ic, t, s, attr) { return '<button type="button" class="srow" ' + attr + '>' + svg(ic, 22, 1.8) + '<span class="grow"><b>' + t + '</b><span class="mut">' + s + '</span></span>' + svg(I.chev, 18) + '</button>'; }
+    var h = note() + '<section class="pass"><span class="pearl" aria-hidden="true"></span>' +
+      '<div class="pass-top"><span class="kick">Espace coiffeuse</span><span class="stamp">Découverte</span></div>' +
+      '<div class="pass-id"><span class="pass-av"' + (pic ? ' style="' + U.bg(pic) + '"' : '') + '>' + (pic ? '' : esc((p.name || '?').charAt(0).toUpperCase())) + '</span><div class="grow"><b class="pass-name">' + esc(p.name) + '</b><span class="pass-mail">' + esc(em) + '</span></div></div>' +
+      '<div class="pass-cut" aria-hidden="true"></div>' +
+      '<div class="pass-link"><div class="grow"><span class="kick">Ton lien de réservation</span><b class="pass-url">' + esc(link().replace(/^https?:\/\//, '')) + '</b></div><button type="button" class="pass-copy" data-act="copy">Copier</button></div></section>' +
+      '<div class="nums"><div><b>' + up + '</b><span>à venir</span></div><div><b>' + n + '</b><span>prestation' + (n > 1 ? 's' : '') + '</span></div><div><b class="live' + (on ? ' on' : '') + '"><i></i>' + (on ? 'En ligne' : 'Masquée') + '</b><span>ta page</span></div></div>' +
+      '<p class="sect">Mon compte</p><div class="slist">' +
+      row(I.page, 'Ma page', 'Photos, ville, acompte, annulation', 'data-tab="pro"') +
+      row(I.lock, 'Mot de passe', 'En choisir un nouveau', 'data-act="pw"') +
+      ((st.pw || st.recovery) ? '<form id="fw" class="spw"><label for="np">Nouveau mot de passe (8 caractères au moins)</label><input id="np" type="password" autocomplete="new-password" minlength="8" required><button class="btn" style="margin-top:12px">Enregistrer</button></form>' : '') +
+      '</div><p class="sect">Perle</p><div class="slist">' +
+      row(I.help, 'Aide', 'On te répond sous 24 heures', 'data-act="help"') +
+      row(I.doc, 'Conditions et confidentialité', 'Les règles d’utilisation', 'data-act="legal"') +
+      '</div><button type="button" class="bye" data-act="out">Me déconnecter<span>' + esc(em) + '</span></button>';
     return h + '<div class="mespace"></div>';
   }
   function optText(o) { return (o || []).map(function (g) { return g.group + ': ' + (g.choices || []).map(function (c) { var s = c.label; if (Number(c.plus)) s += ' +' + c.plus; if (Number(c.minutes)) s += ' ' + (c.minutes > 0 ? '+' : '') + c.minutes + 'min'; return s; }).join(', '); }).join('\n'); }
