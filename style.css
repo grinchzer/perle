@@ -677,3 +677,19 @@ input[type=text],input[type=tel],input[type=email],input[type=password],input[ty
 .bkf .svc .lead{gap:6px}
 .bkf .svc .lead i{min-width:6px}
 .bkf .foot{margin-top:40px;text-align:center}
+/* finitions : repère d'étape, compte, formulaire */
+.top .stepn{width:auto;height:auto;border-radius:0;background:none;display:block;white-space:nowrap;margin:0 auto 0 12px;font-size:13px;font-weight:600}
+.acct{border-radius:20px;background:var(--soft);padding:16px}
+.acct-id{display:flex;align-items:center;gap:12px}
+.acct-av{width:56px;height:56px;border-radius:50%;flex-shrink:0;background:var(--vio) center/cover;color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--hb);font-weight:700;font-size:22px}
+.acct-name{display:block;font-family:var(--hb);font-size:22px;letter-spacing:-.02em;line-height:1.15}
+.acct-link{display:flex;align-items:center;gap:12px;margin-top:14px;padding-top:14px;box-shadow:inset 0 1px 0 #DDD3E8}
+.acct-link .mut{display:block;font-size:13px}
+.acct-link b{display:block;word-break:break-all;font-size:15px}
+details.more{margin-top:16px}
+details.more summary{cursor:pointer;font-weight:600;font-size:15px;color:var(--vio);min-height:44px;display:flex;align-items:center;list-style:none}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::before{content:"+";margin-right:8px;font-size:18px}
+details.more[open] summary::before{content:"–"}
+.mp>button.btn{box-shadow:0 0 0 8px #fff,0 12px 26px rgba(21,11,31,.22)}
+#app:not(:has(nav.nav)) .mp>button.btn{position:static;box-shadow:none}
