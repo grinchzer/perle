@@ -82,7 +82,7 @@
     var x = q(); setBar(U.eur(x.price), 'environ ' + U.dur(x.minutes), 'Choisir le créneau', function () { go('slot'); });
   }
   function slot() {
-    var x = q(), ds = days(), h = top('options') + '<h1>Choisis ton créneau</h1>' + recap(true) + '<h2>Quel jour ?</h2><div class="days">';
+    var x = q(), ds = days(), h = top('options') + '<h1>Choisis ton créneau</h1>' + recap(false) + '<h2>Quel jour ?</h2><div class="days">';
     if (!st.day || !slotsFor(st.day).length) { var fr = ds.filter(function (d) { return slotsFor(d).length; }), wd = st.wantDay; st.day = (wd ? fr.slice().sort(function (a, c) { return Math.abs(a - wd) - Math.abs(c - wd); })[0] : fr[0]) || null; st.time = null; }
     if (st.wantT != null && st.day && !st.time) { st.time = slotsFor(st.day).filter(function (t) { return st.wantDay && +st.day === +st.wantDay && t.getHours() * 60 + t.getMinutes() === st.wantT; })[0] || null; st.wantT = null; }
     var moved = st.wantDay && st.day && +st.day !== +st.wantDay;
@@ -109,7 +109,7 @@
     h += '<label for="fn">Ton prénom</label><input id="fn" type="text" autocomplete="given-name" maxlength="40" value="' + esc(saved.n || '') + '">';
     h += '<label for="ft">Ton numéro de téléphone</label><input id="ft" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="06 12 34 56 78" value="' + esc(saved.t || '') + '">';
     h += '<label for="fe">Ton e-mail (facultatif)</label><input id="fe" type="email" autocomplete="email" inputmode="email" maxlength="120" placeholder="Pour recevoir ta confirmation" value="' + esc(saved.e || '') + '">';
-    h += '<label for="fm">Un mot pour ' + esc(st.pro.name) + ' (facultatif)</label><textarea id="fm" maxlength="300"></textarea>';
+    h += '<details class="more"><summary>Ajouter un mot pour ' + esc(st.pro.name) + '</summary><textarea id="fm" maxlength="300" aria-label="Un mot pour ' + esc(st.pro.name) + '"></textarea></details>';
     h += '<div id="err"></div><p class="note ok" style="display:flex;gap:10px;align-items:flex-start">' + svg(I.shield, 20) + '<span>L’acompte se paie directement à ' + esc(st.pro.name) + ', à l’étape suivante. Ta place est confirmée à réception.</span></p><p class="mut" style="margin-top:10px;font-size:13px">Ton prénom et ton numéro servent seulement à ce rendez-vous.</p>';
     app.innerHTML = h;
     setBar(U.eur(d), 'acompte', 'Réserver', submit);
