@@ -178,23 +178,30 @@
     if (b.status === 'attente') a += '<button class="btn sm" data-st="confirme" data-id="' + esc(b.id) + '">Acompte reçu</button>';
     if (b.status === 'confirme' && s.getTime() < now) a += '<button class="btn sm dark" data-st="fait" data-id="' + esc(b.id) + '">Rendez-vous fait</button>';
     if (b.status === 'attente' || b.status === 'confirme') a += '<button class="btn sm ghost" data-st="annule" data-id="' + esc(b.id) + '">Annuler</button>';
+    if (b.status === 'confirme' && s.getTime() < now && b.price - b.deposit > 0) { var m = encodeURIComponent(restMsg(b)); a += '<a class="btn sm" href="sms:' + esc(intl(b.client_phone)) + '?&body=' + m + '">Demander le reste par SMS</a><a class="btn sm ghost" href="https://wa.me/' + esc(intl(b.client_phone).replace('+', '')) + '?text=' + m + '" target="_blank" rel="noopener">Par WhatsApp</a>'; }
     a += '<a class="btn sm ghost" href="tel:' + esc(b.client_phone) + '">Appeler</a>';
     return '<div class="acts">' + a + '</div>';
   }
+  // message prêt à envoyer à la cliente pour régler le reste
+  function restMsg(b) {
+    var rest = Math.round((b.price - b.deposit) * 100) / 100, links = (String(st.pro.pay_info || '').match(/https?:\/\/\S+/g) || []).slice(0, 2).map(function (u) { return /paypal\.(me|com\/paypalme)\/[\w.-]+\/?$/i.test(u) ? u.replace(/\/$/, '') + '/' + rest + 'EUR' : u; });
+    return 'Bonjour ' + String(b.client_name || '').split(' ')[0] + ', c’est ' + st.pro.name + '. Il reste ' + U.eur(rest) + ' à régler pour ta coiffure (référence ' + b.ref + '). ' + (links.length ? 'Tu peux payer ici : ' + links.join(' ou ') : 'Tu retrouves ton rendez-vous ici : https://perleapp.fr/?v=rdv') + ' Merci !';
+  }
+  function intl(p) { return String(p || '').replace(/[^0-9+]/g, '').replace(/^0/, '+33'); }
   function detail(b) { return '<div class="mut" style="margin-top:8px">' + esc(b.client_phone) + ' · référence ' + esc(b.ref) + ' · acompte ' + U.eur(b.deposit) + ', reste ' + U.eur(b.price - b.deposit) + (b.note ? '<br>« ' + esc(b.note) + ' »' : '') + '</div>'; }
   function stOf(b, now) { return (b.status === 'attente' && now - new Date(b.created_at).getTime() > 864e5) ? 'expire' : b.status; }
   function rdv() {
-    var now = Date.now(), up = st.rdv.filter(function (b) { return new Date(b.ends_at).getTime() >= now && b.status !== 'annule' && stOf(b, now) !== 'expire'; }), old = st.rdv.filter(function (b) { return up.indexOf(b) < 0; }).reverse();
+    var now = Date.now(), up = st.rdv.filter(function (b) { var e = new Date(b.ends_at).getTime(); return (e >= now || (b.status === 'confirme' && e >= now - 2 * 864e5)) && b.status !== 'annule' && stOf(b, now) !== 'expire'; }), old = st.rdv.filter(function (b) { return up.indexOf(b) < 0; }).reverse();
     var h = note(), t = new Date(), wk = '';
     for (var i = 0; i < 7; i++) { var d = new Date(t.getFullYear(), t.getMonth(), t.getDate() + i), has = up.some(function (b) { var s = new Date(b.starts_at); return s.toDateString() === d.toDateString(); }); wk += '<span class="' + (i === 0 ? 'on' : '') + '">' + d.toLocaleDateString('fr-FR', { weekday: 'short' }) + '<b>' + d.getDate() + '</b>' + (has ? '<i></i>' : '') + '</span>'; }
     h += '<div class="week" aria-hidden="true">' + wk + '</div>';
     var wait = up.filter(function (b) { return b.status === 'attente'; }).length, sum = up.reduce(function (a, b) { return a + Number(b.price); }, 0);
-    h += '<div class="row" style="gap:10px;margin-top:10px"><span class="stat"><b>' + up.length + '</b><span class="mut">rendez-vous à venir</span></span><span class="stat"><b>' + U.eur(sum) + '</b><span class="mut">' + (wait ? wait + ' acompte' + (wait > 1 ? 's' : '') + ' à recevoir' : 'prévus') + '</span></span></div>';
+    h += '<div class="row" style="gap:10px;margin-top:10px"><span class="stat"><b>' + up.filter(function (b) { return new Date(b.ends_at).getTime() >= now; }).length + '</b><span class="mut">rendez-vous à venir</span></span><span class="stat"><b>' + U.eur(sum) + '</b><span class="mut">' + (wait ? wait + ' acompte' + (wait > 1 ? 's' : '') + ' à recevoir' : 'prévus') + '</span></span></div>';
     var d0 = new Date(), m0 = new Date(d0.getFullYear(), d0.getMonth(), 1).getTime(), m1 = new Date(d0.getFullYear(), d0.getMonth() + 1, 1).getTime();
     var mois = st.rdv.filter(function (b) { var t = new Date(b.starts_at).getTime(); return t >= m0 && t < m1 && (b.status === 'confirme' || b.status === 'fait'); });
     var tot = mois.reduce(function (a, b) { return a + Number(b.price); }, 0), acc = mois.reduce(function (a, b) { return a + Number(b.deposit); }, 0);
     h += '<div class="vio" style="margin-top:10px"><span class="mut">Ton mois de ' + d0.toLocaleDateString('fr-FR', { month: 'long' }) + '</span><div style="font-family:var(--hb);font-weight:700;font-size:38px;letter-spacing:-.03em;line-height:1.1">' + U.eur(tot) + '</div><div class="mut">' + mois.length + ' rendez-vous confirmé' + (mois.length > 1 ? 's' : '') + ' · ' + U.eur(acc) + ' d’acomptes reçus · ' + U.eur(tot - acc) + ' sur place</div></div>';
-    h += '<h2>À venir</h2>';
+    h += '<h2>À venir et à terminer</h2>';
     if (!up.length) h += '<p class="note info">Pas encore de rendez-vous. Partage ton lien pour recevoir ta première réservation.</p>';
     up.forEach(function (b, k) {
       var s = new Date(b.starts_at), what = esc(b.service_name) + (b.options_text ? ', ' + esc(b.options_text) : '');
