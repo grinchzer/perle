@@ -36,26 +36,34 @@
   // ----- ma page -----
   function profile(first) {
     var p = st.pro || { name: '', slug: '', city: '', bio: '', whatsapp: '', pay_info: '', deposit_pct: 30, cover_url: '', gallery: [] };
-    function tg(t) { return '<label class="check" style="margin:0;color:inherit"><input type="checkbox" data-tag="' + t[0] + '"' + ((p.tags || []).indexOf(t[0]) >= 0 ? ' checked' : '') + '>' + t[1] + '</label>'; }
+    function tg(t) { return '<label class="chip"><input type="checkbox" data-tag="' + t[0] + '"' + ((p.tags || []).indexOf(t[0]) >= 0 ? ' checked' : '') + '><span>' + t[1] + '</span></label>'; }
+    function sec(n, t, s) { return '<div class="fsec"><span class="fnum">' + n + '</span><div><b>' + t + '</b><span class="mut">' + s + '</span></div></div>'; }
+    var dep = p.deposit_pct == null ? 30 : p.deposit_pct, g = p.gallery || [];
     var h = (first ? '<div class="who"><span class="grow">Connectée avec <b>' + esc((st.user && st.user.email) || '') + '</b></span><button type="button" class="lnk" data-act="out">Changer de compte</button></div><h1>Ta <span class="hl">page</span>.</h1><p class="sub">Ces informations s’affichent sur ton lien de réservation.</p>' : '') + note() + '<form id="fp">';
     if (!first) {
-      h += '<label>Ta photo de profil</label>' + picker('avatar', p.avatar_url, 'Choisir une photo');
-      h += '<label>Ta photo de couverture</label>' + picker('cover', p.cover_url, 'Choisir une photo');
-      h += '<label>Tes autres photos (8 au maximum)</label><div class="gpick">';
-      (p.gallery || []).forEach(function (u, i) { h += '<span class="ph" style="' + U.bg(u) + '"><button type="button" class="x" data-rm="' + i + '" aria-label="Retirer cette photo">×</button></span>'; });
-      if ((p.gallery || []).length < 8) h += '<label for="gal" aria-label="Ajouter une photo">' + svg(I.plus, 22) + '</label><input type="file" id="gal" accept="image/*" data-photo="gal" style="position:absolute;opacity:0;width:1px;height:1px">';
+      h += '<div class="vit"><div class="vit-cov"' + (p.cover_url ? ' style="' + U.bg(p.cover_url) + '"' : '') + '>' + (p.cover_url ? '' : '<span class="pearl" aria-hidden="true"></span>') +
+        '<label class="vit-edit" for="cover">' + svg(I.photo, 16) + (p.cover_url ? 'Changer la couverture' : 'Ajouter une couverture') + '</label><input type="file" id="cover" accept="image/*" data-photo="cover"></div>' +
+        '<div class="vit-id"><label class="vit-av" for="avatar" aria-label="Changer ta photo de profil"' + (p.avatar_url ? ' style="' + U.bg(p.avatar_url) + '"' : '') + '>' + (p.avatar_url ? '' : esc((p.name || '?').charAt(0).toUpperCase())) + '<i>' + svg(I.plus, 14, 2.6) + '</i></label><input type="file" id="avatar" accept="image/*" data-photo="avatar">' +
+        '<div class="grow"><b class="vit-name">' + esc(p.name) + '</b><span class="mut">' + esc(p.city || 'Ville à renseigner') + '</span></div><a class="vit-see" href="' + esc(link()) + '">Voir ' + svg(I.arrow, 14, 2.4) + '</a></div></div>' +
+        sec('1', 'Tes photos', g.length + ' sur 8 · elles donnent envie de réserver') + '<div class="gpick">';
+      g.forEach(function (u, i) { h += '<span class="ph" style="' + U.bg(u) + '"><button type="button" class="x" data-rm="' + i + '" aria-label="Retirer cette photo">×</button></span>'; });
+      if (g.length < 8) h += '<label for="gal" aria-label="Ajouter une photo">' + svg(I.plus, 22) + '</label><input type="file" id="gal" accept="image/*" data-photo="gal" style="position:absolute;opacity:0;width:1px;height:1px">';
       h += '</div>';
     }
-    h += '<label for="pn">Ton nom ou celui de ton activité</label><input id="pn" type="text" maxlength="60" required value="' + esc(p.name) + '">' +
-      '<label for="ps">Le nom de ton lien</label><input id="ps" type="text" maxlength="30" required placeholder="awabraids" value="' + esc(p.slug) + '"><span class="mut">Lettres minuscules, chiffres et tirets, 3 caractères au moins.</span>' +
+    var k = first ? 0 : 1;
+    h += sec(k + 1, 'Ton identité', 'Ce que la cliente lit en premier') +
+      '<label for="pn">Ton nom ou celui de ton activité</label><input id="pn" type="text" maxlength="60" required value="' + esc(p.name) + '">' +
+      '<label for="ps">Le nom de ton lien</label><div class="pre"><span>perleapp.fr/?c=</span><input id="ps" type="text" maxlength="30" required placeholder="awabraids" value="' + esc(p.slug) + '"></div><span class="mut">Lettres minuscules, chiffres et tirets, 3 caractères au moins.</span>' +
       '<label for="pc">Ta ville ou ton quartier</label><input id="pc" type="text" maxlength="60" placeholder="Paris 19e, ou 93200 Saint-Denis" value="' + esc(p.city) + '"><span class="mut">Sert à t’afficher sur la carte : seul ton quartier est montré, jamais ton adresse.' + (st.pro && p.city && p.lat == null ? ' Ton quartier n’a pas été trouvé : écris une ville, ou « Paris 19e ».' : '') + '</span>' +
-      '<label>Tu coiffes</label><div class="tagrow">' + [['femme', 'Femmes'], ['homme', 'Hommes'], ['enfant', 'Enfants']].map(tg).join('') + '</div><label>Où</label><div class="tagrow">' + [['chez', 'Chez moi'], ['domicile', 'À domicile'], ['salon', 'En salon']].map(tg).join('') + '</div><span class="mut">Sert aux filtres de recherche des clientes.</span>' +
       '<label for="pb">Quelques mots sur toi (facultatif)</label><textarea id="pb" maxlength="400">' + esc(p.bio) + '</textarea>' +
       '<label for="pw2">Ton numéro WhatsApp (facultatif)</label><input id="pw2" type="tel" maxlength="20" placeholder="06 12 34 56 78" value="' + esc(p.whatsapp) + '">' +
-      '<label for="pd">Acompte demandé, en % du prix</label><input id="pd" type="number" min="0" max="100" step="5" value="' + esc(p.deposit_pct) + '">' +
+      sec(k + 2, 'Qui tu coiffes, et où', 'Sert aux filtres de recherche des clientes') +
+      '<div class="chips">' + [['femme', 'Femmes'], ['homme', 'Hommes'], ['enfant', 'Enfants']].map(tg).join('') + '</div><div class="chips">' + [['chez', 'Chez moi'], ['domicile', 'À domicile'], ['salon', 'En salon']].map(tg).join('') + '</div>' +
+      sec(k + 3, 'Acompte et annulation', 'Ce qui te protège des lapins') +
+      '<div class="dep"><div class="dep-top"><span class="mut">Acompte demandé</span><b id="pdv">' + esc(dep) + ' %</b></div><input id="pd" type="range" min="0" max="100" step="5" value="' + esc(dep) + '" aria-label="Acompte demandé, en pourcentage du prix" oninput="document.getElementById(\'pdv\').textContent=this.value+\' %\';document.getElementById(\'pde\').textContent=Math.round(80*this.value/100)+\' €\'"><div class="dep-ex">Sur une coiffure à 80 €, la cliente verse <b id="pde">' + Math.round(80 * dep / 100) + ' €</b> pour bloquer son créneau.</div></div>' +
       '<label for="ph">La cliente peut annuler seule jusqu’à</label><select id="ph">' + [[0, 'la dernière minute'], [24, '24 heures avant'], [48, '48 heures avant'], [72, '3 jours avant'], [168, '7 jours avant']].map(function (o) { return '<option value="' + o[0] + '"' + ((p.cancel_hours == null ? 48 : p.cancel_hours) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select><span class="mut">Passé ce délai, elle doit t’écrire. Un rendez-vous dont l’acompte n’est pas confirmé sous 24 h libère son créneau.</span>' +
       '<label for="pp">Comment la cliente te paie l’acompte</label><textarea id="pp" maxlength="300" placeholder="Exemple : Lydia ou Wero au 06 12 34 56 78, ou ton lien PayPal. Indique la référence du rendez-vous.">' + esc(p.pay_info) + '</textarea><span class="mut">Si tu colles un lien, la cliente voit un bouton « Payer ».</span>' +
-      '<button class="btn" style="margin-top:18px">' + (first ? 'Créer ma page' : 'Enregistrer') + '</button></form>';
+      '<button class="btn" style="margin-top:22px">' + (first ? 'Créer ma page' : 'Enregistrer') + '</button></form>' + (first ? '' : '<div class="mespace"></div>');
     return h;
   }
   // ----- prestations -----
@@ -144,13 +152,16 @@
   }
   // ----- horaires -----
   function hours() {
-    var H = st.pro.hours || {}, h = note() + '<form id="fh">';
+    var H = st.pro.hours || {}, tot = 0, nb = 0, step = st.pro.slot_step || 30;
+    DAYS.forEach(function (d) { var r = (H[d[0]] || [])[0]; if (r) { nb++; var x = r[0].split(':'), y = r[1].split(':'); tot += (+y[0] * 60 + +y[1]) - (+x[0] * 60 + +x[1]); } });
+    var hh = Math.round(tot / 6) / 10;
+    var h = note() + '<div class="hsum"><div><b>' + String(hh).replace('.', ',') + '<small>h</small></b><span>ouvertes par semaine</span></div><div class="hweek" aria-hidden="true">' + DAYS.map(function (d) { return '<i class="' + ((H[d[0]] || [])[0] ? 'on' : '') + '">' + d[1].charAt(0) + '</i>'; }).join('') + '</div></div><form id="fh"><div class="slist">';
     DAYS.forEach(function (d) {
       var r = (H[d[0]] || [])[0];
-      h += '<div class="hours"><label class="check" style="margin:0;color:inherit"><input type="checkbox" id="on' + d[0] + '"' + (r ? ' checked' : '') + '>' + d[1].slice(0, 3) + '.</label><input type="time" id="a' + d[0] + '" aria-label="' + d[1] + ', début" value="' + (r ? r[0] : '09:00') + '"><input type="time" id="b' + d[0] + '" aria-label="' + d[1] + ', fin" value="' + (r ? r[1] : '18:00') + '"></div>';
+      h += '<div class="hrow"><label class="sw"><input type="checkbox" id="on' + d[0] + '"' + (r ? ' checked' : '') + '><i></i><span>' + d[1] + '</span></label><div class="htimes"><input type="time" id="a' + d[0] + '" aria-label="' + d[1] + ', début" value="' + (r ? r[0] : '09:00') + '"><span aria-hidden="true">→</span><input type="time" id="b' + d[0] + '" aria-label="' + d[1] + ', fin" value="' + (r ? r[1] : '18:00') + '"></div><span class="hoff">Fermé</span></div>';
     });
-    h += '<label for="hs">Un créneau proposé toutes les</label><select id="hs">' + [15, 30, 60].map(function (n) { return '<option value="' + n + '"' + (st.pro.slot_step === n ? ' selected' : '') + '>' + n + ' minutes</option>'; }).join('') + '</select>';
-    return h + '<button class="btn" style="margin-top:18px">Enregistrer</button></form>';
+    h += '</div><p class="sect">Un créneau proposé toutes les</p><div class="seg" role="radiogroup" aria-label="Durée entre deux créneaux">' + [15, 30, 60].map(function (n) { return '<label><input type="radio" name="hs" value="' + n + '"' + (step === n ? ' checked' : '') + '><span>' + (n === 60 ? '1 heure' : n + ' min') + '</span></label>'; }).join('') + '</div>';
+    return h + '<button class="btn" style="margin-top:22px">Enregistrer</button></form><div class="mespace"></div>';
   }
   // ----- rendez-vous -----
   function photoFor(b) { var s = st.svcs.filter(function (x) { return x.id === b.service_id; })[0]; return (s && s.photo_url) || st.pro.cover_url || ''; }
@@ -270,7 +281,7 @@
       }
       if (f === 'fh') {
         var H = {}; DAYS.forEach(function (d) { if (document.getElementById('on' + d[0]).checked) { var a = val('a' + d[0]), b = val('b' + d[0]); if (a && b && a < b) H[d[0]] = [[a, b]]; } });
-        var p = base(); p.hours = H; p.slot_step = parseInt(val('hs'), 10) || 30;
+        var p = base(); p.hours = H; p.slot_step = parseInt((document.querySelector('input[name="hs"]:checked') || {}).value, 10) || 30;
         st.pro = await S.savePro(p); st.msg = ['ok', 'Horaires enregistrés.']; return refresh();
       }
     } catch (err) { fail(err); }
