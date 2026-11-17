@@ -531,3 +531,55 @@ h2.mp-h{font-family:var(--hb);font-weight:700;font-size:20px;letter-spacing:-.02
 .mp-split b{display:block;font-family:var(--hb);font-weight:700;font-size:26px;line-height:1.1;letter-spacing:-.03em;color:var(--noir)}
 .mp-dep input[type=range]{margin:8px 0 6px;accent-color:var(--noir)}
 @media (prefers-reduced-motion:reduce){.mp-bar span{transition:none}}
+/* page de réservation : carte du salon et ticket */
+.lead{display:flex;align-items:baseline;gap:8px}
+.lead i{flex:1;min-width:14px;border-bottom:2px dotted #CFC5DA;transform:translateY(-4px)}
+.lead b{text-align:right}
+.bkf h1{font-size:30px;line-height:1.14;font-weight:700}
+.bkf .hl{background:none;padding:0}
+.bkf .hero .fprice.hp{background:#fff;border-radius:12px;box-shadow:none;padding:8px 12px}
+.bkf .hero .count{background:rgba(21,11,31,.62);color:#fff;border-radius:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.dpl{display:flex;gap:8px;align-items:flex-start;margin:14px 0 0;font-size:14px;line-height:1.4;color:var(--ink2)}
+.dpl svg{flex-shrink:0;margin-top:2px;color:var(--vio)}
+.bkf .tabs{gap:22px;margin:22px 0 0;border-bottom:1px solid var(--line)}
+.bkf .tab{padding:10px 0 11px;border-radius:0;background:none;font-size:16px;font-weight:600;color:var(--mut);box-shadow:none}
+.bkf .tab[aria-selected="true"]{background:none;color:var(--noir);box-shadow:inset 0 -3px 0 var(--noir)}
+.bkf .svc{background:none;border-radius:0;padding:14px 0;margin:0;gap:14px;box-shadow:inset 0 -1px 0 var(--line)}
+.bkf .svc:hover{background:none}
+.bkf .svc .thumb{border-radius:14px}
+.bkf .svc .lead b{font-family:var(--hb);font-weight:700;font-size:18px;letter-spacing:-.02em;text-align:left}
+.bkf .svc .lead b:last-child{white-space:nowrap}
+.bkf .svc .mut{display:block;margin-top:2px}
+.bkf .pill{border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.bkf .pill[aria-pressed="true"]{background:var(--noir);color:#fff;box-shadow:none}
+.bkf .dayb{height:78px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.bkf .dayb[aria-pressed="true"]{background:var(--noir);color:#fff;box-shadow:none}
+.bkf .dayb:disabled{background:var(--soft);box-shadow:none}
+.bkf .time{height:auto;min-height:58px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:16px;line-height:1.15}
+.bkf .time small{font-size:11px;font-weight:500;color:var(--mut)}
+.bkf .time[aria-pressed="true"]{background:var(--noir);color:#fff;box-shadow:none}
+.bkf .time[aria-pressed="true"] small{color:#CDBBE3}
+.tk{background:var(--soft);border-radius:18px;padding:14px 16px;margin-top:16px}
+.tk-top{display:flex;align-items:center;gap:12px}
+.tk-top .thumb{border-radius:12px}
+.tk-top b{display:block;font-family:var(--hb);font-size:18px;letter-spacing:-.02em;line-height:1.2}
+.tk-rows{position:relative;margin-top:14px;padding-top:10px;border-top:2px dashed #D5CBE0}
+.tk-rows:before,.tk-rows:after{content:"";position:absolute;top:-10px;width:18px;height:18px;border-radius:50%;background:#fff}
+.tk-rows:before{left:-25px}.tk-rows:after{right:-25px}
+.tk .lead{font-size:15px;padding:6px 0;color:var(--ink2)}
+.tk .lead b{color:var(--noir)}
+.tk .lead.t{margin-top:6px;padding-top:12px;border-top:1px solid #D5CBE0;color:var(--noir);font-weight:700}
+#app.bkf~.bar .btn svg{display:none}
+.tkd{margin-top:20px;color:var(--noir);filter:drop-shadow(0 18px 30px rgba(0,0,0,.35))}
+.tkd-a,.tkd-b{background:radial-gradient(circle at 0 var(--ny),transparent 10px,#fff 10.5px) left/51% 100% no-repeat,radial-gradient(circle at 100% var(--ny),transparent 10px,#fff 10.5px) right/51% 100% no-repeat}
+.tkd-a{--ny:100%;border-radius:20px 20px 0 0;padding:18px 20px 20px}
+.tkd-a span{display:block;font-size:13px;color:var(--mut)}
+.tkd-a .ref{display:block;margin-top:4px;font-size:40px;line-height:1;letter-spacing:.1em}
+.tkd-b{--ny:0%;position:relative;border-radius:0 0 20px 20px;padding:16px 20px 16px}
+.tkd-b:before{content:"";position:absolute;left:16px;right:16px;top:-1px;border-top:2px dashed #CFC5DA}
+.tkd .lead{font-size:15px;padding:5px 0;color:var(--ink2)}
+.tkd .lead span{flex-shrink:0}
+.tkd .lead b{color:var(--noir)}
+.tkd .lead.t{margin-top:6px;padding-top:12px;border-top:1px solid var(--line);color:var(--noir);font-weight:700}
+.tkd .lead.t b{font-family:var(--hb);font-size:24px;letter-spacing:-.02em}
+.dn-t{margin:16px 2px 0;font-size:14px;line-height:1.45}
