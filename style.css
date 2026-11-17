@@ -666,3 +666,14 @@ input[type=text],input[type=tel],input[type=email],input[type=password],input[ty
 .trk li{flex:1;padding-top:9px;font-size:12px;line-height:1.25;color:var(--mut);box-shadow:inset 0 4px 0 var(--line)}
 .trk li.ok{color:var(--noir);font-weight:600;box-shadow:inset 0 4px 0 var(--noir)}
 .trk li.now{color:var(--noir);font-weight:700;box-shadow:inset 0 4px 0 var(--or)}
+/* corrections : acompte en avant, guide replié, noms sur une ligne */
+.due{margin-top:14px;display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:2px 12px}
+.due>span:first-child{font-weight:700;font-size:16px}
+.due>b{font-family:var(--hb);font-size:30px;letter-spacing:-.03em;line-height:1}
+.due>span:last-child{grid-column:1/-1;font-size:14px;color:var(--ink2)}
+.due-how{margin-top:10px;padding:12px 14px;border-radius:14px;background:var(--soft);font-size:15px;font-weight:600;color:var(--noir)}
+.start-n{font-size:13px;color:#CDBBE3;margin:-4px 0 6px}
+.bkf .svc .thumb{width:70px;height:84px}
+.bkf .svc .lead{gap:6px}
+.bkf .svc .lead i{min-width:6px}
+.bkf .foot{margin-top:40px;text-align:center}
