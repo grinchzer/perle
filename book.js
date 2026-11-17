@@ -13,6 +13,15 @@
     check: '<path d="M5 12.500l4.500 4.500L19 7.500"/>', cal: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>', clock: '<circle cx="12" cy="12" r="8.500"/><path d="M12 7.500V12l3 2"/>'
   };
   var ARROW = svg(I.arrow, 18, 2.2);
+  // boutons de paiement : un par lien trouvé dans les consignes de la coiffeuse
+  function payLinks(pay) { return (String(pay || '').match(/https?:\/\/\S+/g) || []).slice(0, 3); }
+  function payText(pay) { return String(pay || '').replace(/https?:\/\/\S+/g, '').replace(/\n{2,}/g, '\n').trim(); }
+  function payBtn(u, dep, first, mt) {
+    var pp = /^https?:\/\/(?:www\.)?paypal\.(?:me|com\/paypalme)\/[\w.-]+\/?$/i.test(u), rv = /^https?:\/\/(?:www\.)?revolut\.me\//i.test(u);
+    var href = pp ? u.replace(/\/$/, '') + '/' + (Math.round(dep * 100) / 100) + 'EUR' : u;
+    return '<a class="btn' + (first ? '' : ' glass') + '" style="margin-top:' + mt + 'px' + (first ? '' : ';border-radius:28px') + '" href="' + esc(href) + '" target="_blank" rel="noopener">Payer ' + U.eur(dep) + (pp ? ' avec PayPal' : rv ? ' avec Revolut' : '') + ARROW + '</a>';
+  }
+
 
   function badge() { return S.live ? '' : '<span class="badge">Mode essai</span>'; }
   function top(back) { return '<div class="top">' + (back ? '<button class="round" data-go="' + back + '" aria-label="Retour">' + svg(I.back, 20) + '</button>' : U.logo()) + badge() + '</div>'; }
@@ -115,13 +124,13 @@
     }
   }
   function done() {
-    var r = st.done, p = st.pro, s = new Date(r.starts_at), pay = p.pay_info || '', url = (pay.match(/https?:\/\/\S+/) || [])[0], w = wa();
+    var r = st.done, p = st.pro, s = new Date(r.starts_at), pay = p.pay_info || '', links = payLinks(pay), ptx = payText(pay), w = wa();
     var h = '<div class="dark-screen" style="' + U.bg(photoOf(st.svc)) + '"><div class="top">' + U.logo() + badge() + '</div>';
     h += '<h1>Presque fini, ' + esc(r.name.split(' ')[0]) + '.<br>Envoie <span class="hl" style="color:var(--noir)">' + U.eur(r.deposit) + '</span>.</h1>';
     h += '<div class="glass"><span class="soft">Ta référence, à indiquer avec le paiement</span><div class="ref">' + esc(r.ref) + '</div></div>';
     h += '<div class="glass"><div class="dline"><span class="ico">' + svg(I.cal, 20) + '</span><span><b>' + esc(U.day(s)) + ' à ' + U.hm(s) + '</b><br><span class="soft">' + esc(r.service) + (r.options ? ', ' + esc(r.options) : '') + '</span></span></div><div class="dline"><span class="ico">' + svg(I.pin, 20) + '</span><span><b>' + esc(p.name) + '</b><br><span class="soft">' + esc(p.city || 'Adresse précise donnée par message') + '</span></span></div><div class="dline"><span class="ico">' + svg(I.euro, 20) + '</span><span><b>Il restera ' + U.eur(r.price - r.deposit) + '</b><br><span class="soft">à régler sur place</span></span></div></div>';
-    h += '<div class="glass"><b>Comment payer l’acompte</b><div class="soft" style="margin-top:4px">' + (pay ? esc(pay) : 'Écris à ' + esc(p.name) + ' pour régler l’acompte.') + '</div></div>';
-    if (url) h += '<a class="btn" style="margin-top:14px" href="' + esc(url) + '" target="_blank" rel="noopener">Payer ' + U.eur(r.deposit) + ARROW + '</a>';
+    h += '<div class="glass"><b>Comment payer l’acompte</b><div class="soft" style="margin-top:4px;white-space:pre-line">' + (links.length ? 'Touche un bouton ci-dessous : il t’emmène directement chez ' + esc(p.name) + '. Indique ta référence ' + esc(r.ref) + ' dans le message du paiement.' + (ptx ? '\n' + esc(ptx) : '') : (ptx ? esc(ptx) : 'Écris à ' + esc(p.name) + ' pour régler l’acompte.')) + '</div></div>';
+    links.forEach(function (u, i) { h += payBtn(u, r.deposit, i === 0, i === 0 ? 14 : 10); });
     if (w) h += '<a class="btn glass" style="margin-top:10px;border-radius:28px" target="_blank" rel="noopener" href="' + w + '?text=' + encodeURIComponent('Bonjour, j’ai réservé ' + r.service + ' le ' + U.day(s) + ' à ' + U.hm(s) + ' (référence ' + r.ref + '). Je t’envoie l’acompte de ' + U.eur(r.deposit) + '.') + '">' + svg(I.msg, 18) + 'Prévenir sur WhatsApp</a>';
     h += '<a class="btn glass" style="margin-top:10px;border-radius:28px" href="./?v=rdv">Voir mes rendez-vous</a>';
     h += '<p class="soft" style="margin-top:16px">' + esc(p.name) + ' confirme ton rendez-vous dès réception de l’acompte. Garde cette page ou fais une capture d’écran.</p></div>';
@@ -364,7 +373,7 @@
         var s = new Date(b.starts_at), stt = (b.status === 'attente' && now - new Date(b.created_at).getTime() > 864e5) ? 'expire' : b.status, can = (stt === 'attente' || stt === 'confirme') && s.getTime() - now >= b.cancel_hours * 36e5, past = s.getTime() < now;
         var h = '<div class="photo-card ph" style="height:200px;' + U.bg(b.cover_url) + (b.cover_url ? '' : ';background:var(--vio)') + '"><span class="when">' + esc(U.dayS(s)) + ', ' + U.hm(s) + '</span><span class="stg glass">' + STL[stt] + '</span><span class="plate glass"><b>' + esc(b.service) + (b.options ? ', ' + esc(b.options) : '') + '</b>' + esc(b.pro_name) + (b.pro_city ? ', ' + esc(b.pro_city) : '') + '</span></div>';
         h += '<div class="mut">Référence ' + esc(b.ref) + ' · prix ' + U.eur(b.price) + ' · acompte ' + U.eur(b.deposit) + ' · reste ' + U.eur(b.price - b.deposit) + '</div>';
-        if (stt === 'attente') h += '<p class="note info" style="margin-top:8px"><b>Pour payer l’acompte :</b> ' + esc(b.pay_info || 'écris à ' + b.pro_name + '.') + '</p>';
+        if (stt === 'attente') { var bl = payLinks(b.pay_info), bt = payText(b.pay_info); h += '<p class="note info" style="margin-top:8px"><b>Pour payer l’acompte :</b> ' + (bl.length ? 'touche un bouton et indique ta référence ' + esc(b.ref) + '.' + (bt ? ' ' + esc(bt) : '') : esc(bt || 'écris à ' + b.pro_name + '.')) + '</p>'; bl.forEach(function (u, i) { h += payBtn(u, b.deposit, false, 8).replace('class="btn glass"', 'class="btn dark"').replace(';border-radius:28px', ''); }); }
         if (stt === 'expire') h += '<p class="note err" style="margin-top:8px">L’acompte n’a pas été confirmé sous 24 h : le créneau a été libéré. Tu peux réserver à nouveau.</p>';
         h += '<div class="acts" style="margin-bottom:18px"><a class="btn sm ghost" href="./?c=' + encodeURIComponent(b.pro_slug) + '">Voir la page</a>' + (can ? '<button class="btn sm ghost" data-cancel="' + esc(b.ref) + '" data-phone="' + esc(b.phone) + '">Annuler</button>' : ((stt === 'attente' || stt === 'confirme') && !past ? '<span class="mut" style="align-self:center">Annulation possible jusqu’à ' + b.cancel_hours + ' h avant</span>' : '')) + '</div>';
         return h;
