@@ -25,7 +25,8 @@
 
 
   function badge() { return S.live ? '' : '<span class="badge">Mode essai</span>'; }
-  function top(back) { return '<div class="top">' + (back ? '<button class="round" data-go="' + back + '" aria-label="Retour">' + svg(I.back, 20) + '</button>' : U.logo()) + badge() + '</div>'; }
+  function stepn() { var seq = (st.svc && (st.svc.options || []).length ? ['options'] : []).concat(['slot', 'me']), i = seq.indexOf(st.step); return i < 0 ? '' : '<span class="stepn">Étape ' + (i + 1) + ' sur ' + seq.length + '</span>'; }
+  function top(back) { return '<div class="top">' + (back ? '<button class="round" data-go="' + back + '" aria-label="Retour">' + svg(I.back, 20) + '</button>' : U.logo()) + stepn() + badge() + '</div>'; }
   function setBar(a, b, label, fn, disabled) {
     if (!label) { bar.hidden = true; return; }
     bar.hidden = false; barA.textContent = a; barB.textContent = b; barBtn.innerHTML = esc(label) + ARROW; barBtn.disabled = !!disabled; barBtn.onclick = fn;
@@ -45,7 +46,7 @@
 
   // ----- écrans -----
   function hero(u, back, extra) {
-    return '<div class="hero ph" style="' + U.bg(u) + (u ? '' : ';background:radial-gradient(circle at 30% 12%,#5B2A86 0%,#2A1340 45%,#150B1F 75%)') + '"><div class="top">' + (back ? '<button class="round" data-go="' + back + '" aria-label="Retour">' + svg(I.back, 20) + '</button>' : U.logo()) + badge() + '</div>' + (extra || '') + '</div>';
+    return '<div class="hero ph" style="' + U.bg(u) + (u ? '' : ';background:radial-gradient(circle at 30% 12%,#5B2A86 0%,#2A1340 45%,#150B1F 75%)') + '"><div class="top">' + (back ? '<button class="round" data-go="' + back + '" aria-label="Retour">' + svg(I.back, 20) + '</button>' : U.logo()) + stepn() + badge() + '</div>' + (extra || '') + '</div>';
   }
   function home() {
     var p = st.pro, ph = photos(), prices = st.svcs.map(function (s) { return Number(s.price); });
@@ -479,7 +480,7 @@
   function missing() { app.innerHTML = top() + '<h1>Cette page n’existe pas.</h1><p class="sub">Vérifie le lien que la coiffeuse t’a envoyé.</p>'; setBar(); }
 
   var SCREENS = { home: home, options: options, slot: slot, me: me, done: done };
-  function go(step) { st.step = step; app.classList.add('bkf'); document.body.classList.toggle('dark', step === 'done'); SCREENS[step](); anim(); window.scrollTo(0, 0); }
+  function go(step) { st.step = step; app.classList.add('bkf'); app.setAttribute('data-step', step); document.body.classList.toggle('dark', step === 'done'); SCREENS[step](); anim(); window.scrollTo(0, 0); }
   async function loadBusy() {
     try { st.busy = await S.busy(slug, new Date().toISOString(), new Date(Date.now() + 29 * 864e5).toISOString()) || []; } catch (e) { st.busy = []; }
     if (st.step === 'slot') slot();
