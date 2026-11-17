@@ -36,14 +36,16 @@
     ymd: function (d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); },
     // créneaux libres d'une coiffeuse un jour donné, pour une durée en minutes
     slots: function (pro, need, d, busy) {
-      var out = [], ranges = (pro.hours || {})[String(d.getDay())] || [], step = pro.slot_step || 30, min = Date.now() + 36e5;
+      var out = [], ranges = (pro.hours || {})[String(d.getDay())] || [], step = pro.slot_step || 30, min = Date.now() + Math.max(1, pro.lead_hours || 1) * 36e5, buf = (pro.buffer_min || 0) * 6e4;
+      var ds = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+      if ((pro.closed || []).some(function (r) { return ds >= r[0] && ds <= r[1]; })) return out;
       ranges.forEach(function (r) {
         var a = r[0].split(':'), b = r[1].split(':');
         var open = new Date(d.getFullYear(), d.getMonth(), d.getDate(), +a[0], +a[1]), close = new Date(d.getFullYear(), d.getMonth(), d.getDate(), +b[0], +b[1]);
         for (var t = open.getTime(); t + need * 6e4 <= close.getTime(); t += step * 6e4) {
           if (t < min) continue;
           var e = t + need * 6e4;
-          if ((busy || []).some(function (x) { return new Date(x.ends_at).getTime() > t && new Date(x.starts_at).getTime() < e; })) continue;
+          if ((busy || []).some(function (x) { return new Date(x.ends_at).getTime() + buf > t && new Date(x.starts_at).getTime() - buf < e; })) continue;
           out.push(new Date(t));
         }
       });
@@ -77,7 +79,7 @@
     },
     norm: function (s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); },
     slug: function (s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30); },
-    MSG: { TARD: 'Le délai d’annulation est dépassé. Écris directement à ta coiffeuse.', STATUT: 'Ce rendez-vous ne peut plus être annulé.', INTROUVABLE: 'Rendez-vous introuvable.', PRIS: 'Ce créneau vient d’être pris. Choisis-en un autre.', HORAIRES: 'Ce créneau n’est plus dans les horaires. Choisis-en un autre.', DATE: 'Ce créneau est trop proche ou trop loin. Choisis-en un autre.', TEL: 'Vérifie ton numéro de téléphone.', NOM: 'Écris ton prénom.', TROP: 'Tu as déjà deux réservations en attente d’acompte ici.', PRO: 'Cette page n’existe plus.', PRESTATION: 'Cette prestation n’est plus proposée.', OPTION: 'Cette option n’est plus proposée.' },
+    MSG: { TARD: 'Le délai d’annulation est dépassé. Écris directement à ta coiffeuse.', STATUT: 'Ce rendez-vous ne peut plus être annulé.', INTROUVABLE: 'Rendez-vous introuvable.', PRIS: 'Ce créneau vient d’être pris. Choisis-en un autre.', FERME: 'Ta coiffeuse est en congé ce jour-là. Choisis un autre jour.', HORAIRES: 'Ce créneau n’est plus dans les horaires. Choisis-en un autre.', DATE: 'Ce créneau est trop proche ou trop loin. Choisis-en un autre.', TEL: 'Vérifie ton numéro de téléphone.', NOM: 'Écris ton prénom.', TROP: 'Tu as déjà deux réservations en attente d’acompte ici.', PRO: 'Cette page n’existe plus.', PRESTATION: 'Cette prestation n’est plus proposée.', OPTION: 'Cette option n’est plus proposée.' },
     msg: function (e) { var m = (e && e.message) || ''; for (var k in U.MSG) if (m.indexOf(k) >= 0) return U.MSG[k]; return 'Ça n’a pas marché. Vérifie ta connexion et réessaie.'; }
   };
 
@@ -90,7 +92,7 @@
       live: true,
       getPro: async function (slug) { return ok(await sb.from('pros').select('*').eq('slug', slug).maybeSingle()); },
       services: async function (proId) { return ok(await sb.from('services').select('*').eq('pro_id', proId).eq('active', true).order('position').order('created_at')); },
-      listPros: async function () { var p = ok(await sb.from('pros').select('id,slug,name,city,cover_url,avatar_url,tags,hours,slot_step,deposit_pct,lat,lng').eq('published', true).order('created_at').limit(60)) || []; if (!p.length) return []; var sv = ok(await sb.from('services').select('id,pro_id,name,price,minutes,options,photo_url,position').eq('active', true).in('pro_id', p.map(function (x) { return x.id; }))) || []; p.forEach(function (x) { x.services = sv.filter(function (y) { return y.pro_id === x.id; }).sort(function (a, b) { return a.position - b.position; }); }); return p.filter(function (x) { return x.services.length; }); },
+      listPros: async function () { var p = ok(await sb.from('pros').select('id,slug,name,city,cover_url,avatar_url,tags,hours,slot_step,deposit_pct,lat,lng,buffer_min,lead_hours,closed').eq('published', true).order('created_at').limit(60)) || []; if (!p.length) return []; var sv = ok(await sb.from('services').select('id,pro_id,name,price,minutes,options,photo_url,position').eq('active', true).in('pro_id', p.map(function (x) { return x.id; }))) || []; p.forEach(function (x) { x.services = sv.filter(function (y) { return y.pro_id === x.id; }).sort(function (a, b) { return a.position - b.position; }); }); return p.filter(function (x) { return x.services.length; }); },
       busy: async function (slug, from, to) { return ok(await sb.rpc('busy', { p_slug: slug, p_from: from, p_to: to })); },
       busyAll: async function (from, to) { var out = {}; (ok(await sb.rpc('busy_all', { p_from: from, p_to: to })) || []).forEach(function (r) { (out[r.slug] = out[r.slug] || []).push({ starts_at: r.starts_at, ends_at: r.ends_at }); }); return out; },
       book: async function (b) { return ok(await sb.rpc('book', { p_slug: b.slug, p_service: b.service, p_choices: b.choices, p_start: b.start, p_name: b.name, p_phone: b.phone, p_note: b.note || '' })); },
@@ -110,7 +112,9 @@
       myServices: async function () { var id = await uid(); return ok(await sb.from('services').select('*').eq('pro_id', id).order('position').order('created_at')); },
       saveService: async function (s) { var id = await uid(); s.pro_id = id; return ok(await sb.from('services').upsert(s).select().single()); },
       deleteService: async function (sid) { ok(await sb.from('services').delete().eq('id', sid)); },
-      myBookings: async function () { var id = await uid(); return ok(await sb.from('bookings').select('*').eq('pro_id', id).gte('ends_at', new Date(Date.now() - 30 * 864e5).toISOString()).order('starts_at')); },
+      myBookings: async function () { var id = await uid(); return ok(await sb.from('bookings').select('*').eq('pro_id', id).gte('ends_at', new Date(Date.now() - 365 * 864e5).toISOString()).order('starts_at').limit(1000)); },
+      myNotes: async function () { var id = await uid(); return ok(await sb.from('client_notes').select('phone,note,flag').eq('pro_id', id)) || []; },
+      saveNote: async function (n) { var id = await uid(); return ok(await sb.from('client_notes').upsert({ pro_id: id, phone: n.phone, note: String(n.note || '').slice(0, 300), flag: !!n.flag }).select().single()); },
       setStatus: async function (bid, st) { ok(await sb.from('bookings').update({ status: st }).eq('id', bid)); },
       upload: async function (blob) { var id = await uid(), path = id + '/' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) + '.jpg'; ok(await sb.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg', cacheControl: '31536000' })); return sb.storage.from('photos').getPublicUrl(path).data.publicUrl; }
     };
@@ -168,7 +172,7 @@
       live: false,
       getPro: async function (slug) { return db().pros.filter(function (p) { return p.slug === slug && p.published; })[0] || null; },
       services: async function (proId) { return db().services.filter(function (s) { return s.pro_id === proId && s.active; }).sort(function (a, b) { return a.position - b.position; }); },
-      listPros: async function () { var d = db(); return d.pros.filter(function (p) { return p.published; }).map(function (p) { return { id: p.id, slug: p.slug, name: p.name, city: p.city, cover_url: p.cover_url, avatar_url: p.avatar_url || '', tags: p.tags || [], hours: p.hours, slot_step: p.slot_step, deposit_pct: p.deposit_pct, lat: p.lat, lng: p.lng, services: d.services.filter(function (y) { return y.pro_id === p.id && y.active; }).sort(function (a, b) { return a.position - b.position; }) }; }).filter(function (x) { return x.services.length; }); },
+      listPros: async function () { var d = db(); return d.pros.filter(function (p) { return p.published; }).map(function (p) { return { id: p.id, slug: p.slug, name: p.name, city: p.city, cover_url: p.cover_url, avatar_url: p.avatar_url || '', tags: p.tags || [], hours: p.hours, slot_step: p.slot_step, deposit_pct: p.deposit_pct, lat: p.lat, lng: p.lng, buffer_min: p.buffer_min, lead_hours: p.lead_hours, closed: p.closed, services: d.services.filter(function (y) { return y.pro_id === p.id && y.active; }).sort(function (a, b) { return a.position - b.position; }) }; }).filter(function (x) { return x.services.length; }); },
       busy: async function (slug, from, to) { var p = db().pros.filter(function (x) { return x.slug === slug; })[0]; if (!p) return []; return db().bookings.filter(function (b) { return b.pro_id === p.id && holds(b) && b.ends_at > from && b.starts_at < to; }).map(function (b) { return { starts_at: b.starts_at, ends_at: b.ends_at }; }); },
       busyAll: async function (from, to) { var d = db(), out = {}; d.pros.forEach(function (p) { out[p.slug] = d.bookings.filter(function (b) { return b.pro_id === p.id && holds(b) && b.ends_at > from && b.starts_at < to; }).map(function (b) { return { starts_at: b.starts_at, ends_at: b.ends_at }; }); }); return out; },
       book: async function (b) {
@@ -197,6 +201,8 @@
       myServices: async function () { var u = me(); return db().services.filter(function (s) { return s.pro_id === u.id; }).sort(function (a, b) { return a.position - b.position; }); },
       saveService: async function (s) { var d = db(), u = me(); s.pro_id = u.id; if (!s.id) { s.id = id(); s.active = s.active !== false; d.services.push(s); } else { var o = d.services.filter(function (x) { return x.id === s.id; })[0]; for (var k in s) o[k] = s[k]; } save(); return s; },
       deleteService: async function (sid) { var d = db(); d.services = d.services.filter(function (s) { return s.id !== sid; }); save(); },
+      myNotes: async function () { var d = db(), u = me(); return ((d.notes || {})[u.id] || []); },
+      saveNote: async function (n) { var d = db(), u = me(); d.notes = d.notes || {}; var l = (d.notes[u.id] = (d.notes[u.id] || []).filter(function (x) { return x.phone !== n.phone; })); l.push({ phone: n.phone, note: String(n.note || '').slice(0, 300), flag: !!n.flag }); save(); return n; },
       myBookings: async function () { var u = me(); return db().bookings.filter(function (b) { return b.pro_id === u.id; }).sort(function (a, b) { return a.starts_at < b.starts_at ? -1 : 1; }); },
       setStatus: async function (bid, st) { var b = db().bookings.filter(function (x) { return x.id === bid; })[0]; if (b) { b.status = st; save(); } },
       upload: function (blob) { return new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(r.result); }; r.onerror = rej; r.readAsDataURL(blob); }); }
