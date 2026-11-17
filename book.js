@@ -116,6 +116,9 @@
   }
   async function submit() {
     var n = document.getElementById('fn').value, t = document.getElementById('ft').value, m = document.getElementById('fm').value, er = document.getElementById('err'), em = ((document.getElementById('fe') || {}).value || '').trim();
+    var old = document.getElementById('fer'); if (old) old.remove();
+    var bad = !n.trim() ? ['fn', 'Écris ton prénom pour réserver.'] : t.replace(/\D/g, '').length < 9 ? ['ft', 'Écris ton numéro de téléphone : ' + st.pro.name + ' en a besoin pour te joindre.'] : null;
+    if (bad) { var fe2 = document.getElementById(bad[0]); fe2.insertAdjacentHTML('afterend', '<p class="note err" id="fer" role="alert" style="margin-top:8px">' + bad[1] + '</p>'); fe2.focus(); fe2.scrollIntoView({ block: 'center' }); return; }
     barBtn.disabled = true; er.innerHTML = '';
     try {
       var r = await S.book({ slug: slug, service: st.svc.id, choices: st.choices, start: st.time.toISOString(), name: n, phone: t, note: m });
@@ -124,7 +127,7 @@
       try { var l = saved(); l.push({ ref: r.ref, phone: t }); localStorage.setItem('perle-rdv', JSON.stringify(l.slice(-20))); } catch (e) { }
       r.name = n.trim(); st.done = r; go('done');
     } catch (e) {
-      er.innerHTML = '<p class="note err" role="alert">' + esc(U.msg(e)) + '</p>'; barBtn.disabled = false;
+      er.innerHTML = '<p class="note err" role="alert">' + esc(U.msg(e)) + '</p>'; barBtn.disabled = false; er.scrollIntoView({ block: 'center' });
       if (/PRIS|HORAIRES|DATE/.test(e.message)) { st.time = null; await loadBusy(); }
     }
   }
