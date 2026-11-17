@@ -60,8 +60,8 @@
     h += '<div style="margin-top:14px">';
     if (st.tab === 'ph') { h += '<div class="gal">'; ph.forEach(function (u) { h += '<span class="ph" style="' + U.bg(u) + '"></span>'; }); h += '</div>'; }
     else {
-      if (!st.svcs.length) h += '<p class="note info">Aucune prestation en ligne pour l’instant.</p>';
-      st.svcs.forEach(function (s, i) { h += '<button class="svc" data-svc="' + i + '">' + thumb(s.photo_url) + '<span class="grow"><span class="lead"><b>' + esc(s.name) + '</b><i></i><b>' + ((s.options || []).length ? 'dès ' : '') + U.eur(s.price) + '</b></span><span class="mut">Environ ' + U.dur(s.minutes) + '</span></span></button>'; });
+      if (!st.svcs.length) h += '<p class="note info">Aucune prestation en ligne pour l’instant.</p>'; else h += '<p class="pk">Touche une coiffure pour choisir tes options et ton créneau.</p>';
+      st.svcs.forEach(function (s, i) { h += '<button class="svc" data-svc="' + i + '">' + thumb(s.photo_url) + '<span class="grow"><span class="lead"><b>' + esc(s.name) + '</b><i></i><b>' + ((s.options || []).length ? 'dès ' : '') + U.eur(s.price) + '</b></span><span class="mut">Environ ' + U.dur(s.minutes) + '</span></span><span class="go" aria-hidden="true">' + ARROW + '</span></button>'; });
     }
     h += '</div><p class="foot">Page de réservation créée avec Perle. Ton prénom et ton numéro servent seulement à ce rendez-vous. <a href="legal.html">Mentions légales et confidentialité</a></p></div>';
     app.innerHTML = h;
@@ -127,11 +127,12 @@
   function done() {
     var r = st.done, p = st.pro, s = new Date(r.starts_at), pay = p.pay_info || '', links = payLinks(pay), ptx = payText(pay), w = wa();
     var h = '<div class="dark-screen" style="' + U.bg(photoOf(st.svc)) + '"><div class="top">' + U.logo() + badge() + '</div>';
+    h += '<h1>Presque fini, ' + esc(r.name.split(' ')[0]) + '.<br>Envoie l’acompte.</h1>';
+    h += '<div class="stub"><div><span>Acompte à envoyer</span><b>' + U.eur(r.deposit) + '</b></div><div><span>Référence à écrire</span><b class="ref">' + esc(r.ref) + '</b></div></div>';
+    h += '<div class="glass"><div class="dline"><span class="ico">' + svg(I.cal, 20) + '</span><span><b>' + esc(U.day(s)) + ' à ' + U.hm(s) + '</b><br><span class="soft">' + esc(r.service) + (r.options ? ', ' + esc(r.options) : '') + '</span></span></div><div class="dline"><span class="ico">' + svg(I.pin, 20) + '</span><span><b>' + esc(p.name) + '</b><br><span class="soft">' + esc(p.city || 'Adresse précise donnée par message') + '</span></span></div><div class="dline"><span class="ico">' + svg(I.euro, 20) + '</span><span><b>Il restera ' + U.eur(r.price - r.deposit) + '</b><br><span class="soft">à régler sur place</span></span></div></div>';
     var sv0 = (st.svcs || []).filter(function (x) { return x.name === r.service; })[0], prep = sv0 && sv0.prep;
-    h += '<h1>C’est noté, ' + esc(r.name.split(' ')[0]) + '. Envoie l’acompte pour bloquer ta place.</h1>';
-    h += '<div class="tkd"><div class="tkd-a"><span>Ta référence, à écrire avec le paiement</span><b class="ref">' + esc(r.ref) + '</b></div><div class="tkd-b">' + lead('Coiffure', esc(r.service) + (r.options ? ', ' + esc(r.options) : '')) + lead('Quand', esc(U.day(s)) + ', ' + U.hm(s)) + lead('Chez', esc(p.name) + (p.city ? ', ' + esc(p.city) : '')) + lead('Sur place', U.eur(r.price - r.deposit)) + lead('Acompte, maintenant', U.eur(r.deposit), 't') + '</div></div>';
-    if (prep) h += '<p class="soft dn-t" style="white-space:pre-line"><b>À préparer avant de venir.</b> ' + esc(prep) + '</p>';
-    h += '<p class="soft dn-t">' + (links.length ? 'Touche un bouton : il t’emmène directement chez ' + esc(p.name) + '. Écris ' + esc(r.ref) + ' dans le message du paiement.' + (ptx ? ' ' + esc(ptx) : '') : (ptx ? esc(ptx) : 'Écris à ' + esc(p.name) + ' pour régler l’acompte.')) + '</p>';
+    if (prep) h += '<div class="glass"><b>À préparer avant de venir</b><div class="soft" style="margin-top:4px;white-space:pre-line">' + esc(prep) + '</div></div>';
+    h += '<div class="glass"><b>Comment payer l’acompte</b><div class="soft" style="margin-top:4px;white-space:pre-line">' + (links.length ? 'Touche un bouton ci-dessous : il t’emmène directement chez ' + esc(p.name) + '. Indique ta référence ' + esc(r.ref) + ' dans le message du paiement.' + (ptx ? '\n' + esc(ptx) : '') : (ptx ? esc(ptx) : 'Écris à ' + esc(p.name) + ' pour régler l’acompte.')) + '</div></div>';
     links.forEach(function (u, i) { h += payBtn(u, r.deposit, i === 0, i === 0 ? 14 : 10); });
     if (w) h += '<a class="btn glass" style="margin-top:10px;border-radius:28px" target="_blank" rel="noopener" href="' + w + '?text=' + encodeURIComponent('Bonjour, j’ai réservé ' + r.service + ' le ' + U.day(s) + ' à ' + U.hm(s) + ' (référence ' + r.ref + '). Je t’envoie l’acompte de ' + U.eur(r.deposit) + '.') + '">' + svg(I.msg, 18) + 'Prévenir sur WhatsApp</a>';
     h += calBtn({ ref: r.ref, start: r.starts_at, end: r.ends_at, title: r.service + ' chez ' + p.name, where: p.city || '', desc: 'Référence ' + r.ref + '. Acompte ' + U.eur(r.deposit) + ', reste ' + U.eur(r.price - r.deposit) + '.' + (prep ? '\nAvant de venir : ' + prep : '') + '\nhttps://perleapp.fr/?v=rdv' }, 'btn glass', 'margin-top:10px;border-radius:28px');
