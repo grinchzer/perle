@@ -2,16 +2,19 @@
 (function () {
   var S = Perle.store, U = Perle.U, esc = U.esc;
   var app = document.getElementById('app');
-  var st = { user: null, pro: null, tab: 'rdv', svcs: [], rdv: [], edit: null, calc: null, msg: null };
+  var st = { user: null, pro: null, recovery: /type=recovery/.test(location.hash), pw: false, tab: 'rdv', svcs: [], rdv: [], edit: null, calc: null, msg: null };
   var DAYS = [['1', 'Lundi'], ['2', 'Mardi'], ['3', 'Mercredi'], ['4', 'Jeudi'], ['5', 'Vendredi'], ['6', 'Samedi'], ['0', 'Dimanche']];
   var LAB = { attente: 'Acompte attendu', confirme: 'Confirmé', annule: 'Annulé', fait: 'Fait', expire: 'Expiré, créneau libéré' };
   function svg(p, s, w) { return '<svg aria-hidden="true" width="' + (s || 20) + '" height="' + (s || 20) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 2) + '" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; }
   var I = {
     cal: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>', tag: '<path d="M4 4h7l9 9-7 7-9-9z"/><circle cx="8.500" cy="8.500" r="1.500"/>',
     clock: '<circle cx="12" cy="12" r="8.500"/><path d="M12 7.500V12l3 2"/>', user: '<circle cx="12" cy="8" r="4"/><path d="M4 20c1.500-4 5-5 8-5s6.500 1 8 5"/>',
-    photo: '<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>', plus: '<path d="M12 5v14M5 12h14"/>', arrow: '<path d="M7 17L17 7M9 7h8v8"/>'
+    photo: '<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>', plus: '<path d="M12 5v14M5 12h14"/>', arrow: '<path d="M7 17L17 7M9 7h8v8"/>',
+    page: '<rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/>', chev: '<path d="M9 6l6 6-6 6"/>', lock: '<rect x="5" y="11" width="14" height="9" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    link: '<path d="M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1"/><path d="M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1"/>', help: '<circle cx="12" cy="12" r="8.500"/><path d="M9.500 9.500a2.500 2.500 0 1 1 3.500 2.300c-.700.400-1 1-1 1.700"/><path d="M12 17h.01"/>',
+    doc: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/>', out: '<path d="M10 5H6v14h4"/><path d="M14 8l4 4-4 4M18 12H10"/>', star: '<path d="M12 4l2.400 5 5.400.700-4 3.800 1 5.400L12 16.300 7.200 18.900l1-5.400-4-3.800 5.400-.700z"/>'
   };
-  var TABS = [['rdv', 'Rendez-vous', I.cal], ['svc', 'Prestations', I.tag], ['hrs', 'Horaires', I.clock], ['pro', 'Ma page', I.user]];
+  var TABS = [['rdv', 'Rendez-vous', I.cal], ['svc', 'Prestations', I.tag], ['hrs', 'Horaires', I.clock], ['pro', 'Ma page', I.page], ['me', 'Profil', I.user]];
 
   function top() { return '<div class="top">' + U.logo() + (S.live ? '' : '<span class="badge">Mode essai</span>') + '</div>'; }
   function note() { var m = st.msg; st.msg = null; return m ? '<p class="note ' + m[0] + '" role="' + (m[0] === 'err' ? 'alert' : 'status') + '">' + esc(m[1]) + '</p>' : ''; }
@@ -26,7 +29,7 @@
     app.innerHTML = '<div class="dark-screen" style="background-image:url(img/bgLocks.jpg)"><div class="top">' + U.logo() + (S.live ? '' : '<span class="badge">Mode essai</span>') + '</div><h1 style="margin-top:210px">Ton espace <span class="hl" style="color:var(--noir)">coiffeuse</span>.</h1><p class="soft" style="font-size:16px;margin:10px 0 0">Crée ta page de réservation et reçois tes rendez-vous avec acompte.</p>' + note() +
       '<form id="fa"><label for="em" style="color:#E4DBEE">Ton e-mail</label><input id="em" type="email" autocomplete="email" required style="color:var(--noir)">' +
       '<label for="pw" style="color:#E4DBEE">Ton mot de passe (8 caractères au moins)</label><input id="pw" type="password" autocomplete="current-password" minlength="8" required style="color:var(--noir)">' +
-      '<button class="btn" style="margin-top:18px" data-act="in">Me connecter</button><button class="btn glass" style="margin-top:10px;border-radius:28px" data-act="up">Créer mon compte</button><p class="soft" style="margin-top:12px;font-size:13px">En créant ton compte, tu acceptes les <a href="legal.html#cgu" style="color:inherit">conditions d’utilisation</a> et la <a href="legal.html#confidentialite" style="color:inherit">politique de confidentialité</a>.</p></form>' +
+      '<button class="btn" style="margin-top:18px" data-act="in">Me connecter</button><button class="btn glass" style="margin-top:10px;border-radius:28px" data-act="up">Créer mon compte</button><button type="button" class="lnk" data-act="forgot">Mot de passe oublié ?</button><p class="soft" style="margin-top:12px;font-size:13px">En créant ton compte, tu acceptes les <a href="legal.html#cgu" style="color:inherit">conditions d’utilisation</a> et la <a href="legal.html#confidentialite" style="color:inherit">politique de confidentialité</a>.</p></form>' +
       (S.live ? '' : '<p class="soft" style="margin-top:14px">Mode essai : n’importe quel e-mail fonctionne et tout reste dans ce navigateur.</p>') +
       '<div class="glass"><b>Comment ça marche</b><div class="soft" style="margin-top:6px">1. Tu ajoutes tes photos, tes prestations, tes prix et tes horaires.<br>2. Tu mets ton lien dans ta bio.<br>3. Tes clientes réservent et t’envoient l’acompte. Tu confirmes d’un geste.</div></div></div>';
   }
@@ -34,7 +37,7 @@
   function profile(first) {
     var p = st.pro || { name: '', slug: '', city: '', bio: '', whatsapp: '', pay_info: '', deposit_pct: 30, cover_url: '', gallery: [] };
     function tg(t) { return '<label class="check" style="margin:0;color:inherit"><input type="checkbox" data-tag="' + t[0] + '"' + ((p.tags || []).indexOf(t[0]) >= 0 ? ' checked' : '') + '>' + t[1] + '</label>'; }
-    var h = (first ? '<h1>Ta <span class="hl">page</span>.</h1><p class="sub">Ces informations s’affichent sur ton lien de réservation.</p>' : '') + note() + '<form id="fp">';
+    var h = (first ? '<div class="who"><span class="grow">Connectée avec <b>' + esc((st.user && st.user.email) || '') + '</b></span><button type="button" class="lnk" data-act="out">Changer de compte</button></div><h1>Ta <span class="hl">page</span>.</h1><p class="sub">Ces informations s’affichent sur ton lien de réservation.</p>' : '') + note() + '<form id="fp">';
     if (!first) {
       h += '<label>Ta photo de profil</label>' + picker('avatar', p.avatar_url, 'Choisir une photo');
       h += '<label>Ta photo de couverture</label>' + picker('cover', p.cover_url, 'Choisir une photo');
@@ -56,6 +59,21 @@
     return h;
   }
   // ----- prestations -----
+  // ----- profil -----
+  function me() {
+    var p = st.pro, em = (st.user && st.user.email) || '', n = st.svcs.length, up = st.rdv.filter(function (b) { return new Date(b.ends_at).getTime() >= Date.now() && b.status !== 'annule'; }).length;
+    function item(ic, t, s, attr) { return '<button type="button" class="merow" ' + attr + '><span class="meic">' + svg(ic, 20) + '</span><span class="grow"><b>' + t + '</b><span class="mut">' + s + '</span></span>' + svg(I.chev, 18) + '</button>'; }
+    var h = note() + '<div class="mecard"><div class="row">' + thumb(p.avatar_url || p.cover_url, 'big') + '<div class="grow"><b class="mename">' + esc(p.name) + '</b><div class="mut">' + esc(em) + '</div><span class="metag">' + svg(I.star, 14) + 'Offre Découverte</span></div></div>' +
+      '<div class="mestats"><div><span class="mut">À venir</span><b>' + up + '</b></div><div><span class="mut">Prestations</span><b>' + n + '</b></div><div><span class="mut">Page</span><b>' + (p.published === false ? 'Masquée' : 'En ligne') + '</b></div></div></div>' +
+      '<div class="mecard"><span class="mut">Ton lien de réservation</span><div class="row" style="margin-top:6px"><b class="grow melink">' + esc(link().replace(/^https?:\/\//, '')) + '</b><button type="button" class="btn sm dark" style="color:#fff" data-act="copy">Copier</button></div></div>' +
+      item(I.page, 'Ma page', 'Photos, ville, acompte, annulation.', 'data-tab="pro"') +
+      item(I.lock, 'Mot de passe', 'Choisis un nouveau mot de passe.', 'data-act="pw"');
+    if (st.pw || st.recovery) h += '<form id="fw" class="mecard"><label for="np">Nouveau mot de passe (8 caractères au moins)</label><input id="np" type="password" autocomplete="new-password" minlength="8" required><button class="btn" style="margin-top:12px">Enregistrer</button></form>';
+    h += item(I.help, 'Aide', 'Écris-nous, on répond sous 24 heures.', 'data-act="help"') +
+      item(I.doc, 'Conditions et confidentialité', 'Les règles d’utilisation de Perle.', 'data-act="legal"') +
+      '<button type="button" class="merow out" data-act="out"><span class="meic">' + svg(I.out, 20) + '</span><span class="grow"><b>Me déconnecter</b><span class="mut">' + esc(em) + '</span></span></button>';
+    return h + '<div class="mespace"></div>';
+  }
   function optText(o) { return (o || []).map(function (g) { return g.group + ': ' + (g.choices || []).map(function (c) { var s = c.label; if (Number(c.plus)) s += ' +' + c.plus; if (Number(c.minutes)) s += ' ' + (c.minutes > 0 ? '+' : '') + c.minutes + 'min'; return s; }).join(', '); }).join('\n'); }
   function optParse(t) {
     return String(t || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean).map(function (l) {
@@ -167,7 +185,8 @@
     document.body.classList.remove('dark');
     if (!st.user) return auth();
     if (!st.pro) { app.innerHTML = top() + profile(true); return; }
-    var T = { rdv: ['Bonjour, <span class="hl">' + esc(st.pro.name.split(' ')[0]) + '</span>.', rdv], svc: ['Tes <span class="hl">prestations</span>.', services], hrs: ['Tes <span class="hl">horaires</span>.', hours], pro: ['Ta <span class="hl">page</span>.', function () { return profile(false) + '<button class="btn ghost" style="margin-top:10px" data-act="out">Me déconnecter</button>'; }] }[st.tab];
+    if (st.recovery) st.tab = 'me';
+    var T = { rdv: ['Bonjour, <span class="hl">' + esc(st.pro.name.split(' ')[0]) + '</span>.', rdv], svc: ['Tes <span class="hl">prestations</span>.', services], hrs: ['Tes <span class="hl">horaires</span>.', hours], pro: ['Ta <span class="hl">page</span>.', function () { return profile(false); }], me: ['Ton <span class="hl">profil</span>.', me] }[st.tab];
     app.innerHTML = top() + '<h1>' + T[0] + '</h1><div style="margin-top:14px">' + T[1]() + '</div>' +
       '<nav class="nav" aria-label="Menu">' + TABS.map(function (t) { return '<button data-tab="' + t[0] + '" aria-selected="' + (st.tab === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '<span>' + t[1] + '</span></button>'; }).join('') + '</nav>';
   }
@@ -205,7 +224,12 @@
         if (a === 'up') { var u = await S.signUp(em, pw); if (!u) { st.msg = ['ok', 'Compte créé. Ouvre l’e-mail de confirmation que tu viens de recevoir, puis connecte-toi ici.']; return render(); } } else await S.signIn(em, pw);
         return refresh();
       }
-      if (a === 'out') { await S.signOut(); st.user = st.pro = null; return render(); }
+      if (a === 'out') { await S.signOut(); st.user = st.pro = null; st.tab = 'rdv'; st.pw = st.recovery = false; return render(); }
+      if (a === 'forgot') { var fe = val('em'); if (!/^\S+@\S+\.\S+$/.test(fe)) { st.msg = ['err', 'Écris d’abord ton e-mail, puis touche « Mot de passe oublié ? ».']; return render(); } await S.resetPw(fe); st.msg = ['ok', 'Si un compte existe avec cet e-mail, tu vas recevoir un lien pour choisir un nouveau mot de passe. Regarde aussi dans tes indésirables.']; return render(); }
+      if (a === 'pw') { st.pw = !st.pw; return render(); }
+      if (a === 'copy') { var l = link(); if (!/^https?:/.test(l)) l = new URL(l, location.href).href; try { await navigator.clipboard.writeText(l); st.msg = ['ok', 'Lien copié. Colle-le dans ta bio.']; } catch (x) { st.msg = ['info', 'Ton lien : ' + l]; } return render(); }
+      if (a === 'help') { location.href = 'mailto:contact@perleapp.fr?subject=' + encodeURIComponent('Aide Perle'); return; }
+      if (a === 'legal') { location.href = 'legal.html'; return; }
       if (a === 'new') { st.edit = { name: '', price: null, minutes: 120, options: [], photo_url: '' }; return render(); }
       if (a === 'cancel') { st.edit = null; return render(); }
       if (a === 'calc') { var f0 = st.svcs[0]; st.calc = { prix: f0 ? Math.max(5, Math.round(Number(f0.price) / 5) * 5) : 60, heures: f0 ? Math.max(.5, Math.round(f0.minutes / 30) / 2) : 6, frais: 15 }; render(); return window.scrollTo(0, 0); }
@@ -224,6 +248,7 @@
   app.addEventListener('submit', async function (e) {
     e.preventDefault(); var f = e.target.id;
     try {
+      if (f === 'fw') { var np = document.getElementById('np').value; if (np.length < 8) { st.msg = ['err', 'Choisis un mot de passe de 8 caractères au moins.']; return render(); } await S.setPw(np); st.pw = st.recovery = false; if (location.hash) history.replaceState(null, '', location.pathname + location.search); st.msg = ['ok', 'Ton mot de passe est changé.']; return render(); }
       if (f === 'fp') {
         var slug = U.slug(val('ps')); if (slug.length < 3 || val('pn').length < 2) { st.msg = ['err', 'Écris ton nom et un lien de 3 caractères au moins.']; return render(); }
         var first = !st.pro;
@@ -245,5 +270,6 @@
     } catch (err) { fail(err); }
   });
 
+  if (S.onRecovery) S.onRecovery(function () { st.recovery = true; st.msg = ['info', 'Choisis ton nouveau mot de passe ci-dessous.']; refresh(); });
   refresh().catch(function () { app.innerHTML = top() + '<p class="note err" role="alert">Impossible de charger. Vérifie ta connexion et recharge la page.</p>'; });
 })();
