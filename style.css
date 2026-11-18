@@ -757,3 +757,7 @@ details.fiche[open]>summary::before{content:"–"}
 .trk li:nth-child(3)::before{animation-delay:.5s,1.6s}
 @keyframes trkf{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes trkp{0%,100%{opacity:1}50%{opacity:.35}}
+/* page coiffeuse : logo lisible sur une photo claire, texte de présentation plus aéré */
+.hero::after{background:linear-gradient(180deg,rgba(21,11,31,.52) 0%,rgba(21,11,31,.18) 22%,rgba(21,11,31,0) 40%,rgba(21,11,31,0) 60%,rgba(21,11,31,.45) 100%)}
+.sub{line-height:1.5}
+.bkf .sub{color:#5A5266}
