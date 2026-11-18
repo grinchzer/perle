@@ -709,3 +709,9 @@ details.fiche>summary::before{content:"+";margin-right:8px;font-size:18px}
 details.fiche[open]>summary::before{content:"–"}
 .mp>button.btn{position:static;box-shadow:none}
 .mp.dirty>button.btn{position:sticky;box-shadow:0 0 0 8px #fff,0 12px 26px rgba(21,11,31,.22)}
+/* la carte en avant : bloc sur l'accueil */
+.mapcta{display:flex;align-items:center;gap:12px;width:100%;margin-top:16px;padding:16px;border-radius:20px;text-align:left;color:#fff;background-color:var(--noir);background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:34px 34px}
+.mapcta-i{width:44px;height:44px;border-radius:14px;background:var(--vio);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mapcta b{display:block;font-family:var(--hb);font-size:18px;letter-spacing:-.02em;line-height:1.2}
+.mapcta .grow>span{display:block;font-size:13px;color:#D8CCE6;margin-top:2px}
+.mapcta .go{width:34px;height:34px;border-radius:50%;background:#fff;color:var(--noir);display:flex;align-items:center;justify-content:center;flex-shrink:0}
