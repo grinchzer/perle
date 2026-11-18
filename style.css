@@ -724,3 +724,8 @@ details.fiche[open]>summary::before{content:"–"}
 .mapcard.open .shandle span{background:none;padding:0}
 .mapcard.open .car{flex-direction:column;overflow-x:hidden;overflow-y:auto;max-height:58vh;scroll-snap-type:none;padding:4px 12px 14px}
 .mapcard.open .car .pcard{flex:0 0 auto;opacity:1;transform:none;background:var(--soft);border-radius:20px}
+/* créneaux cliquables sous chaque coiffeuse, faits de confiance */
+.slots{display:flex;gap:8px;margin:8px 0 18px}
+.slots a{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:var(--soft);font-size:14px;font-weight:600;color:var(--noir);text-decoration:none;white-space:nowrap}
+.slots a:active{background:var(--noir);color:#fff}
+.facts{margin:10px 0 0;font-size:14px;color:var(--ink2)}
