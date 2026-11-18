@@ -769,3 +769,11 @@ details.fiche[open]>summary::before{content:"–"}
 .dly button{min-height:44px;padding:0 14px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:14px;font-weight:600;color:var(--noir)}
 .dly button[aria-pressed="true"]{background:var(--noir);border-color:var(--noir);color:#fff}
 .livep .dly button{flex:1;padding:0 6px;white-space:nowrap}
+
+/* Connexion avec Google ou Apple */
+.oab{background:#fff;color:var(--noir);margin-top:18px;font-weight:600}
+.oab+.oab{margin-top:10px}
+.oab.dk{background:#000;color:#fff}
+.oab:disabled{opacity:.6}
+.oasep{display:flex;align-items:center;gap:12px;margin:18px 0 2px;color:#E4DBEE;font-size:13px}
+.oasep:before,.oasep:after{content:"";flex:1;height:1px;background:rgba(255,255,255,.28)}
