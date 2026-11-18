@@ -63,7 +63,7 @@
   }
   function home() {
     var p = st.pro, ph = photos(), prices = st.svcs.map(function (s) { return Number(s.price); });
-    var h = hero(p.cover_url, null, (prices.length ? '<span class="fprice hp"><small>' + (Math.min.apply(0, prices) === Math.max.apply(0, prices) ? 'prix' : 'à partir de') + '</small>' + U.eur(Math.min.apply(0, prices)) + '</span>' : '') + (ph.length > 1 ? '<span class="count">' + svg(I.photo, 14, 2.2) + ph.length + ' photos</span>' : '')) + '<div class="sheet"><div class="row">' + (p.avatar_url ? '<span class="ava ph" style="' + U.bg(p.avatar_url) + '"></span>' : '') + '<h1 class="grow">' + esc(p.name) + '</h1></div><div class="meta">';
+    var h = hero(p.cover_url, null, (prices.length ? '<span class="fprice hp">' + (Math.min.apply(0, prices) === Math.max.apply(0, prices) ? '' : '<small>à partir de</small>') + U.eur(Math.min.apply(0, prices)) + '</span>' : '') + (ph.length > 1 ? '<span class="count">' + svg(I.photo, 14, 2.2) + ph.length + ' photos</span>' : '')) + '<div class="sheet"><div class="row">' + (p.avatar_url ? '<span class="ava ph" style="' + U.bg(p.avatar_url) + '"></span>' : '') + '<h1 class="grow">' + esc(p.name) + '</h1></div><div class="meta">';
     if (p.city) h += '<span>' + svg(I.pin, 16) + esc(p.city) + '</span>';
     if (p.instagram) h += '<a class="igl" href="https://www.instagram.com/' + encodeURIComponent(p.instagram) + '/" target="_blank" rel="noopener">@' + esc(p.instagram) + ' sur Instagram</a>';
     if (prices.length && Math.min.apply(0, prices) !== Math.max.apply(0, prices)) h += '<span>' + svg(I.euro, 16) + 'jusqu’à ' + U.eur(Math.max.apply(0, prices)) + '</span>';
