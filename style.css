@@ -715,3 +715,12 @@ details.fiche[open]>summary::before{content:"–"}
 .mapcta b{display:block;font-family:var(--hb);font-size:18px;letter-spacing:-.02em;line-height:1.2}
 .mapcta .grow>span{display:block;font-size:13px;color:#D8CCE6;margin-top:2px}
 .mapcta .go{width:34px;height:34px;border-radius:50%;background:#fff;color:var(--noir);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+/* carte : la liste remonte en feuille */
+.shandle{align-self:center;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:44px;padding:8px 18px 4px;font-size:13px;font-weight:600;color:var(--noir)}
+.shandle i{width:40px;height:5px;border-radius:3px;background:rgba(21,11,31,.35)}
+.shandle span{background:rgba(255,255,255,.85);border-radius:999px;padding:5px 12px}
+.mapcard.open{background:#fff;border-radius:24px 24px 0 0;box-shadow:0 -10px 30px rgba(21,11,31,.18);gap:0}
+.mapcard.open .osm{display:none}
+.mapcard.open .shandle span{background:none;padding:0}
+.mapcard.open .car{flex-direction:column;overflow-x:hidden;overflow-y:auto;max-height:58vh;scroll-snap-type:none;padding:4px 12px 14px}
+.mapcard.open .car .pcard{flex:0 0 auto;opacity:1;transform:none;background:var(--soft);border-radius:20px}
