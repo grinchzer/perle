@@ -114,6 +114,7 @@
       oauth: async function (p, to) { if (p !== 'google' && p !== 'apple') return; ok(await sb.auth.signInWithOAuth({ provider: p, options: { redirectTo: to || ((window.PERLE || {}).SITE ? window.PERLE.SITE + 'pro.html' : location.origin + location.pathname) } })); },
       claimRefs: async function (l) { return ok(await sb.rpc('claim_refs', { p_list: (l || []).slice(-30) })); },
       myRefs: async function () { return ok(await sb.rpc('my_refs')); },
+      hideBooking: async function (ref, phone) { return ok(await sb.rpc('hide_booking', { p_ref: ref, p_phone: phone })); },
       resetPw: async function (email) { ok(await sb.auth.resetPasswordForEmail(email, { redirectTo: ((window.PERLE || {}).SITE ? window.PERLE.SITE + 'pro.html' : location.origin + location.pathname) })); },
       setPw: async function (pw) { ok(await sb.auth.updateUser({ password: pw })); },
       onRecovery: function (cb) { sb.auth.onAuthStateChange(function (ev) { if (ev === 'PASSWORD_RECOVERY') cb(); }); },
