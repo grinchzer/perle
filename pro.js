@@ -189,7 +189,13 @@
     if (b.status === 'confirme' && s.getTime() < now) a += '<button class="btn sm dark" data-st="fait" data-id="' + esc(b.id) + '">Rendez-vous fait</button>';
     if (b.status === 'confirme' && s.getTime() < now && b.price - b.deposit > 0) a += '<a class="btn sm" href="sms:' + esc(intl(b.client_phone)) + '?&body=' + encodeURIComponent(restMsg(b)) + '">Demander le reste</a>';
     a += '<a class="btn sm ghost" href="tel:' + esc(b.client_phone) + '">Appeler</a>';
-    return '<div class="acts">' + a + '</div>';
+    var d0 = new Date(); d0.setHours(0, 0, 0, 0); var lv = '', fn = esc(String(b.client_name || '').split(' ')[0]);
+    if (b.status === 'confirme' && s.getTime() >= d0.getTime() && s.getTime() < d0.getTime() + 864e5) {
+      lv = '<div class="livep">' + (b.client_onway_at ? '<p class="lv"><b>' + fn + ' est en route.</b></p>' : '') + (b.client_late_min > 0 ? '<p class="lv"><b>' + fn + ' annonce environ ' + b.client_late_min + ' min de retard.</b></p>' : '') +
+        '<div class="dly"><span class="mut">Ton horaire aujourd’hui, vu par ' + fn + '</span>' + [0, 10, 20, 30].map(function (m) { return '<button type="button" data-sig="late" data-min="' + m + '" data-id="' + esc(b.id) + '" aria-pressed="' + ((b.pro_delay_min || 0) === m) + '">' + (m ? '+' + m + ' min' : 'À l’heure') + '</button>'; }).join('') + '</div>' +
+        (b.pro_ready_at ? '<p class="mut" style="margin-top:10px">Tu as prévenu ' + fn + ' que c’est son tour.</p>' : '<button type="button" class="btn sm dark" style="margin-top:10px" data-sig="ready" data-id="' + esc(b.id) + '">J’ai fini, ' + fn + ' peut venir</button>') + '</div>';
+    }
+    return lv + '<div class="acts">' + a + '</div>';
   }
   // message prêt à envoyer à la cliente pour régler le reste
   function restMsg(b) {
@@ -259,7 +265,7 @@
   }
   async function poll() {
     if (!st.user || !st.pro || st.tab !== 'rdv' || document.hidden) return; var ae = document.activeElement; if (ae && /^(TEXTAREA|INPUT|SELECT)$/.test(ae.tagName)) return; if (document.querySelector('details.fiche[open]')) return;
-    try { var l = await S.myBookings() || [], sig = function (a) { return (a || []).map(function (x) { return x.id + x.status + (x.paid_claimed_at || ''); }).join('|'); }; if (sig(l) !== sig(st.rdv)) { var more = l.length > (st.rdv || []).length; st.rdv = l; if (more) st.msg = ['ok', 'Nouvelle réservation reçue.']; render(); } } catch (e) { }
+    try { var l = await S.myBookings() || [], sig = function (a) { return (a || []).map(function (x) { return x.id + x.status + (x.paid_claimed_at || '') + (x.client_onway_at || '') + (x.client_late_min || '') + (x.pro_delay_min || '') + (x.pro_ready_at || ''); }).join('|'); }; if (sig(l) !== sig(st.rdv)) { var more = l.length > (st.rdv || []).length; st.rdv = l; if (more) st.msg = ['ok', 'Nouvelle réservation reçue.']; render(); } } catch (e) { }
   }
   setInterval(poll, 30000); document.addEventListener('visibilitychange', poll);
   async function refresh() {
@@ -287,6 +293,7 @@
       if (b.dataset.tab) { st.dirty = false; st.tab = b.dataset.tab; st.edit = null; st.calc = null; render(); return window.scrollTo(0, 0); }
       if (b.dataset.edit) { st.edit = JSON.parse(JSON.stringify(st.svcs[+b.dataset.edit])); return render(); }
       if (b.dataset.rm) { var p = base(); p.gallery = (st.pro.gallery || []).filter(function (_, i) { return i !== +b.dataset.rm; }); st.pro = await S.savePro(p); return render(); }
+      if (b.dataset.sig) { b.disabled = true; await S.proSignal(b.dataset.id, b.dataset.sig, +b.dataset.min || 0); st.rdv = await S.myBookings() || []; return render(); }
       if (b.dataset.st) {
         if (b.dataset.st === 'annule' && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmer l’annulation'; return; }
         await S.setStatus(b.dataset.id, b.dataset.st); st.msg = ['ok', b.dataset.st === 'confirme' ? 'Rendez-vous confirmé. Pense à prévenir ta cliente.' : 'C’est noté.']; return refresh();
