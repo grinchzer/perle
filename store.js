@@ -110,6 +110,8 @@
       signUp: async function (email, pw) { var d = ok(await sb.auth.signUp({ email: email, password: pw, options: { emailRedirectTo: ((window.PERLE || {}).SITE ? window.PERLE.SITE + 'pro.html' : location.origin + location.pathname) } })); return d.session ? d.user : null; },
       signIn: async function (email, pw) { return ok(await sb.auth.signInWithPassword({ email: email, password: pw })).user; },
       signOut: async function () { await sb.auth.signOut(); },
+      providers: async function () { var r = await fetch(C.SUPABASE_URL + '/auth/v1/settings', { headers: { apikey: C.SUPABASE_KEY } }), j = await r.json(), x = j.external || {}; return { google: !!x.google, apple: !!x.apple }; },
+      oauth: async function (p) { if (p !== 'google' && p !== 'apple') return; ok(await sb.auth.signInWithOAuth({ provider: p, options: { redirectTo: ((window.PERLE || {}).SITE ? window.PERLE.SITE + 'pro.html' : location.origin + location.pathname) } })); },
       resetPw: async function (email) { ok(await sb.auth.resetPasswordForEmail(email, { redirectTo: ((window.PERLE || {}).SITE ? window.PERLE.SITE + 'pro.html' : location.origin + location.pathname) })); },
       setPw: async function (pw) { ok(await sb.auth.updateUser({ password: pw })); },
       onRecovery: function (cb) { sb.auth.onAuthStateChange(function (ev) { if (ev === 'PASSWORD_RECOVERY') cb(); }); },
