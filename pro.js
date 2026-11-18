@@ -24,10 +24,17 @@
   function picker(id, u, label) { return '<div class="pick">' + thumb(u) + '<span class="grow mut">' + (u ? 'Photo choisie' : 'Aucune photo') + '</span><label class="btn sm dark" style="margin:0;color:#fff" for="' + id + '">' + (u ? 'Changer' : label) + '</label><input type="file" id="' + id + '" accept="image/*" data-photo="' + id + '"></div>'; }
 
   // ----- compte -----
+  function oab() {
+    var pv = st.prov || {}, h = '';
+    if (pv.google) h += '<button type="button" class="btn oab" data-act="oa" data-p="google">Continuer avec Google</button>';
+    if (pv.apple) h += '<button type="button" class="btn oab dk" data-act="oa" data-p="apple">Continuer avec Apple</button>';
+    return h ? h + '<div class="oasep"><span>ou avec ton e-mail</span></div>' : '';
+  }
   function auth() {
     document.body.classList.add('dark');
+    if (!st.prov && S.providers && !(window.PERLE || {}).APP) { st.prov = {}; S.providers().then(function (x) { st.prov = x || {}; var o = document.getElementById('oa'); if (o && !st.user) o.innerHTML = oab(); }).catch(function () { }); }
     app.innerHTML = '<div class="dark-screen" style="background-image:url(img/bgLocks.jpg)"><div class="top">' + U.logo() + (S.live ? '' : '<span class="badge">Mode essai</span>') + '</div><h1 style="margin-top:210px">Ton espace <span class="hl" style="color:var(--noir)">coiffeuse</span>.</h1><p class="soft" style="font-size:16px;margin:10px 0 0">Crée ta page de réservation et reçois tes rendez-vous avec acompte.</p>' + note() +
-      (function () { try { known = !!localStorage.getItem('perle-known'); } catch (e) {} return ''; })() + '<form id="fa"><label for="em" style="color:#E4DBEE">Ton e-mail</label><input id="em" type="email" autocomplete="email" required style="color:var(--noir)">' +
+      (function () { try { known = !!localStorage.getItem('perle-known'); } catch (e) {} return ''; })() + '<div id="oa">' + oab() + '</div><form id="fa"><label for="em" style="color:#E4DBEE">Ton e-mail</label><input id="em" type="email" autocomplete="email" required style="color:var(--noir)">' +
       '<label for="pw" style="color:#E4DBEE">Ton mot de passe (8 caractères au moins)</label><input id="pw" type="password" autocomplete="current-password" minlength="8" required style="color:var(--noir)">' +
       (known ? '<button class="btn" style="margin-top:18px" data-act="in">Me connecter</button><button class="btn glass" style="margin-top:10px" data-act="up">Créer mon compte</button>' : '<button class="btn" style="margin-top:18px" data-act="up">Créer mon compte</button><button class="btn glass" style="margin-top:10px" data-act="in">J’ai déjà un compte</button>') + '<button type="button" class="lnk" data-act="forgot">Mot de passe oublié ?</button><p class="soft" style="margin-top:12px;font-size:13px">En créant ton compte, tu acceptes les <a href="legal.html#cgu" style="color:inherit">conditions d’utilisation</a> et la <a href="legal.html#confidentialite" style="color:inherit">politique de confidentialité</a>.</p></form>' +
       (S.live ? '' : '<p class="soft" style="margin-top:14px">Mode essai : n’importe quel e-mail fonctionne et tout reste dans ce navigateur.</p>') +
@@ -320,6 +327,7 @@
         return refresh();
       }
       if (a === 'out') { await S.signOut(); st.user = st.pro = null; st.tab = 'rdv'; st.pw = st.recovery = false; return render(); }
+      if (a === 'oa') { var ob = document.getElementById('oa'); if (ob) ob.querySelectorAll('button').forEach(function (x) { x.disabled = true; }); await S.oauth(b.dataset.p); return; }
       if (a === 'forgot') { var fe = val('em'); if (!/^\S+@\S+\.\S+$/.test(fe)) { st.msg = ['err', 'Écris d’abord ton e-mail, puis touche « Mot de passe oublié ? ».']; return render(); } await S.resetPw(fe); st.msg = ['ok', 'Si un compte existe avec cet e-mail, tu vas recevoir un lien pour choisir un nouveau mot de passe. Regarde aussi dans tes indésirables.']; return render(); }
       if (a === 'pw') { st.pw = !st.pw; return render(); }
       if (a === 'copy') { var l = link(); if (!/^https?:/.test(l)) l = new URL(l, location.href).href; try { await navigator.clipboard.writeText(l); st.msg = ['ok', 'Lien copié. Colle-le dans ta bio.']; } catch (x) { st.msg = ['info', 'Ton lien : ' + l]; } return render(); }
@@ -372,6 +380,7 @@
     } catch (err) { fail(err); }
   });
 
+  (function () { var m = /error_description=([^&]+)/.exec(location.hash + '&' + location.search.slice(1)); if (!m) return; st.msg = ['err', 'La connexion n’a pas abouti. Réessaie, ou connecte-toi avec ton e-mail.']; try { history.replaceState(null, '', location.pathname); } catch (e) { } })();
   if (S.onRecovery) S.onRecovery(function () { st.recovery = true; st.msg = ['info', 'Choisis ton nouveau mot de passe ci-dessous.']; refresh(); });
   refresh().catch(function () { app.innerHTML = top() + '<p class="note err" role="alert">Impossible de charger. Vérifie ta connexion et recharge la page.</p>'; });
 })();
