@@ -777,3 +777,13 @@ details.fiche[open]>summary::before{content:"–"}
 .oab:disabled{opacity:.6}
 .oasep{display:flex;align-items:center;gap:12px;margin:18px 0 2px;color:#E4DBEE;font-size:13px}
 .oasep:before,.oasep:after{content:"";flex:1;height:1px;background:rgba(255,255,255,.28)}
+/* Compte cliente */
+.cacct{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:20px;background:#fff}
+.cacct .mut{margin:0;font-size:14px}
+.cacct .oab{margin-top:12px;border:1px solid var(--line)}
+.cacct .oab.dk{border-color:#000}
+#oopen{display:flex;flex-direction:column;gap:10px;margin-top:8px;min-height:122px}
+#oopen .oab{margin-top:0}
+#oopen .olink{margin-top:2px}
+.ocin{margin:0 0 2px;font-size:14px}
+.cin{margin:12px 0 0;font-size:14px;color:var(--mut,#6B6276);overflow-wrap:anywhere}
