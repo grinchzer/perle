@@ -794,3 +794,28 @@ details.fiche[open]>summary::before{content:"–"}
 .fmoi{margin-top:18px}
 .schv{font-size:22px;line-height:1;color:#B9AEC6;flex-shrink:0}
 a.srow{text-decoration:none;box-sizing:border-box}
+/* Profil : en-tête, raccourcis, carte de connexion, listes */
+.phead{display:flex;align-items:center;gap:16px;margin-top:6px}
+.phead h1{margin:0;font-size:34px;line-height:1.05;overflow-wrap:anywhere}
+.phead .mut{margin:4px 0 0;font-size:14px;overflow-wrap:anywhere}
+.pav{width:68px;height:68px;border-radius:50%;flex-shrink:0;border:0;background:var(--soft);color:var(--vio);font-family:var(--hb);font-weight:700;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.ptiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.ptiles>*{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:92px;padding:10px 6px;border:0;border-radius:20px;background:var(--soft);color:var(--noir);font-size:14px;font-weight:600;text-decoration:none;cursor:pointer}
+.ptiles svg{color:var(--vio)}
+.pconn{margin-top:14px;padding:18px;border-radius:20px;background:var(--noir);color:#fff}
+.pconn b{display:block;font-family:var(--hb);font-size:20px;letter-spacing:-.02em;line-height:1.2}
+.pconn p{margin:6px 0 0;font-size:14px;color:#D9CFE4}
+.pconn .oab{margin-top:14px;min-height:52px}
+.pconn .oab.dk{background:#fff;color:var(--noir)}
+.psec{margin:26px 0 4px;font-family:var(--hb);font-size:20px;letter-spacing:-.02em}
+.plist{display:flex;flex-direction:column}
+.prow{display:flex;align-items:center;gap:14px;width:100%;min-height:60px;padding:10px 0;background:none;border:0;border-bottom:1px solid var(--line);color:var(--noir);text-align:left;text-decoration:none;box-sizing:border-box;cursor:pointer}
+.plist>.prow:last-child{border-bottom:0}
+.prow>svg:first-child{flex-shrink:0;color:var(--noir)}
+.prow>svg:last-child{flex-shrink:0;color:#B9AEC6}
+.prow .grow{display:flex;flex-direction:column;gap:1px;min-width:0}
+.prow b{font-size:16px;font-weight:500}
+.prow .mut{font-size:13px}
+.pout{display:flex;align-items:center;gap:10px;margin-top:22px;padding:12px 0;background:none;border:0;color:var(--noir);font-size:16px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.pdel{margin:4px 0 0}.pdel a{font-size:14px;color:var(--mut)}
+.pver{margin:22px 0 0;font-size:12px;color:var(--mut)}
