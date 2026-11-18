@@ -110,7 +110,7 @@
     h += '<label for="ft">Ton numéro de téléphone</label><input id="ft" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="06 12 34 56 78" value="' + esc(saved.t || '') + '">';
     h += '<label for="fe">Ton e-mail (facultatif)</label><input id="fe" type="email" autocomplete="email" inputmode="email" maxlength="120" placeholder="Pour recevoir ta confirmation" value="' + esc(saved.e || '') + '">';
     h += '<details class="more"><summary>Ajouter un mot pour ' + esc(st.pro.name) + '</summary><textarea id="fm" maxlength="300" aria-label="Un mot pour ' + esc(st.pro.name) + '"></textarea></details>';
-    h += '<div id="err"></div><p class="note ok" style="display:flex;gap:10px;align-items:flex-start">' + svg(I.shield, 20) + '<span>L’acompte se paie directement à ' + esc(st.pro.name) + ', à l’étape suivante. Ta place est confirmée à réception.</span></p><p class="mut" style="margin-top:10px;font-size:13px">Ton prénom et ton numéro servent seulement à ce rendez-vous.</p>';
+    h += '<div id="err"></div><p class="note ok" style="display:flex;gap:10px;align-items:flex-start">' + svg(I.shield, 20) + '<span>L’acompte se paie directement à ' + esc(st.pro.name) + ', à l’étape suivante. Ta place est confirmée à réception. Si tu annules, l’acompte n’est pas remboursé.</span></p><p class="mut" style="margin-top:10px;font-size:13px">Ton prénom et ton numéro servent seulement à ce rendez-vous.</p>';
     app.innerHTML = h;
     setBar(U.eur(d), 'acompte', 'Réserver', submit);
   }
@@ -146,7 +146,7 @@
     if (w) h += '<a class="btn glass" style="margin-top:10px;border-radius:28px" target="_blank" rel="noopener" href="' + w + '?text=' + encodeURIComponent('Bonjour, j’ai réservé ' + r.service + ' le ' + U.day(s) + ' à ' + U.hm(s) + ' (référence ' + r.ref + '). Je t’envoie l’acompte de ' + U.eur(r.deposit) + '.') + '">' + svg(I.msg, 18) + 'Prévenir sur WhatsApp</a>';
     h += calBtn({ ref: r.ref, start: r.starts_at, end: r.ends_at, title: r.service + ' chez ' + p.name, where: p.city || '', desc: 'Référence ' + r.ref + '. Acompte ' + U.eur(r.deposit) + ', reste ' + U.eur(r.price - r.deposit) + '.' + (prep ? '\nAvant de venir : ' + prep : '') + '\nhttps://perleapp.fr/?v=rdv' }, 'btn glass', 'margin-top:10px;border-radius:28px');
     h += '<a class="btn glass" style="margin-top:10px;border-radius:28px" href="./?v=rdv">Voir mes rendez-vous</a>';
-    h += '<p class="soft" style="margin-top:16px">' + esc(p.name) + ' confirme ton rendez-vous dès réception de l’acompte. Garde cette page ou fais une capture d’écran.</p></div>';
+    h += '<p class="soft" style="margin-top:16px">' + esc(p.name) + ' confirme ton rendez-vous dès réception de l’acompte. Si tu annules, l’acompte n’est pas remboursé. Garde cette page ou fais une capture d’écran.</p></div>';
     app.innerHTML = h; setBar();
   }
   function seen() { try { return localStorage.getItem('perle-vu') === '1'; } catch (e) { return true; } }
@@ -188,7 +188,7 @@
       h = top() + '<div class="scard"><p class="st">Trouve <b>ta coiffeuse</b></p><label for="q" class="sr">Chercher une coiffure, une coiffeuse ou un quartier</label>' + fld(I.search, '<input id="q" type="text" placeholder="Coiffure, coiffeuse, quartier" value="' + esc(dir.q) + '" autocomplete="off">') + fld(I.pin, '<select id="fcity" aria-label="Quartier"></select>') + fld(I.cal, '<select id="fwhen" aria-label="Quand"><option value="all">Peu importe le jour</option><option value="today">Aujourd’hui</option><option value="week">Cette semaine</option><option value="date">Choisir une date…</option></select>') + '<div class="grid2">' + fld(I.user, '<select id="fpour" aria-label="Pour qui"><option value="">Pour qui ?</option><option value="femme">Femme</option><option value="homme">Homme</option><option value="enfant">Enfant</option></select>') + fld(I.euro, '<select id="fbud" aria-label="Budget"><option value="">Budget</option><option value="40">40 € max</option><option value="60">60 € max</option><option value="80">80 € max</option><option value="100">100 € max</option></select>') + '</div><div id="stabs"></div><button class="btn" data-res="1">Rechercher</button></div><div id="chips2"></div><div id="dir"></div>';
     } else {
       var nm = String(me.n || '').trim().split(' ')[0];
-      h = '<div class="top hd">' + (nm ? '<span class="hi">' + esc(nm.slice(0, 2).toUpperCase()) + '</span>' : '<svg viewBox="0 0 100 100" width="44" height="44" aria-hidden="true" style="flex-shrink:0"><rect width="100" height="100" rx="50" fill="#5B2A86"></rect><g transform="translate(50 52) scale(.72) translate(-50 -50)"><circle cx="50" cy="38" r="26" fill="#D9A441"></circle><circle cx="50" cy="52" r="13" fill="#FFFFFF"></circle><path d="M24 88 Q24 68 50 68 Q76 68 76 88 Z" fill="#FFFFFF"></path></g></svg>') + '<span class="grow hdt"><small>' + (nm ? 'Bonjour' : 'Bienvenue sur') + '</small><b>' + (nm ? esc(nm) : 'Perle') + '</b></span><button class="round wb" data-view="map" aria-label="Voir la carte">' + svg(I.map, 20) + '</button><button class="round wb" data-view="filters" aria-label="Filtres">' + svg(I.filt, 20) + '</button></div><div class="row"><p class="t1 grow">Trouve</p>' + badge() + '</div><h1 class="t2">ta coiffure aujourd’hui</h1><div id="chips"></div><div id="tip"></div><div id="dir"></div><p style="text-align:center;margin:22px 0 0"><button class="link mutl" data-view="how">Comment ça marche ?</button></p>' + proCta();
+      h = '<div class="top hd">' + (nm ? '<span class="hi">' + esc(nm.slice(0, 2).toUpperCase()) + '</span>' : '<svg viewBox="0 0 100 100" width="44" height="44" aria-hidden="true" style="flex-shrink:0"><rect width="100" height="100" rx="50" fill="#5B2A86"></rect><g transform="translate(50 52) scale(.72) translate(-50 -50)"><circle cx="50" cy="38" r="26" fill="#D9A441"></circle><circle cx="50" cy="52" r="13" fill="#FFFFFF"></circle><path d="M24 88 Q24 68 50 68 Q76 68 76 88 Z" fill="#FFFFFF"></path></g></svg>') + '<span class="grow hdt"><small>' + (nm ? 'Bonjour' : 'Bienvenue sur') + '</small><b>' + (nm ? esc(nm) : 'Perle') + '</b></span><button class="round wb" data-view="filters" aria-label="Filtres">' + svg(I.filt, 20) + '</button></div><div class="row"><p class="t1 grow">Tu cherches</p>' + badge() + '</div><h1 class="t2">quelle coiffure ?</h1><div id="chips"></div><div id="tip"></div><div id="dir"></div><p style="text-align:center;margin:22px 0 0"><button class="link mutl" data-view="how">Comment ça marche ?</button></p>' + proCta();
     }
     app.innerHTML = h + (dir.view === 'open' || dir.view === 'filters' ? '' : cnav()); setBar(); anim(); drawDir();
     var q = document.getElementById('q'); if (q) q.addEventListener('input', function () { dir.q = q.value; drawDir(); });
@@ -337,18 +337,22 @@
       dir.carKey = key;
       var off = dir.list.filter(function (x) { return x.lat == null; }).length, osm = AP ? '' : '<span class="osm"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> · <a href="https://openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> · <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a></span>';
       if (!pts.length) { box.innerHTML = '<div class="lglass pcard" style="margin:0 12px"><span class="grow" style="padding:10px 12px">Aucune coiffeuse sur la carte avec ces filtres.</span></div>'; return; }
-      box.innerHTML = osm + '<div class="car" id="car">' + pts.map(function (x) {
+      box.innerHTML = osm + '<button class="shandle" id="shandle" data-sheet="1" aria-expanded="' + !!dir.sheet + '"><i></i><span>' + (dir.sheet ? 'Revenir à la carte' : 'Voir les ' + pts.length + ' coiffeuse' + (pts.length > 1 ? 's' : '') + ' en liste') + '</span></button><div class="car" id="car">' + pts.map(function (x) {
         var p = x.p, nf = dir.busy ? nextFree(p) : null, km = dir.me ? U.dist(dir.me, x) : null;
         return '<a class="lglass pcard" data-slug="' + esc(p.slug) + '" href="./?c=' + encodeURIComponent(p.slug) + (nf ? '&d=' + U.ymd(nf) : '') + '">' + (p.cover_url ? '<span class="ph pimg" style="' + U.bg(p.cover_url) + '"></span>' : '<span class="pimg noi">' + esc(inits(p)) + '</span>') + '<span class="grow" style="display:flex;flex-direction:column;gap:5px;align-items:flex-start;min-width:0"><span class="ptag">' + esc(dir.busy ? whenL(nf) : 'Chargement…') + '</span><span class="pname">' + esc(p.name) + '</span><span class="mut" style="color:var(--ink2)">' + esc([p.city, km != null ? U.near(km) : ''].filter(Boolean).join(', ')) + '</span></span><span class="fprice in"><small>à partir de</small>' + U.eur(minPrice(p)) + '</span></a>';
       }).join('') + '</div>' + (off ? '<span class="sr">' + off + ' coiffeuse(s) sans quartier reconnu ne figurent pas sur la carte.</span>' : '');
-      var car = document.getElementById('car'), tm;
+      var car = document.getElementById('car'), tm, sh = document.getElementById('shandle'), ty = null;
+      box.classList.toggle('open', !!dir.sheet);
+      if (sh) { sh.addEventListener('touchstart', function (e) { ty = e.touches[0].clientY; }, { passive: true }); sh.addEventListener('touchend', function (e) { if (ty == null) return; var dy = e.changedTouches[0].clientY - ty; ty = null; if ((dy < -24 && !dir.sheet) || (dy > 24 && dir.sheet)) { e.preventDefault(); sheet(); } }); }
       car.addEventListener('scroll', function () {
+        if (dir.sheet) return;
         clearTimeout(tm);
         tm = setTimeout(function chk() { if (dir.carLock) { tm = setTimeout(chk, 200); return; } var c = car.children, mid = car.scrollLeft + car.clientWidth / 2, best = 0, bd = 1e9; for (var i = 0; i < c.length; i++) { var d = Math.abs(c[i].offsetLeft + c[i].offsetWidth / 2 - mid); if (d < bd) { bd = d; best = i; } } var sl = c[best].dataset.slug; if (sl !== dir.sel) { dir.sel = sl; refreshMarks(); markCards(); focusSel(); } }, 110);
       });
       markCards(); centerCard(false);
     } else markCards();
   }
+  function sheet() { dir.sheet = !dir.sheet; var bx = document.getElementById('dir'), sh = document.getElementById('shandle'), car = document.getElementById('car'); if (bx) bx.classList.toggle('open', dir.sheet); if (sh && car) { sh.setAttribute('aria-expanded', dir.sheet); sh.lastChild.textContent = dir.sheet ? 'Revenir à la carte' : 'Voir les ' + car.children.length + ' coiffeuse' + (car.children.length > 1 ? 's' : '') + ' en liste'; if (dir.sheet) car.scrollTop = 0; else centerCard(false); } }
   function drawCalc(box) {
     var all = [], idx = {}; dir.list.forEach(function (p) { p.services.forEach(function (s) { var k = U.canon(s.name); if (!idx[k]) { idx[k] = { k: k, name: s.name, offers: [] }; all.push(idx[k]); } idx[k].offers.push({ p: p, s: s }); }); });
     if (!dir.ck || !idx[dir.ck]) { dir.ck = all[0].k; dir.csel = {}; }
@@ -376,6 +380,14 @@
     var out = []; for (var r of saved()) { try { var b = await S.clientBooking(r.ref, r.phone); if (b) { b.phone = r.phone; out.push(b); } } catch (e) { } }
     out.sort(function (a, b) { return a.starts_at < b.starts_at ? -1 : 1; }); dir.rdv = out; drawDir();
   }
+  async function pollRdv() {
+    if (slug || dir.view !== 'rdv' || document.hidden || !saved().length || document.querySelector('[data-sure="1"]')) return;
+    var out = []; for (var r of saved()) { try { var b = await S.clientBooking(r.ref, r.phone); if (b) { b.phone = r.phone; out.push(b); } } catch (e) { return; } }
+    out.sort(function (a, b) { return a.starts_at < b.starts_at ? -1 : 1; });
+    var sig = function (l) { return (l || []).map(function (x) { return x.ref + x.status; }).join('|'); };
+    if (sig(out) !== sig(dir.rdv)) { dir.rdv = out; if (dir.view === 'rdv') drawDir(); }
+  }
+  setInterval(pollRdv, 20000); document.addEventListener('visibilitychange', pollRdv);
   var STL = { attente: 'Acompte à envoyer', confirme: 'Confirmé', annule: 'Annulé', fait: 'Fait', expire: 'Expiré' };
   function drawDir() {
     var box = document.getElementById('dir'); if (!box) return;
@@ -388,7 +400,7 @@
         var h = '<div class="photo-card ph" style="height:200px;' + U.bg(b.cover_url) + (b.cover_url ? '' : ';background:var(--vio)') + '"><span class="when">' + esc(U.dayS(s)) + ', ' + U.hm(s) + '</span><span class="stg glass">' + STL[stt] + '</span><span class="plate glass"><b>' + esc(b.service) + (b.options ? ', ' + esc(b.options) : '') + '</b>' + esc(b.pro_name) + (b.pro_city ? ', ' + esc(b.pro_city) : '') + '</span></div>';
         if (stt === 'attente') { var bl = payLinks(b.pay_info), bt = payText(b.pay_info); h += '<div class="due"><span>Acompte à envoyer</span><b>' + U.eur(b.deposit) + '</b><span>Référence à indiquer : <strong>' + esc(b.ref) + '</strong></span></div>'; bl.forEach(function (u, i) { h += payBtn(u, b.deposit, false, 8).replace('class="btn glass"', i ? 'class="btn dark"' : 'class="btn"').replace(';border-radius:28px', ''); }); if (bt || !bl.length) h += '<p class="due-how">' + esc(bt || 'Écris à ' + b.pro_name + ' pour savoir comment payer.') + '</p>'; }
         if (stt === 'attente' || stt === 'confirme' || stt === 'fait') { var sn = stt === 'attente' ? 1 : stt === 'confirme' ? 2 : 3; h += '<ol class="trk" aria-label="Où en est ton rendez-vous">' + ['Demande envoyée', 'Acompte', 'Coiffure'].map(function (t, i) { return '<li class="' + (i < sn ? 'ok' : i === sn ? 'now' : '') + '">' + t + '</li>'; }).join('') + '</ol>'; }
-        h += '<p class="mut" style="margin-top:10px">' + (stt === 'attente' ? 'Prix ' + U.eur(b.price) + ', dont ' + U.eur(b.price - b.deposit) + ' à régler sur place.' : 'Prix ' + U.eur(b.price) + ', acompte ' + U.eur(b.deposit) + ', reste ' + U.eur(b.price - b.deposit) + '. Référence ' + esc(b.ref) + '.') + '</p>';
+        h += '<p class="mut" style="margin-top:10px">' + (stt === 'attente' ? 'Prix ' + U.eur(b.price) + ', dont ' + U.eur(b.price - b.deposit) + ' à régler sur place.' : 'Prix ' + U.eur(b.price) + ', acompte ' + U.eur(b.deposit) + ', reste ' + U.eur(b.price - b.deposit) + '. Référence ' + esc(b.ref) + '.') + ((stt === 'attente' || stt === 'confirme') && !past ? ' L’acompte n’est pas remboursé si tu annules.' : '') + '</p>';
         var soon = !past && (stt === 'attente' || stt === 'confirme');
         if (soon && b.prep) h += '<p class="note info" style="margin-top:8px;white-space:pre-line"><b>Avant de venir :</b> ' + esc(b.prep) + '</p>';
         if (b.address && stt === 'confirme') h += '<p class="note info" style="margin-top:8px"><b>Adresse :</b> ' + esc(b.address) + ' · <a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(b.address) + '" target="_blank" rel="noopener">Itinéraire</a></p>';
@@ -449,6 +461,7 @@
     if (!l.length) { box.innerHTML = '<p class="note info">Personne pour ce type de coiffure pour l’instant.</p>'; return; }
     var now = Date.now(), nx = (dir.rdv || []).filter(function (r) { return (r.status === 'confirme' || (r.status === 'attente' && now - new Date(r.created_at).getTime() < 864e5)) && new Date(r.starts_at).getTime() > now; })[0], rv = '';
     if (nx) { var s = new Date(nx.starts_at); rv = '<button class="rdvrow" data-view="rdv"><span class="dsq"><span>' + s.toLocaleDateString('fr-FR', { weekday: 'short' }) + '</span><b>' + s.getDate() + '</b></span><span class="grow"><span class="b" style="font-size:15px">Ton rendez-vous, ' + esc(s.toLocaleDateString('fr-FR', { weekday: 'long' })) + ' à ' + U.hm(s) + '</span><br><span class="mut">' + esc(nx.service) + ' chez ' + esc(nx.pro_name) + '</span></span>' + svg(I.chev, 18) + '</button>'; }
+    else { var lastB = (dir.rdv || []).filter(function (r) { return r.pro_slug && (r.status === 'fait' || (r.status === 'confirme' && new Date(r.starts_at).getTime() < now)); }).pop(); if (lastB) rv = '<a class="rdvrow" style="text-decoration:none" href="./?c=' + encodeURIComponent(lastB.pro_slug) + (lastB.service_id ? '&s=' + encodeURIComponent(lastB.service_id) : '') + '"><span class="dsq">' + svg(I.cal, 20) + '</span><span class="grow"><span class="b" style="font-size:15px">Réserver à nouveau</span><br><span class="mut">' + esc(lastB.service) + ' chez ' + esc(lastB.pro_name) + '</span></span>' + svg(I.chev, 18) + '</a>'; }
     var qs = {}, ql = []; dir.list.forEach(function (p) { if (!p.city) return; if (!qs[p.city]) { qs[p.city] = { city: p.city, n: 0, img: '' }; ql.push(qs[p.city]); } qs[p.city].n++; if (!qs[p.city].img) qs[p.city].img = p.cover_url || ''; }); ql.sort(function (a, c) { return c.n - a.n; });
     box.innerHTML = '<div class="feat" id="feat">' + l.slice(0, 8).map(function (x) { return pcard(x, 340); }).join('') + '</div>' + (l.length ? '<button class="mapcta" data-view="map"><span class="mapcta-i">' + svg(I.map, 22) + '</span><span class="grow"><b>Coiffeuses autour de toi</b><span>' + l.length + ' coiffeuse' + (l.length > 1 ? 's' : '') + ' sur la carte, avec leur prochain créneau</span></span><span class="go">' + svg('<path d="M5 12h14M13 6l6 6-6 6"/>', 16, 2.2) + '</span></button>' : '') + rv +
       (ql.length > 1 ? '<div class="row" style="justify-content:space-between;align-items:baseline;margin:20px 0 12px"><h2 style="margin:0">Par quartier</h2></div><div class="qrow">' + ql.map(function (q) { return '<button data-qcity="' + esc(q.city) + '">' + (q.img ? '<span class="qimg ph" style="' + U.bg(q.img) + '"></span>' : '<span class="qimg noi">' + esc(q.city.charAt(0)) + '</span>') + esc(q.city) + '</button>'; }).join('') + '</div>' : '') +
@@ -508,6 +521,7 @@
     if (b.dataset.city) { dir.cityOpen = !dir.cityOpen; return drawDir(); }
     if (b.dataset.cityv != null) return goCity(b.dataset.cityv);
     if (b.dataset.qcity) { dir.f.city = b.dataset.qcity; dir.view = 'search'; landing(); return window.scrollTo(0, 0); }
+    if (b.dataset.sheet) { sheet(); return; }
     if (b.dataset.res) { var rs = document.getElementById('chips2'); if (rs) rs.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     if (b.dataset.tipx) { try { localStorage.setItem('perle-tip', '1'); } catch (x) { } return drawDir(); }
     if (b.dataset.fclear) { dir.f = { city: '', fav: false, max: null, when: 'all', pour: [], ou: [], sort: 'soon' }; dir.cat = 'Tout'; dir.q = ''; var qi = document.getElementById('q'); if (qi) qi.value = ''; return drawDir(); }
@@ -520,7 +534,7 @@
     if (b.dataset.ck) { dir.ck = b.dataset.ck; dir.csel = {}; return drawDir(); }
     if (b.dataset.cg) { dir.csel[b.dataset.cg] = b.dataset.cc; return drawDir(); }
     if (b.dataset.cancel) {
-      if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmer l’annulation'; return; }
+      if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmer : l’acompte ne sera pas remboursé'; return; }
       b.disabled = true; return S.cancelBooking(b.dataset.cancel, b.dataset.phone).then(loadRdv).catch(function (er) { b.outerHTML = '<span class="mut" style="align-self:center">' + esc(U.msg(er)) + '</span>'; });
     }
     if (b.dataset.tab) { st.tab = b.dataset.tab; return home(); }
