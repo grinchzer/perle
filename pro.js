@@ -89,6 +89,7 @@
       row(I.lock, 'Mot de passe', 'En choisir un nouveau', 'data-act="pw"') +
       ((st.pw || st.recovery) ? '<form id="fw" class="spw"><label for="np">Nouveau mot de passe (8 caractères au moins)</label><input id="np" type="password" autocomplete="new-password" minlength="8" required><button class="btn" style="margin-top:12px">Enregistrer</button></form>' : '') +
       row(I.page, on ? 'Mettre ma page hors ligne' : 'Remettre ma page en ligne', on ? 'Elle est visible et on peut réserver' : 'Plus personne ne peut la voir ni réserver', 'data-act="pub"') +
+      row(I.doc, 'Pas encore déclarée ?', 'Créer sa micro-entreprise est gratuit et se fait en ligne', 'data-act="decl"') +
       row(I.help, 'Aide', 'On te répond sous 24 heures', 'data-act="help"') +
       row(I.doc, 'Conditions et confidentialité', 'Les règles d’utilisation', 'data-act="legal"') +
       '</div><button type="button" class="bye" data-act="out">Me déconnecter<span>' + esc(em) + '</span></button>';
@@ -221,6 +222,7 @@
   function rdv() {
     var now = Date.now(), up = st.rdv.filter(function (b) { var e = new Date(b.ends_at).getTime(); return (e >= now || (b.status === 'confirme' && e >= now - 2 * 864e5)) && b.status !== 'annule' && stOf(b, now) !== 'expire'; }), old = st.rdv.filter(function (b) { return up.indexOf(b) < 0; }).reverse();
     var h = note(), t = new Date(), wk = '';
+    if (!String(st.pro.pay_info || '').trim()) h += '<p class="note info"><b>Ta page n’est pas encore en ligne.</b> Indique comment recevoir l’acompte : elle sera en ligne dès que c’est enregistré.</p><button type="button" class="btn dark" style="margin:10px 0 14px" data-tab="pro">Indiquer mon moyen de paiement</button>';
     var hrsOk = false; try { hrsOk = !!localStorage.getItem('perle-hrs-' + st.pro.id); } catch (e) {}
     var todo = [[true, 'pro', 'Crée ta page', 'C’est fait, elle est en ligne'], [st.svcs.length > 0, 'svc', 'Ajoute ta première coiffure', 'Avec son prix et sa durée'], [hrsOk, 'hrs', 'Vérifie tes horaires', 'Ce sont des horaires par défaut : mets les tiens'], [!!st.pro.pay_info, 'pro', 'Dis comment recevoir l’acompte', 'Ton PayPal, ton Revolut ou un autre moyen'], [!!(st.pro.cover_url || st.pro.avatar_url), 'pro', 'Mets une photo', 'Une page avec photo donne confiance']], left = todo.filter(function (x) { return !x[0]; }).length;
     var gd = ''; if (left) gd = '<section class="start"><b>Encore ' + left + ' chose' + (left > 1 ? 's' : '') + ' à faire avant de partager ton lien</b><div class="start-bar" role="img" aria-label="' + (todo.length - left) + ' étapes faites sur ' + todo.length + '"><span style="width:' + Math.round(100 * (todo.length - left) / todo.length) + '%"></span></div><p class="start-n">' + (todo.length - left) + ' sur ' + todo.length + ' déjà fait' + (todo.length - left > 1 ? 'es' : 'e') + '</p>' + todo.filter(function (x) { return !x[0]; }).map(function (x) { return '<button type="button" class="start-row' + (x[0] ? ' ok' : '') + '" data-tab="' + x[1] + '"><i aria-hidden="true">' + (x[0] ? '✓' : '') + '</i><span class="grow"><span class="b">' + x[2] + '</span><span class="mut">' + x[3] + '</span></span>' + svg(I.chev, 18) + '</button>'; }).join('') + '</section>';
@@ -314,6 +316,8 @@
       if (a === 'forgot') { var fe = val('em'); if (!/^\S+@\S+\.\S+$/.test(fe)) { st.msg = ['err', 'Écris d’abord ton e-mail, puis touche « Mot de passe oublié ? ».']; return render(); } await S.resetPw(fe); st.msg = ['ok', 'Si un compte existe avec cet e-mail, tu vas recevoir un lien pour choisir un nouveau mot de passe. Regarde aussi dans tes indésirables.']; return render(); }
       if (a === 'pw') { st.pw = !st.pw; return render(); }
       if (a === 'copy') { var l = link(); if (!/^https?:/.test(l)) l = new URL(l, location.href).href; try { await navigator.clipboard.writeText(l); st.msg = ['ok', 'Lien copié. Colle-le dans ta bio.']; } catch (x) { st.msg = ['info', 'Ton lien : ' + l]; } return render(); }
+      if (a === 'pub' && st.pro.published === false && !String(st.pro.pay_info || '').trim()) { st.msg = ['info', 'Indique d’abord comment recevoir l’acompte (PayPal, Revolut ou autre). Dès que c’est enregistré, ta page passe en ligne.']; st.tab = 'pro'; return render(); }
+      if (a === 'decl') { window.open('https://formalites.entreprises.gouv.fr/', '_blank', 'noopener'); return; }
       if (a === 'pub') { var pq = base(); pq.published = st.pro.published === false; st.pro = await S.savePro(pq); st.msg = ['ok', st.pro.published === false ? 'Ta page est hors ligne : plus personne ne peut réserver.' : 'Ta page est de nouveau en ligne.']; return render(); }
       if (a === 'help') { location.href = 'mailto:contact@perleapp.fr?subject=' + encodeURIComponent('Aide Perle'); return; }
       if (a === 'legal') { location.href = 'legal.html'; return; }
