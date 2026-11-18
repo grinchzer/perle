@@ -26,7 +26,7 @@
 
   function badge() { return S.live ? '' : '<span class="badge">Mode essai</span>'; }
   function stepn() { var seq = (st.svc && (st.svc.options || []).length ? ['options'] : []).concat(['slot', 'me']), i = seq.indexOf(st.step); return i < 0 ? '' : '<span class="stepn">Étape ' + (i + 1) + ' sur ' + seq.length + '</span>'; }
-  function top(back) { return '<div class="top">' + (back ? '<button class="round" data-go="' + back + '" aria-label="Retour">' + svg(I.back, 20) + '</button>' : U.logo()) + stepn() + badge() + '</div>'; }
+  function top(back) { return '<div class="top">' + (back ? '<button class="round" data-go="' + back + '" aria-label="Retour">' + svg(I.back, 20) + '</button>' : U.logo()) + stepn() + (!back && !slug ? '<button class="round pbtn" data-view="moi" aria-label="Mon profil">' + svg(I.user, 20) + '</button>' : '') + badge() + '</div>'; }
   var barT;
   function setBarA(a) {
     a = String(a); var o = barA.textContent, re = /\d+(?:[.,]\d+)?/, mo = o.match(re), mn = a.match(re); cancelAnimationFrame(barT);
@@ -179,7 +179,7 @@
     var pv = cprov || {}, h = '';
     if (pv.google) h += '<button type="button" class="btn oab" data-coa="google">Continuer avec Google</button>';
     if (pv.apple) h += '<button type="button" class="btn oab dk" data-coa="apple">Continuer avec Apple</button>';
-    return h ? '<div class="cacct"><p class="mut">Connecte-toi pour retrouver tes rendez-vous sur tous tes appareils. Tu peux aussi réserver sans compte.</p>' + h.replace(/data-coa/g, 'data-to="?v=rdv" data-coa') + '</div>' : '';
+    return h ? '<div class="cacct"><p class="mut">Connecte-toi pour retrouver tes rendez-vous sur tous tes appareils. Tu peux aussi réserver sans compte.</p>' + h.replace(/data-coa/g, 'data-to="?v=' + (dir.view === 'moi' ? 'moi' : 'rdv') + '" data-coa') + '</div>' : '';
   }
   // premier écran : la connexion d'abord, puis le choix « je me fais coiffer / je coiffe »
   var cready = !CAN;
@@ -240,6 +240,18 @@
       h = sub('Mon prix') + '<h1>Ton prix, <span class="hl">avant</span> de réserver.</h1><p class="sub">Choisis ta coiffure et tes options : tu vois le prix chez chaque coiffeuse.</p><div id="dir"></div>';
     } else if (dir.view === 'rdv') {
       h += '<h1>Tes <span class="hl">rendez-vous</span>.</h1><div id="cacct">' + cacct() + '</div><div id="dir"></div>';
+    } else if (dir.view === 'moi') {
+      var mrow = function (t, s, attr, tag) { tag = tag || 'button'; return '<' + tag + ' class="srow" ' + attr + '><span class="grow"><b>' + t + '</b><span class="mut">' + s + '</span></span><span class="schv" aria-hidden="true">›</span></' + tag + '>'; };
+      h += '<h1>Ton <span class="hl">profil</span>.</h1><div id="cacct">' + cacct() + '</div>' +
+        '<div class="fmoi"><label for="mn">Ton prénom</label><input id="mn" type="text" autocomplete="given-name" maxlength="40" value="' + esc(me.n || '') + '"><label for="mt">Ton téléphone</label><input id="mt" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" value="' + esc(me.t || '') + '"><label for="mm">Ton e-mail</label><input id="mm" type="email" autocomplete="email" maxlength="120" value="' + esc(me.e || '') + '"><p class="mut" style="margin:10px 0 0;font-size:13px">Ces infos remplissent tes réservations à ta place. Elles restent sur ce téléphone.</p><button type="button" class="btn" style="margin-top:14px" data-msave="1">Enregistrer</button><p id="mok" class="mut" role="status" style="margin:10px 0 0;text-align:center"></p></div>' +
+        '<div class="slist" style="margin-top:22px">' +
+        mrow('Mes rendez-vous', 'Voir, suivre ou annuler', 'data-view="rdv"') +
+        mrow('Comment ça marche', 'La réservation et l’acompte en bref', 'data-view="how"') +
+        mrow('Je coiffe', 'Créer ou ouvrir ma page de réservation', 'href="pro.html"', 'a') +
+        mrow('Aide', 'On te répond sous 24 heures', 'href="mailto:contact@perleapp.fr?subject=Aide%20Perle"', 'a') +
+        mrow('Conditions et confidentialité', 'Les règles de Perle et tes données', 'href="legal.html"', 'a') +
+        mrow('Effacer mes infos de ce téléphone', 'Prénom, téléphone et e-mail enregistrés ici', 'data-mclear="1"') +
+        (cu ? mrow('Supprimer mon compte', 'On le supprime sous 48 heures', 'href="mailto:contact@perleapp.fr?subject=Supprimer%20mon%20compte%20Perle"', 'a') : '') + '</div>';
     } else if (dir.view === 'filters') {
       h = sub('Filtres', '<button class="link mutl" data-fclear="1">Tout effacer</button>') + '<div id="dir"></div>';
     } else if (dir.view === 'search') {
@@ -247,7 +259,7 @@
       h = top() + '<div class="scard"><p class="st">Trouve <b>ta coiffeuse</b></p><label for="q" class="sr">Chercher une coiffure, une coiffeuse ou un quartier</label>' + fld(I.search, '<input id="q" type="text" placeholder="Coiffure, coiffeuse, quartier" value="' + esc(dir.q) + '" autocomplete="off">') + fld(I.pin, '<select id="fcity" aria-label="Quartier"></select>') + fld(I.cal, '<select id="fwhen" aria-label="Quand"><option value="all">Peu importe le jour</option><option value="today">Aujourd’hui</option><option value="week">Cette semaine</option><option value="date">Choisir une date…</option></select>') + '<div class="grid2">' + fld(I.user, '<select id="fpour" aria-label="Pour qui"><option value="">Pour qui ?</option><option value="femme">Femme</option><option value="homme">Homme</option><option value="enfant">Enfant</option></select>') + fld(I.euro, '<select id="fbud" aria-label="Budget"><option value="">Budget</option><option value="40">40 € max</option><option value="60">60 € max</option><option value="80">80 € max</option><option value="100">100 € max</option></select>') + '</div><div id="stabs"></div><button class="btn" data-res="1">Rechercher</button></div><div id="chips2"></div><div id="dir"></div>';
     } else {
       var nm = String(me.n || '').trim().split(' ')[0];
-      h = '<div class="top hd">' + (nm ? '<span class="hi">' + esc(nm.slice(0, 2).toUpperCase()) + '</span>' : '<svg viewBox="0 0 100 100" width="44" height="44" aria-hidden="true" style="flex-shrink:0"><rect width="100" height="100" rx="50" fill="#5B2A86"></rect><g transform="translate(50 52) scale(.72) translate(-50 -50)"><circle cx="50" cy="38" r="26" fill="#D9A441"></circle><circle cx="50" cy="52" r="13" fill="#FFFFFF"></circle><path d="M24 88 Q24 68 50 68 Q76 68 76 88 Z" fill="#FFFFFF"></path></g></svg>') + '<span class="grow hdt"><small>' + (nm ? 'Bonjour' : 'Bienvenue sur') + '</small><b>' + (nm ? esc(nm) : 'Perle') + '</b></span><button class="round wb" data-view="filters" aria-label="Filtres">' + svg(I.filt, 20) + '</button></div><div class="row"><p class="t1 grow">Tu cherches</p>' + badge() + '</div><h1 class="t2">quelle coiffure ?</h1><div id="chips"></div><div id="tip"></div><div id="dir"></div><p style="text-align:center;margin:22px 0 0"><button class="link mutl" data-view="how">Comment ça marche ?</button></p>' + proCta();
+      h = '<div class="top hd"><button class="hdme" data-view="moi" aria-label="Mon profil et mes réglages">' + (nm ? '<span class="hi">' + esc(nm.slice(0, 2).toUpperCase()) + '</span>' : '<svg viewBox="0 0 100 100" width="44" height="44" aria-hidden="true" style="flex-shrink:0"><rect width="100" height="100" rx="50" fill="#5B2A86"></rect><g transform="translate(50 52) scale(.72) translate(-50 -50)"><circle cx="50" cy="38" r="26" fill="#D9A441"></circle><circle cx="50" cy="52" r="13" fill="#FFFFFF"></circle><path d="M24 88 Q24 68 50 68 Q76 68 76 88 Z" fill="#FFFFFF"></path></g></svg>') + '<span class="grow hdt"><small>' + (nm ? 'Bonjour' : 'Bienvenue sur') + '</small><b>' + (nm ? esc(nm) : 'Perle') + '</b></span><span class="hdch" aria-hidden="true">›</span></button><button class="round wb" data-view="filters" aria-label="Filtres">' + svg(I.filt, 20) + '</button></div><div class="row"><p class="t1 grow">Tu cherches</p>' + badge() + '</div><h1 class="t2">quelle coiffure ?</h1><div id="chips"></div><div id="tip"></div><div id="dir"></div><p style="text-align:center;margin:22px 0 0"><button class="link mutl" data-view="how">Comment ça marche ?</button></p>' + proCta();
     }
     app.innerHTML = h + (dir.view === 'open' || dir.view === 'filters' ? '' : cnav()); setBar(); anim(); drawDir();
     var q = document.getElementById('q'); if (q) q.addEventListener('input', function () { dir.q = q.value; drawDir(); });
@@ -584,6 +596,8 @@
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.go) return go(b.dataset.go);
     if (b.dataset.coa) { b.disabled = true; return S.oauth(b.dataset.coa, location.origin + location.pathname + (b.dataset.to || '')).catch(function () { b.disabled = false; }); }
+    if (b.dataset.msave) { var mv = function (i) { return String(document.getElementById(i).value || '').trim(); }, mo = {}; try { mo = JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (x) { } mo.n = mv('mn'); mo.t = mv('mt'); mo.e = mv('mm'); var mk = document.getElementById('mok'); if (mo.e && !/^\S+@\S+\.\S+$/.test(mo.e)) { mk.textContent = 'Vérifie ton e-mail : il manque quelque chose.'; return; } try { localStorage.setItem('perle-moi', JSON.stringify(mo)); mk.textContent = 'C’est enregistré.'; } catch (x) { mk.textContent = 'Impossible d’enregistrer sur ce téléphone.'; } return; }
+    if (b.dataset.mclear) { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.querySelector('b').textContent = 'Touche encore pour confirmer'; return; } try { localStorage.removeItem('perle-moi'); } catch (x) { } return landing(); }
     if (b.dataset.guest) { dir.guest = true; return drawAcct(); }
     if (b.dataset.cout) { return S.signOut().then(function () { cu = null; drawAcct(); }); }
     if (b.dataset.csig) { b.disabled = true; var cs = b.dataset; return S.clientSignal(cs.ref, cs.phone, cs.csig, +cs.min || 0).then(function () { (dir.rdv || []).forEach(function (x) { if (x.ref === cs.ref) { if (cs.csig === 'onway') x.client_onway = true; else x.client_late_min = +cs.min; } }); drawDir(); }).catch(function () { b.disabled = false; }); }
