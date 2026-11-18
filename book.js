@@ -189,12 +189,16 @@
     var me = pme(), nm = String(me.n || '').trim(), em = cu ? (cu.email || '') : '';
     return '<div class="phead"><div class="grow"><h1>' + (nm ? esc(nm.split(' ')[0]) : 'Ton profil') + '</h1><p class="mut">' + (em ? esc(em) : nm ? 'Sans compte pour l’instant' : 'Ajoute ton prénom pour réserver plus vite') + '</p></div><button class="pav" data-view="infos" aria-label="Modifier mes informations">' + (nm ? esc(nm.slice(0, 2).toUpperCase()) : svg(I.user, 28, 1.8)) + '</button></div>';
   }
-  function pacct() {
-    if (!CAN || cu) return '';
+  // le profil est réservé aux personnes connectées ; sinon on propose la connexion
+  function pmode() { if (!CAN) return 'in'; if (!cready) return 'wait'; if (cu) return 'in'; return (!cprov || cprov.google || cprov.apple) ? 'gate' : 'in'; }
+  function pgb() {
     var pv = cprov || {}, h = '';
     if (pv.google) h += '<button type="button" class="btn oab" data-to="?v=moi" data-coa="google">Continuer avec Google</button>';
     if (pv.apple) h += '<button type="button" class="btn oab dk" data-to="?v=moi" data-coa="apple">Continuer avec Apple</button>';
-    return h ? '<div class="pconn"><b>Retrouve tes rendez-vous partout</b><p>Connecte-toi pour les voir sur tous tes appareils.</p>' + h + '</div>' : '';
+    return h;
+  }
+  function pgate() {
+    return '<div class="pgate"><span class="pav">' + svg(I.user, 28, 1.8) + '</span><h1>Ton <span class="hl">profil</span>.</h1><p class="sub">Connecte-toi pour retrouver tes rendez-vous et tes informations sur tous tes appareils.</p><div id="pgb">' + pgb() + '</div><p class="mut">Pas envie de créer un compte ? Tu peux réserver sans : ton prénom et ton téléphone suffisent.</p><p class="plinks"><button class="link mutl" data-view="how">Comment ça marche</button><a class="link mutl" href="mailto:contact@perleapp.fr?subject=Aide%20Perle">Aide</a><a class="link mutl" href="legal.html">Conditions</a></p></div>';
   }
   function pfoot() {
     return (cu ? '<button class="pout" data-cout="1">' + svg(PI.out, 20) + 'Me déconnecter</button><p class="pdel"><a href="mailto:contact@perleapp.fr?subject=Supprimer%20mon%20compte%20Perle">Supprimer mon compte</a></p>' : '') + '<p class="pver">Perle · perleapp.fr</p>';
@@ -210,7 +214,7 @@
     if (pv.apple) h += '<button type="button" class="btn oab dk" data-coa="apple">Continuer avec Apple</button>';
     return h ? h + '<button class="olink" data-guest="1">Continuer sans compte</button>' : roles();
   }
-  function drawAcct() { var o = document.getElementById('cacct'); if (o) o.innerHTML = cacct(); var p = document.getElementById('oopen'); if (p) p.innerHTML = oopen(); var x = document.getElementById('phead'); if (x) { x.innerHTML = phead(); document.getElementById('pacct').innerHTML = pacct(); document.getElementById('pfoot').innerHTML = pfoot(); } }
+  function drawAcct() { var o = document.getElementById('cacct'); if (o) o.innerHTML = cacct(); var p = document.getElementById('oopen'); if (p) p.innerHTML = oopen(); var x = document.getElementById('phead'); if (!slug && dir.view === 'moi' && dir.pm !== pmode()) return landing(); if (x) { x.innerHTML = phead(); document.getElementById('pfoot').innerHTML = pfoot(); } var g = document.getElementById('pgb'); if (g) g.innerHTML = pgb(); }
   async function initAcct() {
     if (!CAN) return;
     S.providers().then(function (x) { cprov = x || {}; drawAcct(); }).catch(function () { cprov = {}; drawAcct(); });
@@ -258,14 +262,17 @@
       h = sub('Mon prix') + '<h1>Ton prix, <span class="hl">avant</span> de réserver.</h1><p class="sub">Choisis ta coiffure et tes options : tu vois le prix chez chaque coiffeuse.</p><div id="dir"></div>';
     } else if (dir.view === 'rdv') {
       h += '<h1>Tes <span class="hl">rendez-vous</span>.</h1><div id="cacct">' + cacct() + '</div><div id="dir"></div>';
+    } else if (dir.view === 'moi' && (dir.pm = pmode()) !== 'in') {
+      h += dir.pm === 'gate' ? pgate() : '';
     } else if (dir.view === 'moi') {
       h += '<div id="phead">' + phead() + '</div>' +
         '<div class="ptiles"><button data-view="rdv">' + svg(I.cal, 24, 1.8) + '<span>Rendez-vous</span></button><button data-view="ideas">' + svg(I.grid, 24, 1.8) + '<span>Idées</span></button><a href="mailto:contact@perleapp.fr?subject=Aide%20Perle">' + svg(PI.help, 24, 1.8) + '<span>Aide</span></a></div>' +
-        '<div id="pacct">' + pacct() + '</div>' +
         '<h2 class="psec">Compte</h2><div class="plist">' + prow(I.user, 'Mes informations', 'Prénom, téléphone, e-mail', 'data-view="infos"') + '</div>' +
         '<h2 class="psec">Perle</h2><div class="plist">' + prow(PI.info, 'Comment ça marche', '', 'data-view="how"') + prow(PI.spark, 'Je coiffe, je veux des clients', 'Créer ou ouvrir ma page', 'href="pro.html"', 'a') + '</div>' +
         '<h2 class="psec">Légal</h2><div class="plist">' + prow(PI.doc, 'Conditions d’utilisation', '', 'href="legal.html#cgu"', 'a') + prow(I.shield, 'Confidentialité', '', 'href="legal.html#confidentialite"', 'a') + '</div>' +
         '<div id="pfoot">' + pfoot() + '</div>';
+    } else if (dir.view === 'infos' && pmode() !== 'in') {
+      dir.view = 'moi'; return landing();
     } else if (dir.view === 'infos') {
       h = '<div class="top"><button class="round" data-view="moi" aria-label="Retour">' + svg(I.back, 20) + '</button><span class="ttl">Mes informations</span></div>' +
         '<p class="sub" style="margin-top:6px">Elles remplissent tes réservations à ta place.</p>' +
