@@ -26,7 +26,7 @@
 
   function badge() { return S.live ? '' : '<span class="badge">Mode essai</span>'; }
   function stepn() { var seq = (st.svc && (st.svc.options || []).length ? ['options'] : []).concat(['slot', 'me']), i = seq.indexOf(st.step); return i < 0 ? '' : '<span class="stepn">Étape ' + (i + 1) + ' sur ' + seq.length + '</span>'; }
-  function top(back) { return '<div class="top">' + (back ? '<button class="round" data-go="' + back + '" aria-label="Retour">' + svg(I.back, 20) + '</button>' : U.logo()) + stepn() + (!back && !slug ? '<button class="round pbtn" data-view="moi" aria-label="Mon profil">' + svg(I.user, 20) + '</button>' : '') + badge() + '</div>'; }
+  function top(back) { return '<div class="top">' + (back ? '<button class="round" data-go="' + back + '" aria-label="Retour">' + svg(I.back, 20) + '</button>' : U.logo()) + stepn() + badge() + '</div>'; }
   var barT;
   function setBarA(a) {
     a = String(a); var o = barA.textContent, re = /\d+(?:[.,]\d+)?/, mo = o.match(re), mn = a.match(re); cancelAnimationFrame(barT);
@@ -181,6 +181,24 @@
     if (pv.apple) h += '<button type="button" class="btn oab dk" data-coa="apple">Continuer avec Apple</button>';
     return h ? '<div class="cacct"><p class="mut">Connecte-toi pour retrouver tes rendez-vous sur tous tes appareils. Tu peux aussi réserver sans compte.</p>' + h.replace(/data-coa/g, 'data-to="?v=' + (dir.view === 'moi' ? 'moi' : 'rdv') + '" data-coa') + '</div>' : '';
   }
+  // ----- écran Profil -----
+  var PI = { help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1 1-1.1 1.8"/><path d="M12 17h.01"/>', info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/>', doc: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M10 12h5M10 16h5"/>', spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>', out: '<path d="M10 4H5v16h5"/><path d="M14 8l4 4-4 4"/><path d="M18 12H9"/>', chev: '<path d="M9 6l6 6-6 6"/>' };
+  function prow(ic, t, s, attr, tag) { tag = tag || 'button'; return '<' + tag + ' class="prow" ' + attr + '>' + svg(ic, 22, 1.8) + '<span class="grow"><b>' + t + '</b>' + (s ? '<span class="mut">' + s + '</span>' : '') + '</span>' + svg(PI.chev, 18) + '</' + tag + '>'; }
+  function pme() { try { return JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (e) { return {}; } }
+  function phead() {
+    var me = pme(), nm = String(me.n || '').trim(), em = cu ? (cu.email || '') : '';
+    return '<div class="phead"><div class="grow"><h1>' + (nm ? esc(nm.split(' ')[0]) : 'Ton profil') + '</h1><p class="mut">' + (em ? esc(em) : nm ? 'Sans compte pour l’instant' : 'Ajoute ton prénom pour réserver plus vite') + '</p></div><button class="pav" data-view="infos" aria-label="Modifier mes informations">' + (nm ? esc(nm.slice(0, 2).toUpperCase()) : svg(I.user, 28, 1.8)) + '</button></div>';
+  }
+  function pacct() {
+    if (!CAN || cu) return '';
+    var pv = cprov || {}, h = '';
+    if (pv.google) h += '<button type="button" class="btn oab" data-to="?v=moi" data-coa="google">Continuer avec Google</button>';
+    if (pv.apple) h += '<button type="button" class="btn oab dk" data-to="?v=moi" data-coa="apple">Continuer avec Apple</button>';
+    return h ? '<div class="pconn"><b>Retrouve tes rendez-vous partout</b><p>Connecte-toi pour les voir sur tous tes appareils.</p>' + h + '</div>' : '';
+  }
+  function pfoot() {
+    return (cu ? '<button class="pout" data-cout="1">' + svg(PI.out, 20) + 'Me déconnecter</button><p class="pdel"><a href="mailto:contact@perleapp.fr?subject=Supprimer%20mon%20compte%20Perle">Supprimer mon compte</a></p>' : '') + '<p class="pver">Perle · perleapp.fr</p>';
+  }
   // premier écran : la connexion d'abord, puis le choix « je me fais coiffer / je coiffe »
   var cready = !CAN;
   function roles() { return '<button class="btn obtn" data-view="home">Je veux me faire coiffer<span class="oarr">' + svg(I.arrow, 18) + '</span></button><a class="btn glass obtn" href="pro.html">Je coiffe, je veux des clients<span class="oarr w">' + svg(I.arrow, 18) + '</span></a>'; }
@@ -192,7 +210,7 @@
     if (pv.apple) h += '<button type="button" class="btn oab dk" data-coa="apple">Continuer avec Apple</button>';
     return h ? h + '<button class="olink" data-guest="1">Continuer sans compte</button>' : roles();
   }
-  function drawAcct() { var o = document.getElementById('cacct'); if (o) o.innerHTML = cacct(); var p = document.getElementById('oopen'); if (p) p.innerHTML = oopen(); }
+  function drawAcct() { var o = document.getElementById('cacct'); if (o) o.innerHTML = cacct(); var p = document.getElementById('oopen'); if (p) p.innerHTML = oopen(); var x = document.getElementById('phead'); if (x) { x.innerHTML = phead(); document.getElementById('pacct').innerHTML = pacct(); document.getElementById('pfoot').innerHTML = pfoot(); } }
   async function initAcct() {
     if (!CAN) return;
     S.providers().then(function (x) { cprov = x || {}; drawAcct(); }).catch(function () { cprov = {}; drawAcct(); });
@@ -214,7 +232,7 @@
     } catch (e) { }
   }
   I.search = '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>'; I.user = '<circle cx="12" cy="8" r="4"/><path d="M4 20c1.500-4 5-5 8-5s6.500 1 8 5"/>'; I.tagi = '<path d="M4 4h7l9 9-7 7-9-9z"/><circle cx="8.500" cy="8.500" r="1.500"/>'; I.filt = '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'; I.chev = '<path d="M9 6l6 6-6 6"/>';
-  function cnav() { var cur = /^(search|filters|date|calc)$/.test(dir.view) ? 'search' : dir.view; return '<nav class="nav" aria-label="Menu">' + [['home', 'Accueil', I.home], ['search', 'Rechercher', I.search], ['map', 'Carte', I.map], ['rdv', 'Rendez-vous', I.cal], ['ideas', 'Idées', I.grid]].map(function (t) { return '<button data-view="' + t[0] + '" aria-selected="' + (cur === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '<span>' + t[1] + '</span></button>'; }).join('') + '</nav>'; }
+  function cnav() { var cur = /^(search|filters|date|calc)$/.test(dir.view) ? 'search' : /^(moi|infos|ideas)$/.test(dir.view) ? 'moi' : dir.view; return '<nav class="nav" aria-label="Menu">' + [['home', 'Accueil', I.home], ['search', 'Rechercher', I.search], ['map', 'Carte', I.map], ['rdv', 'Rendez-vous', I.cal], ['moi', 'Profil', I.user]].map(function (t) { return '<button data-view="' + t[0] + '" aria-selected="' + (cur === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '<span>' + t[1] + '</span></button>'; }).join('') + '</nav>'; }
   function anim() { app.classList.remove('anim'); void app.offsetWidth; app.classList.add('anim'); }
   function sk(n, h) { var o = ''; for (var i = 0; i < n; i++) o += '<div class="sk" style="height:' + h + 'px"></div>'; return '<div aria-label="Chargement" role="status" style="margin-top:16px">' + o + '</div>'; }
   function catOf(p) { var t = U.norm(p.services.map(function (s) { return s.name; }).join(' ')); return CATS.filter(function (c) { return c[1].test(t); }).map(function (c) { return c[0]; }); }
@@ -241,17 +259,17 @@
     } else if (dir.view === 'rdv') {
       h += '<h1>Tes <span class="hl">rendez-vous</span>.</h1><div id="cacct">' + cacct() + '</div><div id="dir"></div>';
     } else if (dir.view === 'moi') {
-      var mrow = function (t, s, attr, tag) { tag = tag || 'button'; return '<' + tag + ' class="srow" ' + attr + '><span class="grow"><b>' + t + '</b><span class="mut">' + s + '</span></span><span class="schv" aria-hidden="true">›</span></' + tag + '>'; };
-      h += '<h1>Ton <span class="hl">profil</span>.</h1><div id="cacct">' + cacct() + '</div>' +
-        '<div class="fmoi"><label for="mn">Ton prénom</label><input id="mn" type="text" autocomplete="given-name" maxlength="40" value="' + esc(me.n || '') + '"><label for="mt">Ton téléphone</label><input id="mt" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" value="' + esc(me.t || '') + '"><label for="mm">Ton e-mail</label><input id="mm" type="email" autocomplete="email" maxlength="120" value="' + esc(me.e || '') + '"><p class="mut" style="margin:10px 0 0;font-size:13px">Ces infos remplissent tes réservations à ta place. Elles restent sur ce téléphone.</p><button type="button" class="btn" style="margin-top:14px" data-msave="1">Enregistrer</button><p id="mok" class="mut" role="status" style="margin:10px 0 0;text-align:center"></p></div>' +
-        '<div class="slist" style="margin-top:22px">' +
-        mrow('Mes rendez-vous', 'Voir, suivre ou annuler', 'data-view="rdv"') +
-        mrow('Comment ça marche', 'La réservation et l’acompte en bref', 'data-view="how"') +
-        mrow('Je coiffe', 'Créer ou ouvrir ma page de réservation', 'href="pro.html"', 'a') +
-        mrow('Aide', 'On te répond sous 24 heures', 'href="mailto:contact@perleapp.fr?subject=Aide%20Perle"', 'a') +
-        mrow('Conditions et confidentialité', 'Les règles de Perle et tes données', 'href="legal.html"', 'a') +
-        mrow('Effacer mes infos de ce téléphone', 'Prénom, téléphone et e-mail enregistrés ici', 'data-mclear="1"') +
-        (cu ? mrow('Supprimer mon compte', 'On le supprime sous 48 heures', 'href="mailto:contact@perleapp.fr?subject=Supprimer%20mon%20compte%20Perle"', 'a') : '') + '</div>';
+      h += '<div id="phead">' + phead() + '</div>' +
+        '<div class="ptiles"><button data-view="rdv">' + svg(I.cal, 24, 1.8) + '<span>Rendez-vous</span></button><button data-view="ideas">' + svg(I.grid, 24, 1.8) + '<span>Idées</span></button><a href="mailto:contact@perleapp.fr?subject=Aide%20Perle">' + svg(PI.help, 24, 1.8) + '<span>Aide</span></a></div>' +
+        '<div id="pacct">' + pacct() + '</div>' +
+        '<h2 class="psec">Compte</h2><div class="plist">' + prow(I.user, 'Mes informations', 'Prénom, téléphone, e-mail', 'data-view="infos"') + '</div>' +
+        '<h2 class="psec">Perle</h2><div class="plist">' + prow(PI.info, 'Comment ça marche', '', 'data-view="how"') + prow(PI.spark, 'Je coiffe, je veux des clients', 'Créer ou ouvrir ma page', 'href="pro.html"', 'a') + '</div>' +
+        '<h2 class="psec">Légal</h2><div class="plist">' + prow(PI.doc, 'Conditions d’utilisation', '', 'href="legal.html#cgu"', 'a') + prow(I.shield, 'Confidentialité', '', 'href="legal.html#confidentialite"', 'a') + '</div>' +
+        '<div id="pfoot">' + pfoot() + '</div>';
+    } else if (dir.view === 'infos') {
+      h = '<div class="top"><button class="round" data-view="moi" aria-label="Retour">' + svg(I.back, 20) + '</button><span class="ttl">Mes informations</span></div>' +
+        '<p class="sub" style="margin-top:6px">Elles remplissent tes réservations à ta place.</p>' +
+        '<div class="fmoi"><label for="mn">Ton prénom</label><input id="mn" type="text" autocomplete="given-name" maxlength="40" value="' + esc(me.n || '') + '"><label for="mt">Ton téléphone</label><input id="mt" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" value="' + esc(me.t || '') + '"><label for="mm">Ton e-mail</label><input id="mm" type="email" autocomplete="email" maxlength="120" value="' + esc(me.e || '') + '"><button type="button" class="btn" style="margin-top:20px" data-msave="1">Enregistrer</button><p id="mok" class="mut" role="status" style="margin:10px 0 0;text-align:center"></p><p style="text-align:center;margin:18px 0 0"><button type="button" class="link mutl" data-mclear="1"><b>Effacer mes infos de ce téléphone</b></button></p></div>';
     } else if (dir.view === 'filters') {
       h = sub('Filtres', '<button class="link mutl" data-fclear="1">Tout effacer</button>') + '<div id="dir"></div>';
     } else if (dir.view === 'search') {
@@ -597,7 +615,7 @@
     if (b.dataset.go) return go(b.dataset.go);
     if (b.dataset.coa) { b.disabled = true; return S.oauth(b.dataset.coa, location.origin + location.pathname + (b.dataset.to || '')).catch(function () { b.disabled = false; }); }
     if (b.dataset.msave) { var mv = function (i) { return String(document.getElementById(i).value || '').trim(); }, mo = {}; try { mo = JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (x) { } mo.n = mv('mn'); mo.t = mv('mt'); mo.e = mv('mm'); var mk = document.getElementById('mok'); if (mo.e && !/^\S+@\S+\.\S+$/.test(mo.e)) { mk.textContent = 'Vérifie ton e-mail : il manque quelque chose.'; return; } try { localStorage.setItem('perle-moi', JSON.stringify(mo)); mk.textContent = 'C’est enregistré.'; } catch (x) { mk.textContent = 'Impossible d’enregistrer sur ce téléphone.'; } return; }
-    if (b.dataset.mclear) { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.querySelector('b').textContent = 'Touche encore pour confirmer'; return; } try { localStorage.removeItem('perle-moi'); } catch (x) { } return landing(); }
+    if (b.dataset.mclear) { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.querySelector('b').textContent = 'Touche encore pour confirmer'; return; } try { localStorage.removeItem('perle-moi'); } catch (x) { } dir.view = 'moi'; return landing(); }
     if (b.dataset.guest) { dir.guest = true; return drawAcct(); }
     if (b.dataset.cout) { return S.signOut().then(function () { cu = null; drawAcct(); }); }
     if (b.dataset.csig) { b.disabled = true; var cs = b.dataset; return S.clientSignal(cs.ref, cs.phone, cs.csig, +cs.min || 0).then(function () { (dir.rdv || []).forEach(function (x) { if (x.ref === cs.ref) { if (cs.csig === 'onway') x.client_onway = true; else x.client_late_min = +cs.min; } }); drawDir(); }).catch(function () { b.disabled = false; }); }
