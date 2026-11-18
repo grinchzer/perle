@@ -46,12 +46,60 @@
   function payParts(s) { s = s || ''; var a = s.match(RE_PP), b = s.match(RE_RV); return { pp: a ? a[1] : '', rv: b ? b[1] : '', txt: s.replace(RE_PP, '').replace(RE_RV, '').replace(/\n{2,}/g, '\n').trim() }; }
   function handle(v) { v = String(v || '').trim().replace(/^https?:\/\//i, '').replace(/^(www\.)?(paypal\.(me|com\/paypalme)|revolut\.me)\//i, '').replace(/^@/, '').split(/[\/?#\s]/)[0]; return v; }
   function payInfo() { var a = handle(val('pl')), b = handle(val('rl')), ok = /^[\w.-]{2,40}$/; if ((a && !ok.test(a)) || (b && !ok.test(b))) return null; return [val('pp'), a ? 'https://paypal.me/' + a : '', b ? 'https://revolut.me/' + b : ''].filter(Boolean).join('\n').slice(0, 300); }
+  // ----- remplissage par collage : la coiffeuse colle sa bio et ses tarifs -----
+  function guessMin(n) {
+    n = n.toLowerCase(); var T = [[/knotless|box ?braid|micro|boho|goddess/, 300], [/fulani|tribal|lemonade/, 240], [/twist|vanille|passion|locks? ?(pose|install)|faux locs/, 210], [/crochet|tissage|weave/, 150], [/perruque|lace|wig|closure|frontal/, 90], [/cornrow|natte|tresses? coll|barbe|coupe|fade|d[ée]grad/, 60], [/retwist|reprise|entretien/, 120], [/cils|lash/, 90], [/ongle|nail|gel|vernis/, 75], [/soin|shampo|brushing|d[ée]pose/, 60]];
+    for (var i = 0; i < T.length; i++) if (T[i][0].test(n)) return T[i][1]; return 120;
+  }
+  function parsePaste(t) {
+    t = String(t || ''); var out = { svcs: [], f: {} }, m, bio = [], seen = {};
+    if ((m = /(?:instagram\.com\/|tiktok\.com\/@|(?:^|[\s(])@)([A-Za-z0-9._]{2,30})/.exec(t))) out.f.pi = m[1].replace(/\.$/, '');
+    if ((m = /paypal\.me\/([\w.-]{2,40})/i.exec(t))) out.f.pl = m[1];
+    if ((m = /revolut\.me\/([\w.-]{2,40})/i.exec(t))) out.f.rl = m[1];
+    if ((m = /wa\.me\/(\+?\d{9,15})/i.exec(t)) || (m = /(?:^|[^\d+])((?:\+33 ?|0)[67](?:[ .]?\d\d){4})(?!\d)/.exec(t))) out.f.pw2 = m[1].replace(/[ .]/g, '');
+    if ((m = /📍\s*([^\n|•·—–,;(]{2,40})/.exec(t)) || (m = /\b(Paris\s?\d{1,2}(?:e|er|ème|eme)?|Montreuil|Saint[- ]Denis|Pantin|Aubervilliers|Bobigny|Ivry|Vitry|Créteil|Nanterre|Argenteuil|Sarcelles|Évry|Cergy|Massy|Noisy[- ]le[- ](?:Grand|Sec)|Lyon|Marseille|Lille|Toulouse|Bordeaux|Nantes|Strasbourg|Rennes|Montpellier|Nice)\b/i.exec(t))) out.f.pc = m[1].trim();
+    out.tags = []; if (/domicile|me d[ée]place/i.test(t)) out.tags.push('domicile'); if (/chez moi|à mon domicile|a mon domicile/i.test(t)) out.tags.push('chez'); if (/salon|institut/i.test(t)) out.tags.push('salon'); if (/homme|barber|barbe/i.test(t)) out.tags.push('homme'); if (/enfant|kids|fillette/i.test(t)) out.tags.push('enfant'); if (/femme|women/i.test(t)) out.tags.push('femme');
+    t.split(/\n+/).forEach(function (line) {
+      line = line.trim(); if (!line) return;
+      var pm = /(\d{1,4})(?:[.,]\d{1,2})?\s*(?:€|euros?\b|eur\b|e\b)/i.exec(line) || /€\s*(\d{1,4})/.exec(line), price = pm ? parseInt(pm[1], 10) : 0;
+      if (pm && price >= 5 && price <= 1500 && !(/📍|paris\s?\d|arrondissement/i.test(line) && !/€|euro/i.test(line))) {
+        var name = line.slice(0, pm.index).replace(/^[^A-Za-zÀ-ÿ0-9]+/, '').replace(/[\s\-–—:.·•|>=(]+$/, '').replace(/\s{2,}/g, ' ').slice(0, 60);
+        if (name.length < 2) name = line.slice(pm.index + pm[0].length).replace(/^[^A-Za-zÀ-ÿ0-9]+/, '').replace(/\d{1,2}\s*h\s*\d{0,2}.*/i, '').trim().slice(0, 60);
+        var k = name.toLowerCase(); if (name.length < 2 || seen[k] || /^(acompte|arrhes|caution|retard|frais|d[ée]placement)/i.test(name)) return; seen[k] = 1;
+        var dm = /(\d{1,2})\s*h\s*(\d{2})?(?![a-zà-ÿ])/i.exec(line.slice(pm.index + pm[0].length)) || /(\d{1,2})\s*h\s*(\d{2})?(?![a-zà-ÿ])/i.exec(line.slice(0, pm.index)), min = dm ? (+dm[1]) * 60 + (+dm[2] || 0) : 0;
+        out.svcs.push({ name: name.charAt(0).toUpperCase() + name.slice(1), price: price, minutes: min >= 15 && min <= 720 ? min : guessMin(name), guessed: !(min >= 15 && min <= 720) });
+      } else if (line.length > 14 && !/https?:|www\.|@|\d{9}|paypal|revolut|whatsapp|📍|\d\d[ .]\d\d[ .]\d\d/i.test(line)) bio.push(line);
+    });
+    if (bio.length) out.f.pb = bio.slice(0, 2).join(' ').replace(/\s{2,}/g, ' ').slice(0, 400);
+    out.svcs = out.svcs.slice(0, 25); return out;
+  }
+  function imported() { try { return JSON.parse(localStorage.getItem('perle-import') || '[]'); } catch (e) { return []; } }
+  function pasteBox(open) {
+    if (!open) return '<button type="button" class="pasteb" data-act="paste"><span><b>Remplir avec ma bio et mes tarifs</b><small>Colle le texte de ton profil Instagram ou TikTok : on remplit ta page pour toi.</small></span>' + svg(I.chev, 18) + '</button>';
+    return '<div class="pastep"><b>Colle ici ta bio et ta liste de prix</b><p class="mut">Copie le texte de ton profil, ou ta liste de tarifs, puis colle-le dans ce cadre.</p><label for="pt" class="sr">Ta bio et tes tarifs</label><textarea id="pt" rows="7" placeholder="Awa Braids · Paris 19e&#10;Knotless M 80€ 5h&#10;Fulani 70€&#10;paypal.me/awabraids"></textarea><div class="row" style="gap:12px;margin-top:10px"><button type="button" class="btn sm dark" data-act="pastego">Remplir ma page</button><button type="button" class="lnk" data-act="pasteno" style="margin:0">Annuler</button></div><p id="ptm" class="mut" role="status" style="margin:10px 0 0"></p></div>';
+  }
+  function impBox() {
+    var l = imported(); if (!l.length) return '';
+    return '<div class="impb"><b>' + l.length + ' prestation' + (l.length > 1 ? 's trouvées' : ' trouvée') + ' dans ton texte</b><ul>' + l.map(function (x) { return '<li><span>' + esc(x.name) + '</span><span>' + U.eur(x.price) + ' · ' + U.dur(x.minutes) + (x.guessed ? ' ?' : '') + '</span></li>'; }).join('') + '</ul><p class="mut">Les durées suivies d’un « ? » sont estimées : corrige-les ensuite en touchant la prestation.</p><div class="row" style="gap:12px;margin-top:10px"><button type="button" class="btn sm dark" data-act="impadd">Ajouter ' + (l.length > 1 ? 'les ' + l.length : 'la prestation') + '</button><button type="button" class="lnk" data-act="impno" style="margin:0">Ignorer</button></div></div>';
+  }
+  // ----- avis reçus -----
+  function pstars(n) { return '<span class="rvs" aria-label="' + n + ' sur 5">' + '★★★★★'.slice(0, n) + '<i>' + '★★★★★'.slice(n) + '</i></span>'; }
+  function revBox() {
+    if (!S.proReviews) return '';
+    var r = st.revs || { n: 0, list: [] }, h = '<h2 class="mp-h" style="margin-top:26px">Tes avis' + (r.n ? ' · ' + String(r.avg).replace('.', ',') + ' sur 5 (' + r.n + ')' : '') + '</h2>';
+    if (st.alerts > 0) h += '<p class="note info">' + st.alerts + ' personne' + (st.alerts > 1 ? 's attendent' : ' attend') + ' une place chez toi : elles seront prévenues par e-mail dès qu’un rendez-vous est annulé.</p>';
+    if (!r.n) return h + '<p class="mut">Pas encore d’avis. Une cliente peut en laisser un dès que tu marques son rendez-vous comme « fait ».</p>';
+    return h + (r.list || []).map(function (x) {
+      return '<div class="rv"><div class="rvt">' + pstars(x.rating) + '<b>' + esc(x.name || 'Cliente') + '</b><span class="mut">' + new Date(x.at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + '</span></div>' + (x.body ? '<p>' + esc(x.body) + '</p>' : '') +
+        '<label for="rr' + x.id + '" class="sr">Ta réponse</label><textarea id="rr' + x.id + '" class="rvta" rows="2" maxlength="600" placeholder="Répondre à cet avis (visible sur ta page)">' + esc(x.reply || '') + '</textarea><button type="button" class="btn sm ghost" style="color:var(--noir);margin-top:8px" data-act="rrep" data-id="' + x.id + '">' + (x.reply ? 'Modifier ma réponse' : 'Répondre') + '</button></div>';
+    }).join('');
+  }
   function profile(first) {
     var p = st.pro || { name: '', slug: '', city: '', bio: '', whatsapp: '', pay_info: '', deposit_pct: 30, cover_url: '', gallery: [] };
     function tg(t) { return '<label class="chip"><input type="checkbox" data-tag="' + t[0] + '"' + ((p.tags || []).indexOf(t[0]) >= 0 ? ' checked' : '') + '><span>' + t[1] + '</span></label>'; }
     var dep = p.deposit_pct == null ? 30 : p.deposit_pct, g = p.gallery || [], pw = payParts(p.pay_info);
     function row(id, lab, inner) { return '<div class="mp-row"><label for="' + id + '">' + lab + '</label>' + inner + '</div>'; }
-    var h = (first ? '<div class="who"><span class="grow">Connectée avec <b>' + esc((st.user && st.user.email) || '') + '</b></span><button type="button" class="lnk" data-act="out">Me déconnecter</button></div>' : '') + note() + '<form id="fp" class="mp">';
+    var h = (first ? '<div class="who"><span class="grow">Connectée avec <b>' + esc((st.user && st.user.email) || '') + '</b></span><button type="button" class="lnk" data-act="out">Me déconnecter</button></div>' : '') + note() + '<div id="pbx">' + pasteBox(false) + '</div><form id="fp" class="mp">';
     h += '<p class="mp-hint">' + (first ? 'Voici ta future page. Écris directement dessus.' : 'Ta page, comme ta cliente la voit. Touche un texte pour le changer.') + '</p><div class="mp-sheet">';
     h += '<div class="mp-cov"' + (p.cover_url ? ' style="' + U.bg(p.cover_url) + '"' : '') + '>' + (first ? '' : '<label class="mp-covbtn" for="cover">' + svg(I.photo, 16) + (p.cover_url ? 'Changer la photo' : 'Ajouter une photo de couverture') + '</label><input type="file" id="cover" accept="image/*" data-photo="cover">') + '</div>';
     h += '<div class="mp-head">' + (first ? '<span class="mp-av" aria-hidden="true">' + esc((p.name || 'P').charAt(0).toUpperCase()) + '</span>' : '<label class="mp-av" for="avatar" aria-label="Changer ta photo de profil"' + (p.avatar_url ? ' style="' + U.bg(p.avatar_url) + '"' : '') + '>' + (p.avatar_url ? '' : esc((p.name || '?').charAt(0).toUpperCase())) + '<i>' + svg(I.plus, 13, 2.6) + '</i></label><input type="file" id="avatar" accept="image/*" data-photo="avatar"><a class="mp-see" href="' + esc(link()) + '" target="_blank" rel="noopener">Voir ma page en vrai</a>') + '</div>';
@@ -99,7 +147,7 @@
       row(I.doc, 'Pas encore déclarée ?', 'Créer sa micro-entreprise est gratuit et se fait en ligne', 'data-act="decl"') +
       row(I.help, 'Aide', 'On te répond sous 24 heures', 'data-act="help"') +
       row(I.doc, 'Conditions et confidentialité', 'Les règles d’utilisation', 'data-act="legal"') +
-      '</div><button type="button" class="bye" data-act="out">Me déconnecter<span>' + esc(em) + '</span></button>';
+      '</div>' + revBox() + '<button type="button" class="bye" data-act="out">Me déconnecter<span>' + esc(em) + '</span></button>' + (S.deleteAccount ? '<p style="text-align:center;margin:14px 0 0"><button type="button" class="lnk" style="color:var(--mut);margin:0" data-act="delacct">Supprimer mon compte</button></p><p id="pdm" class="mut" role="status" style="text-align:center;margin:6px 0 0"></p>' : '');
     return h + '<div class="mespace"></div>';
   }
   function optText(o) { return (o || []).map(function (g) { return g.group + ': ' + (g.choices || []).map(function (c) { var s = c.label; if (Number(c.plus)) s += ' +' + c.plus; if (Number(c.minutes)) s += ' ' + (c.minutes > 0 ? '+' : '') + c.minutes + 'min'; return s; }).join(', '); }).join('\n'); }
@@ -147,7 +195,7 @@
   var NOMS = ['Knotless braids', 'Box braids', 'Fulani braids', 'Cornrows', 'Nattes collées', 'Vanilles', 'Passion twists', 'Départ de locks', 'Retwist locks', 'Faux locs', 'Crochet braids', 'Pose de perruque', 'Tissage', 'Dégradé', 'Coupe et barbe', 'Extensions de cils'];
   function dl(id, a) { return '<datalist id="' + id + '">' + a.map(function (x) { return '<option value="' + esc(x) + '">'; }).join('') + '</datalist>'; }
   function services() {
-    var h = note();
+    var h = note() + impBox();
     if (st.calc) return h + calcul();
     if (st.edit) {
       var s = st.edit;
@@ -277,7 +325,7 @@
   setInterval(poll, 30000); document.addEventListener('visibilitychange', poll);
   async function refresh() {
     st.user = await S.session(); if (st.user) { try { localStorage.setItem('perle-known', '1'); } catch (e) {} }
-    if (st.user) { st.pro = await S.myPro(); if (st.pro) { st.svcs = await S.myServices() || []; st.rdv = await S.myBookings() || []; try { localStorage.setItem('perle-own', st.pro.slug); } catch (e) { } try { st.views = S.myViews ? await S.myViews() : null; } catch (e) { st.views = null; } try { st.priv = await S.myPrivate() || {}; } catch (e) { st.priv = {}; } st.notes = {}; try { (await S.myNotes() || []).forEach(function (n) { st.notes[n.phone] = n; }); } catch (e) { } } }
+    if (st.user) { st.pro = await S.myPro(); if (st.pro) { st.svcs = await S.myServices() || []; st.rdv = await S.myBookings() || []; try { localStorage.setItem('perle-own', st.pro.slug); } catch (e) { } try { st.views = S.myViews ? await S.myViews() : null; } catch (e) { st.views = null; } try { st.priv = await S.myPrivate() || {}; } catch (e) { st.priv = {}; } try { st.revs = S.proReviews ? await S.proReviews(st.pro.slug) : null; } catch (e) { st.revs = null; } try { st.alerts = S.myAlertsCount ? (await S.myAlertsCount()) || 0 : 0; } catch (e) { st.alerts = 0; } st.notes = {}; try { (await S.myNotes() || []).forEach(function (n) { st.notes[n.phone] = n; }); } catch (e) { } } }
     render();
   }
   function fail(e) { st.msg = ['err', e && e.code === '23505' ? 'Ce lien est déjà pris. Choisis-en un autre.' : (e && e.message === 'PHOTO' ? 'Cette photo n’a pas pu être lue. Essaie avec une autre.' : (e && e.message && /Invalid login|invalid/i.test(e.message) ? 'E-mail ou mot de passe incorrect.' : (e && e.message && /registered|exists/i.test(e.message) ? 'Un compte existe déjà avec cet e-mail. Connecte-toi.' : 'Ça n’a pas marché. Vérifie ta connexion et réessaie.')))]; render(); }
@@ -328,6 +376,19 @@
       }
       if (a === 'out') { await S.signOut(); st.user = st.pro = null; st.tab = 'rdv'; st.pw = st.recovery = false; return render(); }
       if (a === 'oa') { var ob = document.getElementById('oa'); if (ob) ob.querySelectorAll('button').forEach(function (x) { x.disabled = true; }); await S.oauth(b.dataset.p); return; }
+      if (a === 'paste' || a === 'pasteno') { document.getElementById('pbx').innerHTML = pasteBox(a === 'paste'); if (a === 'paste') document.getElementById('pt').focus(); return; }
+      if (a === 'pastego') {
+        var pr = parsePaste(document.getElementById('pt').value), done = [], LB = { pc: 'ville', pb: 'présentation', pi: 'Instagram', pw2: 'WhatsApp', pl: 'PayPal', rl: 'Revolut' };
+        Object.keys(pr.f).forEach(function (k) { var el = document.getElementById(k); if (el && !el.value.trim() && pr.f[k]) { el.value = pr.f[k]; el.dispatchEvent(new Event('input', { bubbles: true })); done.push(LB[k]); } });
+        var tg = 0; pr.tags.forEach(function (t) { var c = document.querySelector('[data-tag="' + t + '"]'); if (c && !c.checked) { c.checked = true; c.dispatchEvent(new Event('change', { bubbles: true })); tg++; } }); if (tg) done.push('lieu et public');
+        if (pr.svcs.length) { try { localStorage.setItem('perle-import', JSON.stringify(pr.svcs)); } catch (x) { } }
+        if (!done.length && !pr.svcs.length) { document.getElementById('ptm').textContent = 'Rien de reconnu dans ce texte. Mets une prestation par ligne avec son prix, par exemple « Knotless M 80€ ».'; return; }
+        document.getElementById('pbx').innerHTML = '<p class="note ok">' + (done.length ? 'Rempli : ' + esc(done.join(', ')) + '. ' : '') + (pr.svcs.length ? pr.svcs.length + ' prestation' + (pr.svcs.length > 1 ? 's trouvées' : ' trouvée') + ' : enregistre ta page, puis ajoute-' + (pr.svcs.length > 1 ? 'les' : 'la') + ' d’un geste dans l’onglet Prestations. ' : '') + 'Vérifie tout avant d’enregistrer.</p>'; return;
+      }
+      if (a === 'impno') { try { localStorage.removeItem('perle-import'); } catch (x) { } return render(); }
+      if (a === 'impadd') { b.disabled = true; var il = imported(); for (var ii = 0; ii < il.length; ii++) { await S.saveService({ name: il[ii].name, price: il[ii].price, minutes: il[ii].minutes, options: [], prep: '', photo_url: '', position: st.svcs.length + ii }); } try { localStorage.removeItem('perle-import'); } catch (x) { } st.msg = ['ok', il.length + ' prestation' + (il.length > 1 ? 's ajoutées' : ' ajoutée') + '. Touche-en une pour corriger sa durée, ses options ou sa photo.']; return refresh(); }
+      if (a === 'rrep') { b.disabled = true; await S.replyReview(b.dataset.id, document.getElementById('rr' + b.dataset.id).value); st.msg = ['ok', 'Ta réponse est en ligne sur ta page.']; return refresh(); }
+      if (a === 'delacct') { var pdm = document.getElementById('pdm'); if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Touche encore pour supprimer définitivement'; pdm.textContent = 'Ta page, tes prestations, tes photos et tes rendez-vous seront effacés. C’est irréversible.'; return; } b.disabled = true; var dr = await S.deleteAccount(); if (dr === 'OK') { try { await S.signOut(); } catch (x) { } st.user = st.pro = null; st.tab = 'rdv'; st.msg = ['ok', 'Ton compte est supprimé.']; return render(); } b.disabled = false; b.dataset.sure = ''; b.textContent = 'Supprimer mon compte'; pdm.textContent = dr === 'RDV' ? 'Tu as des rendez-vous à venir. Annule-les ou attends qu’ils soient passés, puis réessaie.' : 'La suppression n’a pas abouti. Écris-nous à contact@perleapp.fr.'; return; }
       if (a === 'forgot') { var fe = val('em'); if (!/^\S+@\S+\.\S+$/.test(fe)) { st.msg = ['err', 'Écris d’abord ton e-mail, puis touche « Mot de passe oublié ? ».']; return render(); } await S.resetPw(fe); st.msg = ['ok', 'Si un compte existe avec cet e-mail, tu vas recevoir un lien pour choisir un nouveau mot de passe. Regarde aussi dans tes indésirables.']; return render(); }
       if (a === 'pw') { st.pw = !st.pw; return render(); }
       if (a === 'copy') { var l = link(); if (!/^https?:/.test(l)) l = new URL(l, location.href).href; try { await navigator.clipboard.writeText(l); st.msg = ['ok', 'Lien copié. Colle-le dans ta bio.']; } catch (x) { st.msg = ['info', 'Ton lien : ' + l]; } return render(); }
