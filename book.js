@@ -516,7 +516,7 @@
   function missing() { app.innerHTML = top() + '<h1>Cette page n’existe pas.</h1><p class="sub">Vérifie le lien que la coiffeuse t’a envoyé.</p>'; setBar(); }
 
   var SCREENS = { home: home, options: options, slot: slot, me: me, done: done };
-  function go(step) { var so = ['home', 'options', 'slot', 'me', 'done']; app.setAttribute('data-dir', so.indexOf(step) < so.indexOf(st.step || 'home') ? 'back' : 'fwd'); st.step = step; app.classList.add('bkf'); app.setAttribute('data-step', step); document.body.classList.toggle('dark', step === 'done'); SCREENS[step](); anim(); window.scrollTo(0, 0); }
+  function go(step) { var so = ['home', 'options', 'slot', 'me', 'done']; app.setAttribute('data-dir', so.indexOf(step) < so.indexOf(st.step || 'home') ? 'back' : 'fwd'); st.step = step; try { var own2 = localStorage.getItem('perle-own'), sk2 = 'perle-step-' + slug + '-' + step; if (S.step && slug && step !== 'home' && own2 !== slug && !sessionStorage.getItem(sk2)) { sessionStorage.setItem(sk2, '1'); S.step(slug, step).catch(function () { }); } } catch (e) { } app.classList.add('bkf'); app.setAttribute('data-step', step); document.body.classList.toggle('dark', step === 'done'); SCREENS[step](); anim(); window.scrollTo(0, 0); }
   async function loadBusy() {
     try { st.busy = await S.busy(slug, new Date().toISOString(), new Date(Date.now() + 29 * 864e5).toISOString()) || []; } catch (e) { st.busy = []; }
     if (st.step === 'slot') slot();
