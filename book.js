@@ -440,7 +440,7 @@
     if (key !== dir.carKey || !document.getElementById('car')) {
       dir.carKey = key;
       var off = dir.list.filter(function (x) { return x.lat == null; }).length, osm = AP ? '' : '<span class="osm"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a> · <a href="https://openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> · <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a></span>';
-      if (!pts.length) { box.innerHTML = '<div class="lglass pcard" style="margin:0 12px"><span class="grow" style="padding:10px 12px">Aucune coiffeuse sur la carte avec ces filtres.</span></div>'; return; }
+      if (!pts.length) { box.innerHTML = '<div class="lglass pcard" style="margin:0 12px"><span class="grow" style="padding:10px 12px">' + (dir.list.length ? 'Aucune coiffeuse sur la carte avec ces filtres.' : 'Les premières coiffeuses arrivent bientôt sur la carte.') + '</span></div>'; return; }
       box.innerHTML = osm + '<button class="shandle" id="shandle" data-sheet="1" aria-expanded="' + !!dir.sheet + '"><i></i><span>' + (dir.sheet ? 'Revenir à la carte' : 'Voir les ' + pts.length + ' coiffeuse' + (pts.length > 1 ? 's' : '') + ' en liste') + '</span></button><div class="car" id="car">' + pts.map(function (x) {
         var p = x.p, nf = dir.busy ? nextFree(p) : null, km = dir.me ? U.dist(dir.me, x) : null;
         return '<a class="lglass pcard" data-slug="' + esc(p.slug) + '" href="./?c=' + encodeURIComponent(p.slug) + (nf ? '&d=' + U.ymd(nf) : '') + '">' + (p.cover_url ? '<span class="ph pimg" style="' + U.bg(p.cover_url) + '"></span>' : '<span class="pimg noi">' + esc(inits(p)) + '</span>') + '<span class="grow" style="display:flex;flex-direction:column;gap:5px;align-items:flex-start;min-width:0"><span class="ptag">' + esc(dir.busy ? whenL(nf) : 'Chargement…') + '</span><span class="pname">' + esc(p.name) + '</span><span class="mut" style="color:var(--ink2)">' + esc([p.city, km != null ? U.near(km) : ''].filter(Boolean).join(', ')) + '</span></span><span class="fprice in"><small>à partir de</small>' + U.eur(minPrice(p)) + '</span></a>';
@@ -523,7 +523,7 @@
       }).join('') + '</div>'; return;
     }
     if (!dir.list) { box.innerHTML = dir.view === 'map' ? '' : sk(2, 220); return; }
-    if (!dir.list.length) { box.innerHTML = '<p class="note info">Les premières coiffeuses arrivent bientôt.</p>'; return; }
+    if (!dir.list.length && dir.view !== 'map') { box.innerHTML = '<p class="note info">Les premières coiffeuses arrivent bientôt.</p>'; return; }
     if (dir.view === 'date') return drawDate(box);
     if (dir.view === 'map') return drawMap(box);
     if (dir.view === 'calc') return drawCalc(box);
