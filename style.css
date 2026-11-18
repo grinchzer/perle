@@ -787,3 +787,10 @@ details.fiche[open]>summary::before{content:"–"}
 #oopen .olink{margin-top:2px}
 .ocin{margin:0 0 2px;font-size:14px}
 .cin{margin:12px 0 0;font-size:14px;color:var(--mut,#6B6276);overflow-wrap:anywhere}
+/* Profil cliente */
+.hdme{display:flex;align-items:center;gap:12px;flex:1;min-width:0;min-height:48px;padding:0;background:none;border:0;color:inherit;text-align:left;cursor:pointer}
+.hdch{font-size:22px;line-height:1;color:var(--mut);margin-left:-4px}
+.pbtn{margin-left:auto}
+.fmoi{margin-top:18px}
+.schv{font-size:22px;line-height:1;color:#B9AEC6;flex-shrink:0}
+a.srow{text-decoration:none;box-sizing:border-box}
