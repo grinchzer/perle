@@ -207,7 +207,7 @@
   var cready = !CAN;
   function roles() { return '<button class="btn obtn" data-view="home">Je veux me faire coiffer<span class="oarr">' + svg(I.arrow, 18) + '</span></button><a class="btn glass obtn" href="pro.html">Je coiffe, je veux des clients<span class="oarr w">' + svg(I.arrow, 18) + '</span></a>'; }
   function oopen() {
-    if (!CAN || cu) return (cu ? '<p class="soft ocin">Connexion réussie. Tu viens pour quoi ?</p>' : '') + roles();
+    if (!CAN || cu) return (cu ? '<p class="soft ocin">Connexion réussie. Tu viens pour quoi ?</p>' : '') + roles() + (cu ? '<p class="soft ocin obye">' + esc(cu.email || '') + ' · <button class="olink" data-cout="1">Me déconnecter</button></p>' : '');
     if (!cready || !cprov) return '';
     var pv = cprov, h = '';
     if (pv.google) h += '<button type="button" class="btn oab" data-coa="google">Continuer avec Google</button>';
