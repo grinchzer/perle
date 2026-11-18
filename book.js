@@ -140,6 +140,7 @@
       try { localStorage.setItem('perle-moi', JSON.stringify({ n: n, t: t, e: em })); } catch (e) { }
       if (em && S.bookingEmail) { try { S.bookingEmail(r.ref, t, em).catch(function () { }); } catch (e) { } }
       try { var l = saved(); l.push({ ref: r.ref, phone: t }); localStorage.setItem('perle-rdv', JSON.stringify(l.slice(-20))); } catch (e) { }
+      if (cu && S.claimRefs) S.claimRefs([{ ref: r.ref, phone: t }]).catch(function () { });
       r.name = n.trim(); r.phone = t; st.done = r; go('done');
     } catch (e) {
       er.innerHTML = '<p class="note err" role="alert">' + esc(U.msg(e)) + '</p>'; barBtn.disabled = false; er.scrollIntoView({ block: 'center' });
@@ -170,6 +171,48 @@
   var CATS = [['Tresses', /braid|tresse|natte|knotless|fulani|cornrow|vanille/], ['Locks', /lock|locs|retwist/], ['Twists', /twist/], ['Perruques', /perruque|lace|wig|closure/], ['Cils', /cil|lash/], ['Hommes', /homme|barbe|degrade|coupe/]];
   I.home = '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>'; I.grid = '<rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/>';
   function saved() { try { return JSON.parse(localStorage.getItem('perle-rdv') || '[]'); } catch (e) { return []; } }
+  // ----- compte cliente (facultatif) : retrouve ses rendez-vous sur tous ses appareils -----
+  var cu = null, cprov = null, CAN = !!(S.providers && S.oauth && !(window.PERLE || {}).APP);
+  function cacct() {
+    if (!CAN) return '';
+    if (cu) return '<p class="cin">Compte : <b>' + esc(cu.email || '') + '</b> <button class="link" data-cout="1">Me déconnecter</button></p>';
+    var pv = cprov || {}, h = '';
+    if (pv.google) h += '<button type="button" class="btn oab" data-coa="google">Continuer avec Google</button>';
+    if (pv.apple) h += '<button type="button" class="btn oab dk" data-coa="apple">Continuer avec Apple</button>';
+    return h ? '<div class="cacct"><p class="mut">Connecte-toi pour retrouver tes rendez-vous sur tous tes appareils. Tu peux aussi réserver sans compte.</p>' + h.replace(/data-coa/g, 'data-to="?v=rdv" data-coa') + '</div>' : '';
+  }
+  // premier écran : la connexion d'abord, puis le choix « je me fais coiffer / je coiffe »
+  var cready = !CAN;
+  function roles() { return '<button class="btn obtn" data-view="home">Je veux me faire coiffer<span class="oarr">' + svg(I.arrow, 18) + '</span></button><a class="btn glass obtn" href="pro.html">Je coiffe, je veux des clients<span class="oarr w">' + svg(I.arrow, 18) + '</span></a>'; }
+  function oopen() {
+    if (!CAN || cu || dir.guest) return (cu ? '<p class="soft ocin">Connexion réussie. Tu viens pour quoi ?</p>' : '') + roles();
+    if (!cready || !cprov) return '';
+    var pv = cprov, h = '';
+    if (pv.google) h += '<button type="button" class="btn oab" data-coa="google">Continuer avec Google</button>';
+    if (pv.apple) h += '<button type="button" class="btn oab dk" data-coa="apple">Continuer avec Apple</button>';
+    return h ? h + '<button class="olink" data-guest="1">Continuer sans compte</button>' : roles();
+  }
+  function drawAcct() { var o = document.getElementById('cacct'); if (o) o.innerHTML = cacct(); var p = document.getElementById('oopen'); if (p) p.innerHTML = oopen(); }
+  async function initAcct() {
+    if (!CAN) return;
+    S.providers().then(function (x) { cprov = x || {}; drawAcct(); }).catch(function () { cprov = {}; drawAcct(); });
+    try { cu = await S.session(); } catch (e) { cu = null; }
+    cready = true; drawAcct();
+    if (!cu) return;
+    try {
+      var me = {}; try { me = JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (e) { }
+      var md = cu.user_metadata || {}, ch = false;
+      if (!me.n && (md.full_name || md.name)) { me.n = String(md.full_name || md.name).slice(0, 40); ch = true; }
+      if (!me.e && cu.email) { me.e = cu.email; ch = true; }
+      if (ch) localStorage.setItem('perle-moi', JSON.stringify(me));
+    } catch (e) { }
+    try {
+      var l = saved(); if (l.length) await S.claimRefs(l);
+      var mine = await S.myRefs() || [], seen = {}, out = [];
+      l.concat(mine).forEach(function (x) { if (x && x.ref && !seen[x.ref]) { seen[x.ref] = 1; out.push({ ref: x.ref, phone: x.phone }); } });
+      if (out.length !== l.length) { localStorage.setItem('perle-rdv', JSON.stringify(out.slice(-20))); if (!slug && (dir.view === 'rdv' || dir.view === 'home')) loadRdv(); }
+    } catch (e) { }
+  }
   I.search = '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>'; I.user = '<circle cx="12" cy="8" r="4"/><path d="M4 20c1.500-4 5-5 8-5s6.500 1 8 5"/>'; I.tagi = '<path d="M4 4h7l9 9-7 7-9-9z"/><circle cx="8.500" cy="8.500" r="1.500"/>'; I.filt = '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'; I.chev = '<path d="M9 6l6 6-6 6"/>';
   function cnav() { var cur = /^(search|filters|date|calc)$/.test(dir.view) ? 'search' : dir.view; return '<nav class="nav" aria-label="Menu">' + [['home', 'Accueil', I.home], ['search', 'Rechercher', I.search], ['map', 'Carte', I.map], ['rdv', 'Rendez-vous', I.cal], ['ideas', 'Idées', I.grid]].map(function (t) { return '<button data-view="' + t[0] + '" aria-selected="' + (cur === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '<span>' + t[1] + '</span></button>'; }).join('') + '</nav>'; }
   function anim() { app.classList.remove('anim'); void app.offsetWidth; app.classList.add('anim'); }
@@ -182,7 +225,7 @@
     document.body.classList.toggle('dark', dir.view === 'open');
     var h = top(), me = {}; try { me = JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (e) { }
     if (dir.view === 'open') {
-      h = '<div class="dark-screen open" style="background-image:url(img/bgKnotless.jpg)"><div class="top">' + U.logo() + badge() + '</div><div class="openb"><h1>Trouve <span class="hl" style="color:var(--noir)">ta perle</span> près de chez toi</h1><p class="soft" style="font-size:15px;margin:0">Perle te met en relation avec des coiffeuses et des coiffeurs près de chez toi. Tu réserves en ligne et tu bloques ta place avec un acompte.</p><button class="btn obtn" style="margin-top:8px" data-view="home">Je veux me faire coiffer<span class="oarr">' + svg(I.arrow, 18) + '</span></button><a class="btn glass obtn" href="pro.html">Je coiffe, je veux des clients<span class="oarr w">' + svg(I.arrow, 18) + '</span></a><button class="olink" data-view="how">Comment ça marche ?</button></div></div>';
+      h = '<div class="dark-screen open" style="background-image:url(img/bgKnotless.jpg)"><div class="top">' + U.logo() + badge() + '</div><div class="openb"><h1>Trouve <span class="hl" style="color:var(--noir)">ta perle</span> près de chez toi</h1><p class="soft" style="font-size:15px;margin:0">Perle te met en relation avec des coiffeuses et des coiffeurs près de chez toi. Tu réserves en ligne et tu bloques ta place avec un acompte.</p><div id="oopen">' + oopen() + '</div><button class="olink" data-view="how">Comment ça marche ?</button></div></div>';
     } else if (dir.view === 'how') {
       h += '<h1 style="font-size:30px">Comment ça <span class="hl">marche</span></h1>';
       [['1', 'Tu choisis ta coiffure', 'Tu vois le prix exact selon la taille et la longueur, avant de réserver.'], ['2', 'Tu prends ton créneau', 'Seuls les créneaux vraiment libres s’affichent. Tu en choisis un en deux touches.'], ['3', 'Tu bloques ta place', 'Tu envoies un acompte à ta coiffeuse. Elle confirme, et le reste se règle sur place.']].forEach(function (s) { h += '<div class="card row" style="margin-top:12px;align-items:flex-start;border-radius:28px;padding:16px"><span class="stepn">' + s[0] + '</span><span class="grow"><span class="b" style="font-size:17px">' + s[1] + '</span><br><span class="mut">' + s[2] + '</span></span></div>'; });
@@ -196,7 +239,7 @@
     } else if (dir.view === 'calc') {
       h = sub('Mon prix') + '<h1>Ton prix, <span class="hl">avant</span> de réserver.</h1><p class="sub">Choisis ta coiffure et tes options : tu vois le prix chez chaque coiffeuse.</p><div id="dir"></div>';
     } else if (dir.view === 'rdv') {
-      h += '<h1>Tes <span class="hl">rendez-vous</span>.</h1><div id="dir"></div>';
+      h += '<h1>Tes <span class="hl">rendez-vous</span>.</h1><div id="cacct">' + cacct() + '</div><div id="dir"></div>';
     } else if (dir.view === 'filters') {
       h = sub('Filtres', '<button class="link mutl" data-fclear="1">Tout effacer</button>') + '<div id="dir"></div>';
     } else if (dir.view === 'search') {
@@ -540,6 +583,9 @@
   app.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.go) return go(b.dataset.go);
+    if (b.dataset.coa) { b.disabled = true; return S.oauth(b.dataset.coa, location.origin + location.pathname + (b.dataset.to || '')).catch(function () { b.disabled = false; }); }
+    if (b.dataset.guest) { dir.guest = true; return drawAcct(); }
+    if (b.dataset.cout) { return S.signOut().then(function () { cu = null; drawAcct(); }); }
     if (b.dataset.csig) { b.disabled = true; var cs = b.dataset; return S.clientSignal(cs.ref, cs.phone, cs.csig, +cs.min || 0).then(function () { (dir.rdv || []).forEach(function (x) { if (x.ref === cs.ref) { if (cs.csig === 'onway') x.client_onway = true; else x.client_late_min = +cs.min; } }); drawDir(); }).catch(function () { b.disabled = false; }); }
     if (b.dataset.paid) { b.disabled = true; return S.claimPaid(b.dataset.paid, b.dataset.phone).then(function () { b.outerHTML = '<p class="' + (st.done ? 'soft' : 'mut') + '" style="margin-top:10px"><svg class="okc" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M7.5 12.5l3 3 6-6.5"></path></svg>C’est noté, ta coiffeuse est prévenue. Ta place est confirmée dès réception de l’acompte.</p>'; (dir.rdv || []).forEach(function (x) { if (x.ref === b.dataset.paid) x.paid_claimed = true; }); }).catch(function () { b.disabled = false; }); }
     if (b.dataset.view) { if (dir.view === 'open') { try { localStorage.setItem('perle-vu', '1'); } catch (x) { } } dir.view = b.dataset.view; landing(); return window.scrollTo(0, 0); }
@@ -573,6 +619,7 @@
   });
 
   (async function () {
+    initAcct();
     if (!slug) return landing();
     try {
       st.pro = await S.getPro(slug);
