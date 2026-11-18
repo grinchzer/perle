@@ -829,3 +829,5 @@ a.srow{text-decoration:none;box-sizing:border-box}
 #pgb .oab.dk{border-color:#000}
 .pgate>.mut{margin:16px 0 0;font-size:14px}
 .plinks{display:flex;flex-wrap:wrap;gap:8px 18px;margin:26px 0 0;font-size:14px}
+.obye{text-align:center;margin:4px 0 0;overflow-wrap:anywhere}
+.obye .olink{display:inline;padding:6px 2px;text-decoration:underline;text-underline-offset:3px}
