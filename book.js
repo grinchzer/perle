@@ -27,9 +27,16 @@
   function badge() { return S.live ? '' : '<span class="badge">Mode essai</span>'; }
   function stepn() { var seq = (st.svc && (st.svc.options || []).length ? ['options'] : []).concat(['slot', 'me']), i = seq.indexOf(st.step); return i < 0 ? '' : '<span class="stepn">Étape ' + (i + 1) + ' sur ' + seq.length + '</span>'; }
   function top(back) { return '<div class="top">' + (back ? '<button class="round" data-go="' + back + '" aria-label="Retour">' + svg(I.back, 20) + '</button>' : U.logo()) + stepn() + badge() + '</div>'; }
+  var barT;
+  function setBarA(a) {
+    a = String(a); var o = barA.textContent, re = /\d+(?:[.,]\d+)?/, mo = o.match(re), mn = a.match(re); cancelAnimationFrame(barT);
+    if (!mo || !mn || mo[0] === mn[0] || o.replace(re, '#') !== a.replace(re, '#') || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) { barA.textContent = a; return; }
+    var f = parseFloat(mo[0].replace(',', '.')), t = parseFloat(mn[0].replace(',', '.')), t0 = null;
+    barT = requestAnimationFrame(function tick(now) { if (t0 == null) t0 = now; var k = Math.min(1, (now - t0) / 260), v = f + (t - f) * (1 - Math.pow(1 - k, 3)); if (k < 1) { barA.textContent = a.replace(re, String(Math.round(v))); barT = requestAnimationFrame(tick); } else barA.textContent = a; });
+  }
   function setBar(a, b, label, fn, disabled) {
     if (!label) { bar.hidden = true; return; }
-    bar.hidden = false; barA.textContent = a; barB.textContent = b; barBtn.innerHTML = esc(label) + ARROW; barBtn.disabled = !!disabled; barBtn.onclick = fn;
+    var wasH = bar.hidden; bar.hidden = false; if (wasH) barA.textContent = a; else setBarA(a); barB.textContent = b; barBtn.innerHTML = esc(label) + ARROW; barBtn.disabled = !!disabled; barBtn.onclick = fn;
   }
   function q() { return U.quote(st.svc, st.choices); }
   function dep(p) { return Math.round(p * st.pro.deposit_pct) / 100; }
@@ -291,6 +298,7 @@
   }
   function refreshMarks() {
     var L = window.L, m = dir.map; if (!L || !m) return;
+    var mel = document.getElementById('map'); if (mel && !mel.dataset.dropped) { mel.dataset.dropped = '1'; mel.classList.add('drop'); setTimeout(function () { mel.classList.remove('drop'); }, 1000); }
     (dir.marks || []).forEach(function (x) { x.mk.remove(); });
     var pts = onMap(); if (!pts.some(function (x) { return x.p.slug === dir.sel; })) dir.sel = '';
     if (!dir.sel && pts.length) { var best = pts[0]; if (dir.me) pts.forEach(function (x) { if (U.dist(dir.me, x) < U.dist(dir.me, best)) best = x; }); dir.sel = best.p.slug; }
@@ -508,7 +516,7 @@
   function missing() { app.innerHTML = top() + '<h1>Cette page n’existe pas.</h1><p class="sub">Vérifie le lien que la coiffeuse t’a envoyé.</p>'; setBar(); }
 
   var SCREENS = { home: home, options: options, slot: slot, me: me, done: done };
-  function go(step) { st.step = step; app.classList.add('bkf'); app.setAttribute('data-step', step); document.body.classList.toggle('dark', step === 'done'); SCREENS[step](); anim(); window.scrollTo(0, 0); }
+  function go(step) { var so = ['home', 'options', 'slot', 'me', 'done']; app.setAttribute('data-dir', so.indexOf(step) < so.indexOf(st.step || 'home') ? 'back' : 'fwd'); st.step = step; app.classList.add('bkf'); app.setAttribute('data-step', step); document.body.classList.toggle('dark', step === 'done'); SCREENS[step](); anim(); window.scrollTo(0, 0); }
   async function loadBusy() {
     try { st.busy = await S.busy(slug, new Date().toISOString(), new Date(Date.now() + 29 * 864e5).toISOString()) || []; } catch (e) { st.busy = []; }
     if (st.step === 'slot') slot();
@@ -526,7 +534,7 @@
   app.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.go) return go(b.dataset.go);
-    if (b.dataset.paid) { b.disabled = true; return S.claimPaid(b.dataset.paid, b.dataset.phone).then(function () { b.outerHTML = '<p class="' + (st.done ? 'soft' : 'mut') + '" style="margin-top:10px">C’est noté, ta coiffeuse est prévenue. Ta place est confirmée dès réception de l’acompte.</p>'; (dir.rdv || []).forEach(function (x) { if (x.ref === b.dataset.paid) x.paid_claimed = true; }); }).catch(function () { b.disabled = false; }); }
+    if (b.dataset.paid) { b.disabled = true; return S.claimPaid(b.dataset.paid, b.dataset.phone).then(function () { b.outerHTML = '<p class="' + (st.done ? 'soft' : 'mut') + '" style="margin-top:10px"><svg class="okc" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M7.5 12.5l3 3 6-6.5"></path></svg>C’est noté, ta coiffeuse est prévenue. Ta place est confirmée dès réception de l’acompte.</p>'; (dir.rdv || []).forEach(function (x) { if (x.ref === b.dataset.paid) x.paid_claimed = true; }); }).catch(function () { b.disabled = false; }); }
     if (b.dataset.view) { if (dir.view === 'open') { try { localStorage.setItem('perle-vu', '1'); } catch (x) { } } dir.view = b.dataset.view; landing(); return window.scrollTo(0, 0); }
     if (b.dataset.fav) { var fl2 = favs(), fi = fl2.indexOf(b.dataset.fav); fi >= 0 ? fl2.splice(fi, 1) : fl2.push(b.dataset.fav); try { localStorage.setItem('perle-fav', JSON.stringify(fl2.slice(-60))); } catch (x) { } b.setAttribute('aria-pressed', fi < 0); if (dir.f.fav || dir.view === 'search') drawDir(); return; }
     if (b.dataset.favonly) { dir.f.fav = !dir.f.fav; return drawDir(); }
