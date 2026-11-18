@@ -255,6 +255,11 @@
     app.innerHTML = top() + '<h1>' + T[0] + '</h1><div style="margin-top:14px">' + T[1]() + '</div>' +
       '<nav class="nav" aria-label="Menu">' + TABS.map(function (t) { return '<button data-tab="' + t[0] + '" aria-selected="' + (st.tab === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '<span>' + t[1] + '</span></button>'; }).join('') + '</nav>';
   }
+  async function poll() {
+    if (!st.user || !st.pro || st.tab !== 'rdv' || document.hidden) return; var ae = document.activeElement; if (ae && /^(TEXTAREA|INPUT|SELECT)$/.test(ae.tagName)) return; if (document.querySelector('details.fiche[open]')) return;
+    try { var l = await S.myBookings() || [], sig = function (a) { return (a || []).map(function (x) { return x.id + x.status; }).join('|'); }; if (sig(l) !== sig(st.rdv)) { var more = l.length > (st.rdv || []).length; st.rdv = l; if (more) st.msg = ['ok', 'Nouvelle réservation reçue.']; render(); } } catch (e) { }
+  }
+  setInterval(poll, 30000); document.addEventListener('visibilitychange', poll);
   async function refresh() {
     st.user = await S.session(); if (st.user) { try { localStorage.setItem('perle-known', '1'); } catch (e) {} }
     if (st.user) { st.pro = await S.myPro(); if (st.pro) { st.svcs = await S.myServices() || []; st.rdv = await S.myBookings() || []; try { st.priv = await S.myPrivate() || {}; } catch (e) { st.priv = {}; } st.notes = {}; try { (await S.myNotes() || []).forEach(function (n) { st.notes[n.phone] = n; }); } catch (e) { } } }
