@@ -201,7 +201,7 @@
     return '<div class="pgate"><span class="pav">' + svg(I.user, 28, 1.8) + '</span><h1>Ton <span class="hl">profil</span>.</h1><p class="sub">Connecte-toi pour retrouver tes rendez-vous et tes informations sur tous tes appareils.</p><div id="pgb">' + pgb() + '</div><p class="mut">Pas envie de créer un compte ? Tu peux réserver sans : ton prénom et ton téléphone suffisent.</p><p class="plinks"><button class="link mutl" data-view="how">Comment ça marche</button><a class="link mutl" href="mailto:contact@perleapp.fr?subject=Aide%20Perle">Aide</a><a class="link mutl" href="legal.html">Conditions</a></p></div>';
   }
   function pfoot() {
-    return (cu ? '<button class="pout" data-cout="1">' + svg(PI.out, 20) + 'Me déconnecter</button><p class="pdel"><a href="mailto:contact@perleapp.fr?subject=Supprimer%20mon%20compte%20Perle">Supprimer mon compte</a></p>' : '') + '<p class="pver">Perle · perleapp.fr</p>';
+    return (cu ? '<p class="pdel"><a href="mailto:contact@perleapp.fr?subject=Supprimer%20mon%20compte%20Perle">Supprimer mon compte</a></p>' : '') + '<p class="pver">Perle · perleapp.fr</p>';
   }
   // premier écran : la connexion d'abord, puis le choix « je me fais coiffer / je coiffe »
   var cready = !CAN;
@@ -273,7 +273,7 @@
     } else if (dir.view === 'moi') {
       h += '<div id="phead">' + phead() + '</div>' +
         '<div class="ptiles"><button data-view="rdv">' + svg(I.cal, 24, 1.8) + '<span>Rendez-vous</span></button><button data-view="ideas">' + svg(I.grid, 24, 1.8) + '<span>Idées</span></button><a href="mailto:contact@perleapp.fr?subject=Aide%20Perle">' + svg(PI.help, 24, 1.8) + '<span>Aide</span></a></div>' +
-        '<h2 class="psec">Compte</h2><div class="plist">' + prow(I.user, 'Mes informations', 'Prénom, téléphone, e-mail', 'data-view="infos"') + '</div>' +
+        '<h2 class="psec">Compte</h2><div class="plist">' + prow(I.user, 'Mes informations', 'Prénom, téléphone, e-mail', 'data-view="infos"') + (cu ? prow(PI.out, 'Me déconnecter', esc(cu.email || ''), 'data-cout="1"') : '') + '</div>' +
         '<h2 class="psec">Perle</h2><div class="plist">' + prow(PI.info, 'Comment ça marche', '', 'data-view="how"') + prow(PI.spark, 'Je coiffe, je veux des clients', 'Créer ou ouvrir ma page', 'href="pro.html"', 'a') + '</div>' +
         '<h2 class="psec">Légal</h2><div class="plist">' + prow(PI.doc, 'Conditions d’utilisation', '', 'href="legal.html#cgu"', 'a') + prow(I.shield, 'Confidentialité', '', 'href="legal.html#confidentialite"', 'a') + '</div>' +
         '<div id="pfoot">' + pfoot() + '</div>';
