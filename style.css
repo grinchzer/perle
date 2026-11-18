@@ -761,3 +761,11 @@ details.fiche[open]>summary::before{content:"–"}
 .hero::after{background:linear-gradient(180deg,rgba(21,11,31,.52) 0%,rgba(21,11,31,.18) 22%,rgba(21,11,31,0) 40%,rgba(21,11,31,0) 60%,rgba(21,11,31,.45) 100%)}
 .sub{line-height:1.5}
 .bkf .sub{color:#5A5266}
+/* suivi du jour : retard et disponibilité, des deux côtés */
+.livec,.livep{margin-top:12px;padding:14px;border-radius:16px;background:var(--soft)}
+.lv{font-size:15px;line-height:1.4;margin:0 0 10px;color:var(--noir)}
+.dly{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:10px}
+.dly .mut{flex-basis:100%;font-size:13px}
+.dly button{min-height:44px;padding:0 14px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:14px;font-weight:600;color:var(--noir)}
+.dly button[aria-pressed="true"]{background:var(--noir);border-color:var(--noir);color:#fff}
+.livep .dly button{flex:1;padding:0 6px;white-space:nowrap}
