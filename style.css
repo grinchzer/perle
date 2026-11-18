@@ -831,3 +831,38 @@ a.srow{text-decoration:none;box-sizing:border-box}
 .plinks{display:flex;flex-wrap:wrap;gap:8px 18px;margin:26px 0 0;font-size:14px}
 .obye{text-align:center;margin:4px 0 0;overflow-wrap:anywhere}
 .obye .olink{display:inline;padding:6px 2px;text-decoration:underline;text-underline-offset:3px}
+/* Favoris, avis, alerte créneau */
+.favb{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-top:12px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--noir);font-size:14px;font-weight:600;cursor:pointer}
+.favb[aria-pressed="true"]{background:var(--noir);border-color:var(--noir);color:#fff}
+.favb[aria-pressed="true"] svg{fill:currentColor}
+.rvh{display:flex;flex-direction:column;gap:4px;margin-top:28px}
+.rvh span{font-family:inherit;font-size:14px;font-weight:500;letter-spacing:0;color:var(--mut)}
+.rvs{color:var(--or);letter-spacing:1px;font-size:15px}.rvs i{font-style:normal;color:#DDD3E8}
+.rv{padding:14px 0;border-bottom:1px solid var(--line)}
+.rvt{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:14px}
+.rv p{margin:8px 0 0;font-size:15px;line-height:1.45;overflow-wrap:anywhere}
+.rv .rvr{padding:10px 12px;border-radius:14px;background:var(--soft);font-size:14px}
+.rvr b{display:block;font-size:13px;margin-bottom:2px}
+.revf{margin-top:10px;padding:14px;border-radius:20px;background:var(--soft)}
+.starsel{display:flex;gap:4px;margin:6px 0 10px}
+.starsel button{width:44px;height:44px;border:0;background:none;font-size:30px;line-height:1;color:#CFC4DC;cursor:pointer;padding:0}
+.starsel button[aria-pressed="true"]{color:var(--or)}
+.revf textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:14px;padding:12px;font:inherit;background:#fff;resize:vertical}
+.alertb{margin-top:26px;padding:16px;border-radius:20px;background:var(--soft)}
+.alertb .mut{margin:4px 0 0;font-size:14px}
+.alrow{display:flex;gap:8px;margin-top:12px}
+.alrow input{flex:1;min-width:0;margin:0}
+.alrow .btn{width:auto;flex-shrink:0;background:var(--noir);color:#fff}
+.pdel button{font-size:14px;color:var(--mut);font-weight:500}
+/* Espace coiffeuse : remplissage par collage, prestations importées, réponses aux avis */
+.pasteb{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 16px;padding:14px 16px;border:1px dashed #B9A3D4;border-radius:20px;background:#FAF7FD;color:var(--noir);text-align:left;cursor:pointer}
+.pasteb span{display:flex;flex-direction:column;gap:2px;flex:1}
+.pasteb b{font-size:16px}.pasteb small{font-size:13px;color:var(--mut)}
+.pasteb svg{color:var(--vio);flex-shrink:0}
+.pastep,.impb{margin:0 0 16px;padding:16px;border-radius:20px;background:var(--soft)}
+.pastep .mut,.impb .mut{margin:4px 0 0;font-size:13px}
+.pastep textarea,.rvta{width:100%;box-sizing:border-box;margin-top:10px;border:1px solid var(--line);border-radius:14px;padding:12px;font:inherit;background:#fff;resize:vertical}
+.pastep .btn,.impb .btn{width:auto}
+.impb ul{list-style:none;margin:10px 0 0;padding:0}
+.impb li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.impb li span:last-child{color:var(--mut);white-space:nowrap}
