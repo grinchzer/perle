@@ -819,3 +819,13 @@ a.srow{text-decoration:none;box-sizing:border-box}
 .pout{display:flex;align-items:center;gap:10px;margin-top:22px;padding:12px 0;background:none;border:0;color:var(--noir);font-size:16px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .pdel{margin:4px 0 0}.pdel a{font-size:14px;color:var(--mut)}
 .pver{margin:22px 0 0;font-size:12px;color:var(--mut)}
+/* Profil sans compte : écran de connexion */
+.pgate{display:flex;flex-direction:column;margin-top:10px}
+.pgate .pav{cursor:default;margin-bottom:14px}
+.pgate h1{margin:0}
+.pgate .sub{margin:8px 0 0}
+#pgb{display:flex;flex-direction:column;gap:10px;margin-top:22px;min-height:56px}
+#pgb .oab{margin:0;border:1px solid var(--line)}
+#pgb .oab.dk{border-color:#000}
+.pgate>.mut{margin:16px 0 0;font-size:14px}
+.plinks{display:flex;flex-wrap:wrap;gap:8px 18px;margin:26px 0 0;font-size:14px}
