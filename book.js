@@ -207,14 +207,17 @@
   var cready = !CAN;
   function roles() { return '<button class="btn obtn" data-view="home">Je veux me faire coiffer<span class="oarr">' + svg(I.arrow, 18) + '</span></button><a class="btn glass obtn" href="pro.html">Je coiffe, je veux des clients<span class="oarr w">' + svg(I.arrow, 18) + '</span></a>'; }
   function oopen() {
-    if (!CAN || cu || dir.guest) return (cu ? '<p class="soft ocin">Connexion réussie. Tu viens pour quoi ?</p>' : '') + roles();
+    if (!CAN || cu) return (cu ? '<p class="soft ocin">Connexion réussie. Tu viens pour quoi ?</p>' : '') + roles();
     if (!cready || !cprov) return '';
     var pv = cprov, h = '';
     if (pv.google) h += '<button type="button" class="btn oab" data-coa="google">Continuer avec Google</button>';
     if (pv.apple) h += '<button type="button" class="btn oab dk" data-coa="apple">Continuer avec Apple</button>';
-    return h ? h + '<button class="olink" data-guest="1">Continuer sans compte</button>' : roles();
+    return h ? h : roles();
   }
-  function drawAcct() { var o = document.getElementById('cacct'); if (o) o.innerHTML = cacct(); var p = document.getElementById('oopen'); if (p) p.innerHTML = oopen(); var x = document.getElementById('phead'); if (!slug && dir.view === 'moi' && dir.pm !== pmode()) return landing(); if (x) { x.innerHTML = phead(); document.getElementById('pfoot').innerHTML = pfoot(); } var g = document.getElementById('pgb'); if (g) g.innerHTML = pgb(); }
+  // l'appli est réservée aux personnes connectées (cliente ou coiffeuse) ; la page d'une coiffeuse ouverte par son lien reste visible
+  function locked() { return CAN && !cu && (!cprov || !!(cprov.google || cprov.apple)); }
+  function lstate() { return !CAN ? 'free' : !cready ? 'wait' : locked() ? 'lock' : 'free'; }
+  function drawAcct() { if (!slug && dir.ls !== lstate()) return landing(); var o = document.getElementById('cacct'); if (o) o.innerHTML = cacct(); var p = document.getElementById('oopen'); if (p) p.innerHTML = oopen(); var x = document.getElementById('phead'); if (!slug && dir.view === 'moi' && dir.pm !== pmode()) return landing(); if (x) { x.innerHTML = phead(); document.getElementById('pfoot').innerHTML = pfoot(); } var g = document.getElementById('pgb'); if (g) g.innerHTML = pgb(); }
   async function initAcct() {
     if (!CAN) return;
     S.providers().then(function (x) { cprov = x || {}; drawAcct(); }).catch(function () { cprov = {}; drawAcct(); });
@@ -242,6 +245,9 @@
   function catOf(p) { var t = U.norm(p.services.map(function (s) { return s.name; }).join(' ')); return CATS.filter(function (c) { return c[1].test(t); }).map(function (c) { return c[0]; }); }
   function proCta() { return '<div class="card" style="margin-top:22px;border-radius:28px;padding:18px"><div class="b" style="font-size:18px">Tu coiffes ?</div><div class="mut" style="margin:4px 0 14px">Crée ta page de réservation : tes photos, tes prix, tes créneaux, et un acompte pour chaque rendez-vous.</div><a class="btn dark" href="pro.html">Créer ma page' + ARROW + '</a></div><p class="foot" style="text-align:center"><a href="legal.html">Mentions légales, confidentialité et conditions</a></p>'; }
   function landing() {
+    dir.ls = lstate();
+    if (dir.ls === 'wait') { app.innerHTML = ''; return; }
+    if (dir.ls === 'lock' && dir.view !== 'how') dir.view = 'open';
     app.classList.remove('bkf');
     if (dir.map) { try { dir.map.remove(); } catch (e) { } dir.map = null; dir.marks = null; }
     document.body.classList.toggle('dark', dir.view === 'open');
