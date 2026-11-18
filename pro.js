@@ -19,7 +19,7 @@
   function top() { return '<div class="top">' + U.logo() + (S.live ? '' : '<span class="badge">Mode essai</span>') + '</div>'; }
   function note() { var m = st.msg; st.msg = null; return m ? '<p class="note ' + m[0] + '" role="' + (m[0] === 'err' ? 'alert' : 'status') + '">' + esc(m[1]) + '</p>' : ''; }
   function val(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; }
-  function link() { if ((window.PERLE || {}).APERCU) return './?c=' + st.pro.slug; var base = location.href.split(/[?#]/)[0].replace(/[^\/]*$/, ''); return (window.PERLE || {}).LIENS_COURTS ? location.origin + '/' + st.pro.slug : base + '?c=' + st.pro.slug; }
+  function link() { if ((window.PERLE || {}).APERCU) return './?c=' + st.pro.slug; var base = (window.PERLE || {}).SITE || location.href.split(/[?#]/)[0].replace(/[^\/]*$/, ''); return (window.PERLE || {}).LIENS_COURTS ? location.origin + '/' + st.pro.slug : base + '?c=' + st.pro.slug; }
   function thumb(u, cls) { return u ? '<span class="thumb ph ' + (cls || '') + '" style="' + U.bg(u) + '"></span>' : '<span class="thumb empty ' + (cls || '') + '">' + svg(I.photo) + '</span>'; }
   function picker(id, u, label) { return '<div class="pick">' + thumb(u) + '<span class="grow mut">' + (u ? 'Photo choisie' : 'Aucune photo') + '</span><label class="btn sm dark" style="margin:0;color:#fff" for="' + id + '">' + (u ? 'Changer' : label) + '</label><input type="file" id="' + id + '" accept="image/*" data-photo="' + id + '"></div>'; }
 
