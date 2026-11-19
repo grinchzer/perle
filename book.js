@@ -511,7 +511,7 @@
     var now = Date.now(), n = (dir.rdv || []).filter(function (b) { return b.status === 'confirme' && new Date(b.starts_at).getTime() - now < 8 * 36e5 && new Date(b.ends_at).getTime() > now; })[0];
     if (!n) return go('end', {});
     var d = Number(n.pro_delay_min) || 0;
-    go('start', { ref: n.ref, title: n.service || 'Rendez-vous', who: n.pro_name || '', note: n.pro_ready ? 'Elle t’attend' : (d ? d + ' min de retard' : 'Confirmé'), startsAt: new Date(n.starts_at).getTime() + d * 60000 });
+    go('start', { ref: n.ref, title: n.service || 'Rendez-vous', who: n.pro_name || '', note: n.pro_ready ? 'Elle t’attend' : (d ? d + ' min de retard' : (n.client_onway ? 'Tu es en route' : 'Confirmé')), step: 1 + (n.client_onway ? 1 : 0) + (n.pro_ready ? 1 : 0) + (n.pro_ready && now >= new Date(n.starts_at).getTime() + d * 60000 ? 1 : 0), startsAt: new Date(n.starts_at).getTime() + d * 60000 });
   }
   setTimeout(function () { if (!saved().length) live(); }, 2500);
   async function pollRdv() {
@@ -673,7 +673,7 @@
     if (b.dataset.cout) { return S.signOut().then(function () { cu = null; drawAcct(); }); }
     if (b.dataset.csig) {
       b.disabled = true; var cs = b.dataset, bk = (dir.rdv || []).filter(function (x) { return x.ref === cs.ref; })[0];
-      var send = function (mn) { return S.clientSignal(cs.ref, cs.phone, cs.csig, mn).then(function () { (dir.rdv || []).forEach(function (x) { if (x.ref === cs.ref) { if (cs.csig === 'onway') { x.client_onway = true; x.client_eta_min = mn; } else x.client_late_min = +cs.min; } }); drawDir(); }).catch(function () { b.disabled = false; }); };
+      var send = function (mn) { return S.clientSignal(cs.ref, cs.phone, cs.csig, mn).then(function () { (dir.rdv || []).forEach(function (x) { if (x.ref === cs.ref) { if (cs.csig === 'onway') { x.client_onway = true; x.client_eta_min = mn; } else x.client_late_min = +cs.min; } }); live(); drawDir(); }).catch(function () { b.disabled = false; }); };
       if (cs.csig !== 'onway' || !navigator.geolocation || !bk || bk.pro_lat == null || bk.pro_lng == null) return send(+cs.min || 0);
       // « Je suis en route » : la position est lue une seule fois, pour estimer le trajet. Elle n'est ni suivie ni enregistrée.
       b.textContent = 'Calcul du trajet…';
