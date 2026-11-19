@@ -16,7 +16,7 @@
   };
   var TABS = [['rdv', 'Rendez-vous', I.cal], ['svc', 'Prestations', I.tag], ['hrs', 'Horaires', I.clock], ['pro', 'Ma page', I.page], ['me', 'Compte', I.user]];
 
-  function top() { return '<div class="top">' + U.logo() + (S.live ? '' : '<span class="badge">Mode essai</span>') + '</div>'; }
+  function top() { return '<div class="top">' + ((window.PERLE || {}).APP ? '<a class="round" href="index.html" aria-label="Retour côté cliente"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></a>' : '') + U.logo() + (S.live ? '' : '<span class="badge">Mode essai</span>') + '</div>'; }
   function note() { var m = st.msg; st.msg = null; return m ? '<p class="note ' + m[0] + '" role="' + (m[0] === 'err' ? 'alert' : 'status') + '">' + esc(m[1]) + '</p>' : ''; }
   function val(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; }
   function link() { if ((window.PERLE || {}).APERCU) return './?c=' + st.pro.slug; var base = (window.PERLE || {}).SITE || location.href.split(/[?#]/)[0].replace(/[^\/]*$/, ''); return (window.PERLE || {}).LIENS_COURTS ? location.origin + '/' + st.pro.slug : base + '?c=' + st.pro.slug; }
