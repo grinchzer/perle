@@ -509,6 +509,9 @@
     var C = window.Capacitor; if (!(window.PERLE || {}).APP || !C) return;
     var P = C.Plugins && C.Plugins.PerleLive, go = function (m, o) { try { var r = P ? P[m](o) : (C.nativePromise ? C.nativePromise('PerleLive', m, o) : null); if (r && r.catch) r.catch(function () { }); } catch (e) { } };
     var now = Date.now(), n = (dir.rdv || []).filter(function (b) { return b.status === 'confirme' && new Date(b.starts_at).getTime() - now < 8 * 36e5 && new Date(b.ends_at).getTime() > now; })[0];
+    // Rappels sur le téléphone : la veille et une heure avant chaque rendez-vous confirmé à venir.
+    var rem = []; (dir.rdv || []).forEach(function (x) { var t = new Date(x.starts_at).getTime(); if (x.status !== 'confirme' || t < now) return; var hm = U.hm(new Date(t)), chez = 'Chez ' + (x.pro_name || 'ta coiffeuse') + ' à ' + hm + '.'; rem.push({ id: x.ref + '-j', at: t - 864e5, title: 'Demain : ' + (x.service || 'ton rendez-vous'), body: chez }); rem.push({ id: x.ref + '-h', at: t - 36e5, title: 'Dans 1 heure : ' + (x.service || 'ton rendez-vous'), body: chez + ' Ouvre Perle pour dire que tu es en route.' }); });
+    go('remind', { items: rem.filter(function (r) { return r.at > now + 5000; }) });
     if (!n) return go('end', {});
     var d = Number(n.pro_delay_min) || 0;
     go('start', { ref: n.ref, title: n.service || 'Rendez-vous', who: n.pro_name || '', note: n.pro_ready ? 'Elle t’attend' : (d ? d + ' min de retard' : (n.client_onway ? 'Tu es en route' : 'Confirmé')), step: 1 + (n.client_onway ? 1 : 0) + (n.pro_ready ? 1 : 0) + (n.pro_ready && now >= new Date(n.starts_at).getTime() + d * 60000 ? 1 : 0), startsAt: new Date(n.starts_at).getTime() + d * 60000 });
