@@ -502,14 +502,24 @@
   }
   async function loadRdv() {
     var out = []; for (var r of saved()) { try { var b = await S.clientBooking(r.ref, r.phone); if (b) { b.phone = r.phone; out.push(b); } } catch (e) { } }
-    out.sort(function (a, b) { return a.starts_at < b.starts_at ? -1 : 1; }); dir.rdv = out; drawDir();
+    out.sort(function (a, b) { return a.starts_at < b.starts_at ? -1 : 1; }); dir.rdv = out; live(); drawDir();
   }
+  // Appli iPhone : le prochain rendez-vous confirmé s'affiche dans le Dynamic Island et sur l'écran verrouillé (dans les 8 heures avant).
+  function live() {
+    var C = window.Capacitor; if (!(window.PERLE || {}).APP || !C) return;
+    var P = C.Plugins && C.Plugins.PerleLive, go = function (m, o) { try { var r = P ? P[m](o) : (C.nativePromise ? C.nativePromise('PerleLive', m, o) : null); if (r && r.catch) r.catch(function () { }); } catch (e) { } };
+    var now = Date.now(), n = (dir.rdv || []).filter(function (b) { return b.status === 'confirme' && new Date(b.starts_at).getTime() - now < 8 * 36e5 && new Date(b.ends_at).getTime() > now; })[0];
+    if (!n) return go('end', {});
+    var d = Number(n.pro_delay_min) || 0;
+    go('start', { ref: n.ref, title: n.service || 'Rendez-vous', who: n.pro_name || '', note: n.pro_ready ? 'Elle t’attend' : (d ? d + ' min de retard' : 'Confirmé'), startsAt: new Date(n.starts_at).getTime() + d * 60000 });
+  }
+  setTimeout(function () { if (!saved().length) live(); }, 2500);
   async function pollRdv() {
     if (slug || dir.view !== 'rdv' || document.hidden || !saved().length || document.querySelector('[data-sure="1"]')) return;
     var out = []; for (var r of saved()) { try { var b = await S.clientBooking(r.ref, r.phone); if (b) { b.phone = r.phone; out.push(b); } } catch (e) { return; } }
     out.sort(function (a, b) { return a.starts_at < b.starts_at ? -1 : 1; });
     var sig = function (l) { return (l || []).map(function (x) { return x.ref + x.status + (x.pro_delay_min || 0) + (x.pro_ready ? 'r' : '') + (x.client_onway ? 'o' : '') + (x.client_late_min || ''); }).join('|'); };
-    if (sig(out) !== sig(dir.rdv)) { dir.rdv = out; if (dir.view === 'rdv') drawDir(); }
+    if (sig(out) !== sig(dir.rdv)) { dir.rdv = out; live(); if (dir.view === 'rdv') drawDir(); }
   }
   setInterval(pollRdv, 20000); document.addEventListener('visibilitychange', pollRdv);
   var STL = { attente: 'Acompte à envoyer', confirme: 'Confirmé', annule: 'Annulé', fait: 'Fait', expire: 'Expiré' };
