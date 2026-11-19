@@ -69,17 +69,20 @@
     if (prices.length && Math.min.apply(0, prices) !== Math.max.apply(0, prices)) h += '<span>' + svg(I.euro, 16) + 'jusqu’à ' + U.eur(Math.max.apply(0, prices)) + '</span>';
     h += '</div>';
     if (p.bio) h += '<p class="sub">' + esc(p.bio) + '</p>';
-    var op = openLine(p); if (op) h += '<p class="facts"><b>' + op[0] + '</b>' + op[1] + '</p>';
-    if (p.created_at) { var since = new Date(p.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }); h += '<p class="facts">Sur Perle depuis ' + esc(since) + (st.doneN > 0 ? ', ' + st.doneN + ' coiffure' + (st.doneN > 1 ? 's' : '') + ' réalisée' + (st.doneN > 1 ? 's' : '') + ' via Perle' : '') + '.</p>'; }
-    h += favBtn(p.slug);
-    h += '<p class="dpl">' + svg(I.shield, 16, 2) + '<span>Tu verses ' + p.deposit_pct + ' % à la réservation, le reste sur place.' + (p.whatsapp ? ' Répond sur WhatsApp.' : '') + '</span></p>';
+    var op = openLine(p), ir = function (a, b) { return '<div class="irow"><span>' + a + '</span><b>' + b + '</b></div>'; }, rows = '';
+    if (op) rows += ir('Horaires', op[0] + op[1]);
+    rows += ir('Acompte', p.deposit_pct + ' % à la réservation');
+    if (p.cancel_hours != null) rows += ir('Annulation', Number(p.cancel_hours) > 0 ? 'jusqu’à ' + p.cancel_hours + ' h avant' : 'jusqu’au dernier moment');
+    if (p.created_at) { var since = new Date(p.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }); rows += ir('Sur Perle', 'depuis ' + esc(since) + (st.doneN > 0 ? ' · ' + st.doneN + ' coiffure' + (st.doneN > 1 ? 's' : '') : '')); }
+    if (p.whatsapp) rows += ir('Contact', 'répond sur WhatsApp');
+    h += '<div class="irows">' + rows + '</div>' + favBtn(p.slug);
     if (ph.length > 1) h += '<div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="' + (st.tab === 'svc') + '" data-tab="svc">Prestations</button><button class="tab" role="tab" aria-selected="' + (st.tab === 'ph') + '" data-tab="ph">Photos</button></div>';
     else st.tab = 'svc';
     h += '<div style="margin-top:14px">';
     if (st.tab === 'ph') { h += '<div class="gal">'; ph.forEach(function (u) { h += '<span class="ph" style="' + U.bg(u) + '"></span>'; }); h += '</div>'; }
     else {
-      if (!st.svcs.length) h += '<p class="note info">Aucune prestation en ligne pour l’instant.</p>'; else h += '<p class="pk">Touche une coiffure pour choisir tes options et ton créneau.</p>';
-      st.svcs.forEach(function (s, i) { h += '<button class="svc" data-svc="' + i + '">' + thumb(s.photo_url) + '<span class="grow"><span class="lead"><b>' + esc(s.name) + '</b><i></i><b>' + ((s.options || []).length ? 'dès ' : '') + U.eur(s.price) + '</b></span><span class="mut">Environ ' + U.dur(s.minutes) + '</span></span><span class="go" aria-hidden="true">' + ARROW + '</span></button>'; });
+      if (!st.svcs.length) h += '<p class="note info">Aucune prestation en ligne pour l’instant.</p>'; else h += '<h2 class="sech">Prestations</h2>';
+      st.svcs.forEach(function (s, i) { h += '<button class="svc mrow" data-svc="' + i + '"><span class="grow"><b class="sn">' + esc(s.name) + '</b><span class="sp"><b>' + ((s.options || []).length ? 'dès ' : '') + U.eur(s.price) + '</b> · ' + U.dur(s.minutes) + '</span></span>' + thumb(s.photo_url) + '</button>'; });
     }
     h += '</div>' + revsHtml() + '<p class="foot">Page créée avec Perle. <a href="legal.html">Mentions légales et confidentialité</a></p></div>';
     app.innerHTML = h;
@@ -505,27 +508,77 @@
     out.sort(function (a, b) { return a.starts_at < b.starts_at ? -1 : 1; }); dir.rdv = out; live(); drawDir();
   }
   // Appli iPhone : le prochain rendez-vous confirmé s'affiche dans le Dynamic Island et sur l'écran verrouillé (dans les 8 heures avant).
-  // Petites scènes animées du suivi du jour (en route, en préparation, en retard, c'est ton tour).
-  function scene(k) {
-    var st = function (x, y, c) { return '<path class="sc-st ' + c + '" style="transform-origin:' + x + 'px ' + y + 'px" d="M' + x + ' ' + (y - 7) + 'Q' + x + ' ' + y + ' ' + (x + 7) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y + 7) + 'Q' + x + ' ' + y + ' ' + (x - 7) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y - 7) + 'Z" fill="#D9A441"/>'; };
-    var lab = { route: 'Tu es en route', prep: 'Ta coiffeuse se prépare', late: 'Un peu de retard', ready: 'C’est ton tour' }[k], h = '';
-    if (k === 'route') h = '<path class="sc-road" d="M-10 90H330" stroke="#150B1F" stroke-opacity=".2" stroke-width="3" stroke-linecap="round" stroke-dasharray="14 12"/>' +
-      '<g class="sc-pin"><path d="M252 36a17 17 0 0 1 17 17c0 13-17 31-17 31s-17-18-17-31a17 17 0 0 1 17-17z" fill="#5B2A86"/><circle cx="252" cy="53" r="6.5" fill="#fff"/></g>' +
-      '<g class="sc-lines" stroke="#5B2A86" stroke-opacity=".4" stroke-width="3" stroke-linecap="round"><path d="M40 58h22"/><path d="M30 71h18"/><path d="M48 45h14"/></g>' +
-      '<g class="sc-hop"><circle cx="106" cy="68" r="20" fill="#D9A441"/><g class="sc-spin"><circle cx="98" cy="60" r="5" fill="#FBF1E0"/></g></g>';
-    else if (k === 'prep') { var t = ''; for (var i = 0; i < 7; i++) t += '<rect x="' + (183 + i * 7) + '" y="48" width="3.4" height="19" rx="1.7"/>';
-      h = st(66, 36, 'a') + st(262, 30, 'b') + st(246, 82, 'c') +
-        '<g class="sc-b1"><rect x="117" y="18" width="6" height="44" rx="3" fill="#150B1F"/><circle cx="110" cy="80" r="9" fill="none" stroke="#5B2A86" stroke-width="5"/></g>' +
-        '<g class="sc-b2"><rect x="117" y="18" width="6" height="44" rx="3" fill="#150B1F"/><circle cx="130" cy="80" r="9" fill="none" stroke="#5B2A86" stroke-width="5"/></g><circle cx="120" cy="60" r="3.2" fill="#D9A441"/>' +
-        '<g class="sc-comb" fill="#5B2A86"><rect x="178" y="38" width="54" height="11" rx="5.5"/>' + t + '</g>'; }
-    else if (k === 'late') h = '<circle cx="118" cy="56" r="29" fill="#fff" stroke="#150B1F" stroke-width="4"/><path class="sc-hr" d="M118 56h13" stroke="#150B1F" stroke-width="4" stroke-linecap="round"/><path class="sc-min" d="M118 56V35" stroke="#5B2A86" stroke-width="4" stroke-linecap="round"/><circle cx="118" cy="56" r="3.4" fill="#D9A441"/>' +
-      '<g class="sc-dots" fill="#5B2A86"><circle cx="198" cy="30" r="3.4"/><circle cx="210" cy="30" r="3.4"/><circle cx="222" cy="30" r="3.4"/></g>' +
-      '<ellipse class="sc-shd" cx="210" cy="92" rx="18" ry="3.5" fill="#150B1F" fill-opacity=".16"/><g class="sc-bob"><circle cx="210" cy="68" r="19" fill="#D9A441"/><circle cx="202" cy="60" r="4.8" fill="#FBF1E0"/></g>';
-    else h = st(98, 40, 'a') + st(226, 34, 'b') + st(238, 78, 'c') + st(84, 78, 'b') +
-      '<ellipse class="sc-shd2" cx="160" cy="94" rx="22" ry="4" fill="#150B1F" fill-opacity=".18"/><g class="sc-jump"><circle cx="160" cy="68" r="22" fill="#D9A441"/><circle cx="151" cy="59" r="5.4" fill="#FBF1E0"/></g>';
-    return '<svg class="scn" viewBox="0 0 320 110" role="img" aria-label="' + lab + '">' + h + '</svg>';
+  // Scènes animées du suivi du jour, à la manière des applis de livraison : un seul grand objet en mouvement par étape.
+  function scene(k, dm) {
+    var lab = { route: 'Tu es en route', prep: 'Ta coiffeuse tresse', late: 'Du retard', ready: 'Ta place est prête', done: 'C’est fait' }[k], h = '';
+    if (k === 'prep') { var br = ''; for (var i = -5; i < 12; i++) { var cx = 160 + (i % 2 ? 10 : -10), cy = 46 + i * 15; br += '<ellipse cx="' + cx + '" cy="' + cy + '" rx="18" ry="10.5" transform="rotate(' + (i % 2 ? -32 : 32) + ' ' + cx + ' ' + cy + ')" fill="' + (i % 2 ? '#150B1F' : '#2B1840') + '"/>' + ((i + 8) % 4 === 0 ? '<circle cx="160" cy="' + cy + '" r="5.5" fill="#D9A441"/>' : ''); }
+      h = '<clipPath id="scc"><rect x="110" y="34" width="100" height="140"/></clipPath><g clip-path="url(#scc)"><g class="sc-braid">' + br + '</g></g>' +
+        '<ellipse cx="160" cy="16" rx="70" ry="36" fill="#150B1F"/>' +
+        '<circle class="sc-h1" cx="132" cy="70" r="11" fill="#FBF1E0" stroke="#150B1F" stroke-opacity=".12" stroke-width="2"/><circle class="sc-h2" cx="188" cy="84" r="11" fill="#FBF1E0" stroke="#150B1F" stroke-opacity=".12" stroke-width="2"/>'; }
+    else if (k === 'late') h = '<circle class="sc-ring" cx="160" cy="86" r="52" fill="none" stroke="#5B2A86" stroke-opacity=".25" stroke-width="3"/><circle cx="160" cy="86" r="50" fill="#fff" stroke="#150B1F" stroke-width="6"/>' +
+      '<path d="M160 44v8M160 120v8M118 86h8M194 86h8" stroke="#150B1F" stroke-opacity=".3" stroke-width="4" stroke-linecap="round"/>' +
+      '<path class="sc-hr" d="M160 86h20" stroke="#150B1F" stroke-width="6" stroke-linecap="round"/><path class="sc-min" d="M160 86V52" stroke="#5B2A86" stroke-width="6" stroke-linecap="round"/><circle cx="160" cy="86" r="5.5" fill="#D9A441"/>' +
+      '<g class="sc-badge"><circle cx="208" cy="44" r="23" fill="#D9A441"/><text x="208" y="50" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="16" fill="#150B1F">+' + (dm || 10) + '</text></g>';
+    else if (k === 'route') { var d = 'M36 140C104 140 96 66 160 84S232 132 262 76';
+      h = '<path d="' + d + '" fill="none" stroke="#5B2A86" stroke-opacity=".22" stroke-width="6" stroke-linecap="round" stroke-dasharray="1 13"/><path class="sc-trace" pathLength="100" d="' + d + '" fill="none" stroke="#5B2A86" stroke-width="6" stroke-linecap="round"/>' +
+        '<circle cx="36" cy="140" r="7" fill="#150B1F"/><g class="sc-pin"><path d="M262 78s-24-24-24-42a24 24 0 0 1 48 0c0 18-24 42-24 42z" fill="#5B2A86"/><circle cx="262" cy="36" r="9" fill="#fff"/></g>' +
+        '<g><circle r="14" fill="#D9A441" stroke="#fff" stroke-width="4"/><circle cx="-4" cy="-4" r="3.4" fill="#FBF1E0"/><animateMotion dur="2.8s" repeatCount="indefinite" path="' + d + '"/></g>'; }
+    else if (k === 'done') { var st = function (x, y, r, c) { return '<path class="sc-st ' + c + '" style="transform-origin:' + x + 'px ' + y + 'px" d="M' + x + ' ' + (y - r) + 'Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y + r) + 'Q' + x + ' ' + y + ' ' + (x - r) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y - r) + 'Z" fill="#D9A441"/>'; }, cf = '', cc = ['#D9A441', '#5B2A86', '#150B1F', '#fff']; for (var n = 0; n < 14; n++) cf += '<rect class="sc-cf" style="animation-delay:' + (-(n * .23) % 2.2).toFixed(2) + 's" x="' + (24 + n * 21) + '" y="-14" width="' + (n % 3 ? 7 : 10) + '" height="' + (n % 2 ? 12 : 7) + '" rx="2" fill="' + cc[n % 4] + '"/>';
+      h = cf + st(84, 60, 10, 'a') + st(240, 52, 12, 'b') + '<ellipse class="sc-shd2" cx="160" cy="146" rx="34" ry="5" fill="#150B1F" fill-opacity=".14"/><g class="sc-jump"><circle cx="160" cy="108" r="32" fill="#D9A441"/><circle cx="147" cy="95" r="8" fill="#FBF1E0"/></g>'; }
+    else h = '<ellipse cx="160" cy="146" rx="46" ry="6" fill="#150B1F" fill-opacity=".12"/><g class="sc-chair"><rect x="118" y="34" width="18" height="70" rx="9" fill="#5B2A86"/><rect x="118" y="88" width="84" height="20" rx="10" fill="#5B2A86"/><rect x="186" y="70" width="16" height="30" rx="8" fill="#5B2A86"/><path d="M160 108v26M136 142h48" stroke="#150B1F" stroke-width="8" stroke-linecap="round"/></g>';
+    return '<svg class="scn" viewBox="0 0 320 170" role="img" aria-label="' + lab + '">' + h + '</svg>';
+  }
+  // Le suivi du jour d'un rendez-vous confirmé : titre, heure, barre d'étapes, scène animée, boutons.
+  function liveBox(b) {
+    var s = new Date(b.starts_at), pn = esc(b.pro_name), dm = b.pro_delay_min || 0, cb = ' data-ref="' + esc(b.ref) + '" data-phone="' + esc(b.phone) + '"';
+          var stp = [1, b.client_onway, b.pro_ready, b.pro_ready && Date.now() >= s.getTime() + dm * 60000], cur = -1; stp.forEach(function (x, i) { if (cur < 0 && !x) cur = i; });
+          var on = Date.now() >= s.getTime() + dm * 60000, sk = on ? 'prep' : b.pro_ready ? 'ready' : b.client_onway ? 'route' : dm > 0 ? 'late' : 'prep', at = U.hm(new Date(s.getTime() + dm * 60000));
+          if (on) { stp = [1, 1, 1, 1]; cur = -1; }
+          var ttl = on ? 'Ta coiffure est en cours' : { ready: pn + ' t’attend', route: 'Tu es en route', late: pn + ' a du retard', prep: pn + ' se prépare pour toi' }[sk];
+          var sub = on ? 'Dès que c’est fini, même plus tôt que prévu, termine ici : tu règles le reste et tu donnes ton avis dans la foulée.' : b.pro_ready ? 'Ta place est prête, tu peux venir.' : dm > 0 ? 'Environ ' + dm + ' min de retard sur son planning. Inutile d’attendre sur place.' : 'Elle est à l’heure pour l’instant. Cet écran se met à jour tout seul.';
+          return '<div class="livec" aria-live="polite"><p class="lvh">' + ttl + '</p><p class="lvk">' + (on ? 'Fin prévue vers ' + U.hm(new Date(new Date(b.ends_at || b.starts_at).getTime() + dm * 60000)) : b.pro_ready ? 'C’est ton tour' : 'Arrive vers ' + at) + '</p>' +
+            '<ol class="seg" aria-label="Étape ' + (cur < 0 ? 4 : cur + 1) + ' sur 4">' + stp.map(function (x, i) { return '<li class="' + (x ? 'ok' : i === cur ? 'now' : '') + '"></li>'; }).join('') + '</ol>' + scene(sk, dm) + '<p class="lv">' + sub + '</p>' +
+            (on ? (Date.now() >= s.getTime() + 15 * 60000 && S.clientDone ? '<button type="button" class="btn dark" style="display:flex;width:100%;justify-content:center" data-cdone="' + esc(b.ref) + '" data-phone="' + esc(b.phone) + '">La coiffure est terminée</button>' : '') :
+              (b.client_onway ? '<p class="mut">Tu as indiqué que tu es en route' + (b.client_eta_min > 0 ? ' : environ ' + b.client_eta_min + ' min de trajet, ' + pn + ' est au courant' : '') + '.</p>' : '<button type="button" class="btn sm dark" data-csig="onway"' + cb + '>Je suis en route</button>') +
+              '<div class="dly"><span class="mut">Tu as du retard ?</span>' + [10, 20, 30].map(function (m) { return '<button type="button" data-csig="late" data-min="' + m + '"' + cb + ' aria-pressed="' + (b.client_late_min === m) + '">+' + m + ' min</button>'; }).join('') + '</div>') + '</div>';
+  }
+  // ----- comme dans les applis de livraison : bannière « en cours » au-dessus des onglets, suivi en plein écran, écran de fin -----
+  function nowB() { var now = Date.now(); return (dir.rdv || []).filter(function (b) { return b.status === 'confirme' && new Date(b.starts_at).getTime() - now < 8 * 36e5 && new Date(b.ends_at || b.starts_at).getTime() > now; })[0]; }
+  function finB() { var now = Date.now(), seen = ''; try { seen = localStorage.getItem('perle-fin') || ''; } catch (e) { } return (dir.rdv || []).filter(function (b) { var e = new Date(b.ends_at || b.starts_at).getTime(); return (b.status === 'fait' || (b.status === 'confirme' && e < now)) && now - e < 864e5 && !b.reviewed && seen.indexOf(b.ref) < 0; }).pop(); }
+  function nowBar() {
+    var el = document.getElementById('nowbar'), nb = nowB(), b = !slug && !dir.suivi && dir.view !== 'open' && dir.view !== 'rdv' && dir.view !== 'map' && dir.ls !== 'lock' && dir.ls !== 'wait' ? (nb || finB()) : null;
+    document.body.classList.toggle('hasbar', !!b);
+    if (!b) { if (el) el.remove(); return; }
+    if (!el) { el = document.createElement('div'); el.id = 'nowbar'; document.body.appendChild(el); el.addEventListener('click', function (e) { onTap(e); }); }
+    var dm = b.pro_delay_min || 0, txt = b !== nb ? 'C’est fait ? Dis comment ça s’est passé' : Date.now() >= new Date(b.starts_at).getTime() + dm * 60000 ? 'en cours · termine et règle ici quand c’est fini' : b.pro_ready ? 'Elle t’attend, c’est ton tour' : (dm ? dm + ' min de retard · ' : '') + 'arrive vers ' + U.hm(new Date(new Date(b.starts_at).getTime() + dm * 60000));
+    var sig = b.ref + txt; if (el.dataset.sig === sig) return; el.dataset.sig = sig;
+    el.innerHTML = '<button type="button" data-suivi="' + esc(b.ref) + '"><i class="nbd"></i><span class="grow"><b>' + esc(b.service) + ' · ' + esc(b.pro_name) + '</b><br><span>' + txt + '</span></span>' + svg(I.chev, 18) + '</button>';
+  }
+  function drawSuivi() {
+    var el = document.getElementById('suivi');
+    var b = dir.suivi ? (dir.rdv || []).filter(function (x) { return x.ref === dir.suivi; })[0] : null;
+    if (!b) { dir.suivi = null; if (dir.svm) { try { dir.svm.remove(); } catch (e) { } dir.svm = null; } if (el) { el.remove(); document.body.style.overflow = ''; } return; }
+    var end = new Date(b.ends_at || b.starts_at).getTime(), fin = b.status === 'fait' || end < Date.now(), pn = esc(b.pro_name), rest = Math.round((b.price - b.deposit) * 100) / 100, h;
+    if (!el) {
+      el = document.createElement('div'); el.id = 'suivi'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Suivi du rendez-vous');
+      el.innerHTML = '<button type="button" class="round sv-x" data-suivix="1" aria-label="Fermer le suivi">' + svg('<path d="M6 9l6 6 6-6"/>', 22) + '</button><div id="svmap"></div><div id="svbody"></div>';
+      document.body.appendChild(el); el.addEventListener('click', function (e) { onTap(e); }); document.body.style.overflow = 'hidden';
+      if (!fin && b.pro_lat != null && b.pro_lng != null) leaflet().then(function (L) { if (!document.getElementById('svmap') || dir.svm) return; var m = dir.svm = L.map('svmap', { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false, keyboard: false }).setView([b.pro_lat, b.pro_lng], 15); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(m); setTimeout(function () { try { m.invalidateSize(); } catch (x) { } }, 450); L.circleMarker([b.pro_lat, b.pro_lng], { radius: 11, color: '#fff', weight: 4, fillColor: '#5B2A86', fillOpacity: 1, interactive: false }).addTo(m); }).catch(function () { el.classList.add('nomap'); });
+      else el.classList.add('nomap');
+    }
+    if (fin) {
+      var t = document.getElementById('rvt'); if (t && !b.reviewed) return;   // ne pas effacer un avis en cours d'écriture
+      var rl = payLinks(b.pay_info), pay = ''; if (rest > 0 && end > Date.now() - 2 * 864e5) { pay = '<p class="note info" style="margin-top:14px"><b>Il reste ' + U.eur(rest) + ' à régler.</b> ' + (rl.length ? 'Touche un bouton pour l’envoyer à ' + pn + ', ou règle sur place.' : 'À régler sur place.') + '</p>'; rl.forEach(function (u) { pay += payBtn(u, rest, false, 8).replace('class="btn glass"', 'class="btn"').replace(';border-radius:28px', ''); }); }
+      h = scene('done') + '<p class="lvh">C’est fait !</p><p class="lvk">' + esc(b.service) + ' chez ' + pn + '</p>' + pay +
+        (b.reviewed ? '<p class="lv" style="margin-top:16px"><b>Ton avis est publié.</b> Merci.</p>' : b.status === 'fait' && S.addReview ? '<p class="lv" style="margin-top:16px"><b>Tu aimes le résultat ?</b> Ton avis aide les autres à choisir.</p>' + revForm(b) : '<p class="lv" style="margin-top:16px">Tu pourras laisser ton avis dès que ' + pn + ' aura marqué le rendez-vous comme fait.</p>') +
+        (b.pro_slug ? '<a class="btn dark" style="margin-top:16px;text-decoration:none" href="./?c=' + encodeURIComponent(b.pro_slug) + (b.service_id ? '&s=' + encodeURIComponent(b.service_id) : '') + '">Reprendre le même rendez-vous</a>' : '') +
+        '<button type="button" class="btn ghost" style="margin-top:10px" data-suivix="fin">Plus tard</button>';
+    } else h = liveBox(b) + (rest > 0 && Date.now() >= new Date(b.starts_at).getTime() ? (function () { var rl = payLinks(b.pay_info), o = '<p class="note info" style="margin-top:14px"><b>Reste à régler : ' + U.eur(rest) + '.</b> ' + (rl.length ? 'Tu peux l’envoyer à ' + pn + ' dès maintenant, ou régler sur place.' : 'À régler sur place.') + '</p>'; rl.forEach(function (u) { o += payBtn(u, rest, false, 8).replace('class="btn glass"', 'class="btn"').replace(';border-radius:28px', ''); }); return o; })() : '') + (b.address ? '<p class="note info" style="margin-top:14px"><b>Adresse :</b> ' + esc(b.address) + ' · <a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(b.address) + '" target="_blank" rel="noopener">Itinéraire</a></p>' : '') +
+      '<p class="mut" style="margin-top:12px">' + esc(b.service) + ' · ' + U.dayS(new Date(b.starts_at)) + ', ' + U.hm(new Date(b.starts_at)) + (rest > 0 ? ' · reste ' + U.eur(rest) + ' à régler' : '') + '</p>';
+    document.getElementById('svbody').innerHTML = h;
   }
   function live() {
+    nowBar(); if (dir.suivi) drawSuivi();
     var C = window.Capacitor; if (!(window.PERLE || {}).APP || !C) return;
     var P = C.Plugins && C.Plugins.PerleLive, go = function (m, o) { try { var r = P ? P[m](o) : (C.nativePromise ? C.nativePromise('PerleLive', m, o) : null); if (r && r.catch) r.catch(function () { }); } catch (e) { } };
     var now = Date.now(), n = (dir.rdv || []).filter(function (b) { return b.status === 'confirme' && new Date(b.starts_at).getTime() - now < 8 * 36e5 && new Date(b.ends_at).getTime() > now; })[0];
@@ -538,33 +591,29 @@
   }
   setTimeout(function () { if (!saved().length) live(); }, 2500);
   async function pollRdv() {
-    if (slug || dir.view !== 'rdv' || document.hidden || !saved().length || document.querySelector('[data-sure="1"]')) return;
+    if (slug || (dir.view !== 'rdv' && !dir.suivi && !nowB()) || document.hidden || !saved().length || document.querySelector('[data-sure="1"]')) return;
     var out = []; for (var r of saved()) { try { var b = await S.clientBooking(r.ref, r.phone); if (b) { b.phone = r.phone; out.push(b); } } catch (e) { return; } }
     out.sort(function (a, b) { return a.starts_at < b.starts_at ? -1 : 1; });
     var sig = function (l) { return (l || []).map(function (x) { return x.ref + x.status + (x.pro_delay_min || 0) + (x.pro_ready ? 'r' : '') + (x.client_onway ? 'o' : '') + (x.client_late_min || ''); }).join('|'); };
-    if (sig(out) !== sig(dir.rdv)) { dir.rdv = out; live(); if (dir.view === 'rdv') drawDir(); }
+    if (sig(out) !== sig(dir.rdv)) { dir.rdv = out; live(); if (dir.view === 'rdv') drawDir(); } else nowBar();
   }
   setInterval(pollRdv, 20000); document.addEventListener('visibilitychange', pollRdv);
   var STL = { attente: 'Acompte à envoyer', confirme: 'Confirmé', annule: 'Annulé', fait: 'Fait', expire: 'Expiré' };
   function drawDir() {
+    nowBar(); if (dir.suivi) drawSuivi();
     var box = document.getElementById('dir'); if (!box) return;
     if (dir.view === 'rdv') {
-      if (!dir.rdv) { box.innerHTML = '<p class="mut" style="margin-top:14px">Chargement…</p>'; return; }
+      if (!dir.rdv) { box.innerHTML = sk(2, 200); return; }
       if (!dir.rdv.length) { box.innerHTML = '<div class="photo-card ph" style="height:330px;margin-top:16px;background-image:url(img/bgKnotless.jpg)"><span class="plate glass" style="padding:16px"><b style="font-family:var(--hb);font-size:22px">Rien de prévu pour l’instant</b>' + (cu ? 'Tes rendez-vous s’afficheront ici dès que tu réserves.' : 'Tes rendez-vous pris depuis ce téléphone s’afficheront ici.') + '</span></div><button class="btn" data-view="home">Trouver un créneau' + ARROW + '</button>'; return; }
       var now = Date.now();
       box.innerHTML = '<div style="margin-top:16px">' + dir.rdv.map(function (b) {
         var s = new Date(b.starts_at), stt = (b.status === 'attente' && now - new Date(b.created_at).getTime() > 864e5) ? 'expire' : b.status, can = (stt === 'attente' || stt === 'confirme') && s.getTime() - now >= b.cancel_hours * 36e5, past = s.getTime() < now;
-        var h = '<div class="photo-card ph" style="height:200px;' + U.bg(b.cover_url) + (b.cover_url ? '' : ';background:var(--vio)') + '"><span class="when">' + esc(U.dayS(s)) + ', ' + U.hm(s) + '</span><span class="stg glass">' + STL[stt] + '</span><span class="plate glass"><b>' + esc(b.service) + (b.options ? ', ' + esc(b.options) : '') + '</b>' + esc(b.pro_name) + (b.pro_city ? ', ' + esc(b.pro_city) : '') + '</span></div>';
+        var h = '<div class="photo-card ph' + (b.cover_url ? '' : ' nc') + '" style="height:' + (b.cover_url ? 200 : 132) + 'px;' + U.bg(b.cover_url) + (b.cover_url ? '' : ';background:var(--vio)') + '"><span class="when">' + esc(U.dayS(s)) + ', ' + U.hm(s) + '</span><span class="stg glass">' + STL[stt] + '</span><span class="plate glass"><b>' + esc(b.service) + (b.options ? ', ' + esc(b.options) : '') + '</b>' + esc(b.pro_name) + (b.pro_city ? ', ' + esc(b.pro_city) : '') + '</span></div>';
         if (stt === 'attente') { var bl = payLinks(b.pay_info), bt = payText(b.pay_info); h += '<div class="due"><span>Acompte à envoyer</span><b>' + U.eur(b.deposit) + '</b><span>Référence à indiquer : <strong>' + esc(b.ref) + '</strong></span></div>'; bl.forEach(function (u, i) { h += payBtn(u, b.deposit, false, 8).replace('class="btn glass"', i ? 'class="btn dark"' : 'class="btn"').replace(';border-radius:28px', ''); }); if (bt || !bl.length) h += '<p class="due-how">' + esc(bt || 'Écris à ' + b.pro_name + ' pour savoir comment payer.') + '</p>'; h += b.paid_claimed ? '<p class="mut" style="margin-top:10px">Tu as prévenu ' + esc(b.pro_name) + ' de ton envoi. Ta place est confirmée dès réception.</p>' : '<button class="btn dark" style="margin-top:10px" data-paid="' + esc(b.ref) + '" data-phone="' + esc(b.phone) + '">J’ai envoyé l’acompte</button>'; }
-        if (stt === 'attente' || stt === 'confirme' || stt === 'fait') { var sn = stt === 'attente' ? 1 : stt === 'confirme' ? 2 : 3; h += '<ol class="trk" aria-label="Où en est ton rendez-vous">' + ['Demande envoyée', 'Acompte', 'Coiffure'].map(function (t, i) { return '<li class="' + (i < sn ? 'ok' : i === sn ? 'now' : '') + '">' + t + '</li>'; }).join('') + '</ol>'; }
+        var lvOn = stt === 'confirme' && s.getTime() > Date.now() - 3 * 3600e3 && s.getTime() < Date.now() + 18 * 3600e3;
+        if (!lvOn && (stt === 'attente' || stt === 'confirme' || stt === 'fait')) { var sn = stt === 'attente' ? 1 : stt === 'confirme' ? 2 : 3; h += '<ol class="trk" aria-label="Où en est ton rendez-vous">' + ['Demande envoyée', 'Acompte', 'Coiffure'].map(function (t, i) { return '<li class="' + (i < sn ? 'ok' : i === sn ? 'now' : '') + '">' + t + '</li>'; }).join('') + '</ol>'; }
         h += '<p class="mut" style="margin-top:10px">' + (stt === 'attente' ? 'Prix ' + U.eur(b.price) + ', dont ' + U.eur(b.price - b.deposit) + ' à régler sur place.' : 'Prix ' + U.eur(b.price) + ', acompte ' + U.eur(b.deposit) + ', reste ' + U.eur(b.price - b.deposit) + '. Référence ' + esc(b.ref) + '.') + ((stt === 'attente' || stt === 'confirme') && !past ? ' L’acompte n’est pas remboursé si tu annules ; si c’est ' + esc(b.pro_name) + ' qui annule, il t’est rendu.' : '') + '</p>';
-        if (stt === 'confirme' && s.getTime() > Date.now() - 3 * 3600e3 && s.getTime() < Date.now() + 18 * 3600e3) {
-          var pn = esc(b.pro_name), dm = b.pro_delay_min || 0, cb = ' data-ref="' + esc(b.ref) + '" data-phone="' + esc(b.phone) + '"';
-          var stp = [['Confirmé', 1], ['Tu es en route', b.client_onway], [pn + ' t’attend', b.pro_ready], ['C’est ton tour', b.pro_ready && Date.now() >= s.getTime() + dm * 60000]], cur = -1; stp.forEach(function (x, i) { if (cur < 0 && !x[1]) cur = i; });
-          h += '<div class="livec" aria-live="polite">' + scene(b.pro_ready ? 'ready' : b.client_onway ? 'route' : dm > 0 ? 'late' : 'prep') + '<ol class="trk" aria-label="Suivi du jour" style="margin:0 0 12px">' + stp.map(function (x, i) { return '<li class="' + (x[1] ? 'ok' : i === cur ? 'now' : '') + '">' + x[0] + '</li>'; }).join('') + '</ol>' + (b.pro_ready ? '<p class="lv"><b>' + pn + ' peut te recevoir.</b> Tu peux venir.</p>' : dm > 0 ? '<p class="lv"><b>' + pn + ' a environ ' + dm + ' min de retard.</b> Pour ne pas attendre, arrive plutôt vers ' + U.hm(new Date(s.getTime() + dm * 60000)) + '.</p>' : '<p class="lv"><b>' + pn + ' est à l’heure pour l’instant.</b> Cette ligne se met à jour toute seule si son horaire bouge.</p>') +
-            (b.client_onway ? '<p class="mut">Tu as indiqué que tu es en route' + (b.client_eta_min > 0 ? ' : environ ' + b.client_eta_min + ' min de trajet, ' + pn + ' est au courant' : '') + '.</p>' : '<button type="button" class="btn sm dark" data-csig="onway"' + cb + '>Je suis en route</button>') +
-            '<div class="dly"><span class="mut">Tu as du retard ?</span>' + [10, 20, 30].map(function (m) { return '<button type="button" data-csig="late" data-min="' + m + '"' + cb + ' aria-pressed="' + (b.client_late_min === m) + '">+' + m + ' min</button>'; }).join('') + '</div></div>';
-        }
+        if (lvOn) h += liveBox(b) + '<button type="button" class="btn sm ghost" style="margin-top:10px" data-suivi="' + esc(b.ref) + '">Ouvrir le suivi en grand</button>';
         var soon = !past && (stt === 'attente' || stt === 'confirme');
         if (soon && b.prep) h += '<p class="note info" style="margin-top:8px;white-space:pre-line"><b>Avant de venir :</b> ' + esc(b.prep) + '</p>';
         if (b.address && stt === 'confirme') h += '<p class="note info" style="margin-top:8px"><b>Adresse :</b> ' + esc(b.address) + ' · <a href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(b.address) + '" target="_blank" rel="noopener">Itinéraire</a></p>';
@@ -613,10 +662,11 @@
   // carte photo : quartier, nom, prix, puis de petites infos (prochain créneau, nombre de prestations, lieu)
   function pcard(x, hgt) {
     var p = x.p, fv = favs().indexOf(p.slug) >= 0, ou = (p.tags || []).filter(function (t) { return t === 'domicile' || t === 'salon' || t === 'chez'; })[0], chips = [];
-    if (dir.busy) chips.push(svg(I.clock, 13, 2.2) + esc(whenS(x.nf)));
-    chips.push(svg(I.tagi, 13, 2.2) + p.services.length + ' prestation' + (p.services.length > 1 ? 's' : ''));
+    if (p.city) chips.push(esc(p.city));
+    if (dir.busy) chips.push('<b>' + esc(whenS(x.nf)) + '</b>');
+    chips.push(p.services.length + ' prestation' + (p.services.length > 1 ? 's' : ''));
     if (x.km != null) chips.push(esc(U.near(x.km))); else if (ou) chips.push(esc({ domicile: 'À domicile', salon: 'En salon', chez: 'Chez elle ou lui' }[ou]));
-    return '<div class="pwrap"><a class="photo-card ph fc' + (hgt < 260 ? ' sm' : '') + '" href="./?c=' + encodeURIComponent(p.slug) + (x.nf ? '&d=' + U.ymd(x.nf) : '') + '" style="display:block;text-decoration:none;height:' + hgt + 'px;' + cov(p) + '">' + ini(p) + '<span class="fprice"><small>à partir de</small>' + U.eur(minPrice(p)) + '</span><span class="fcb">' + (p.city ? '<span class="fcity">' + svg(I.pin, 14) + esc(p.city) + '</span>' : '') + '<span class="fname"><b>' + esc(p.name) + '</b></span><span class="fchips">' + chips.map(function (c) { return '<i>' + c + '</i>'; }).join('') + '</span></span></a><button class="heart wb2" data-fav="' + esc(p.slug) + '" aria-pressed="' + fv + '" aria-label="' + (fv ? 'Retirer des favoris : ' : 'Ajouter aux favoris : ') + esc(p.name) + '">' + svg(I.heart, 18) + '</button>' + (hgt < 260 && dir.busy && x.nf ? '<div class="slots" role="group" aria-label="Prochains créneaux chez ' + esc(p.name) + '">' + nextSlots(p, 3).map(function (t) { return '<a href="./?c=' + encodeURIComponent(p.slug) + '&d=' + U.ymd(t) + '&t=' + ('0' + t.getHours()).slice(-2) + ('0' + t.getMinutes()).slice(-2) + '">' + esc(whenS(t)) + '</a>'; }).join('') + '</div>' : '') + '</div>';
+    return '<div class="pwrap"><a class="ucard" href="./?c=' + encodeURIComponent(p.slug) + (x.nf ? '&d=' + U.ymd(x.nf) : '') + '"><span class="uimg ph" style="' + cov(p) + '">' + ini(p) + '</span><span class="u1"><b>' + esc(p.name) + '</b><em>dès ' + U.eur(minPrice(p)) + '</em></span><span class="u2">' + chips.join(' · ') + '</span></a><button class="heart wb2" data-fav="' + esc(p.slug) + '" aria-pressed="' + fv + '" aria-label="' + (fv ? 'Retirer des favoris : ' : 'Ajouter aux favoris : ') + esc(p.name) + '">' + svg(I.heart, 18) + '</button>' + (hgt < 260 && dir.busy && x.nf ? '<div class="slots" role="group" aria-label="Prochains créneaux chez ' + esc(p.name) + '">' + nextSlots(p, 3).map(function (t) { return '<a href="./?c=' + encodeURIComponent(p.slug) + '&d=' + U.ymd(t) + '&t=' + ('0' + t.getHours()).slice(-2) + ('0' + t.getMinutes()).slice(-2) + '">' + esc(whenS(t)) + '</a>'; }).join('') + '</div>' : '') + '</div>';
   }
   function tabs(id) { var el = document.getElementById(id); if (el) el.innerHTML = '<div class="tabs2" role="group" aria-label="Type de coiffure">' + ['Tout'].concat(cats()).map(function (c) { return '<button data-cat="' + c + '" aria-pressed="' + (dir.cat === c) + '">' + (c === 'Tout' && id === 'stabs' ? 'Toutes' : c) + '</button>'; }).join('') + '</div>'; }
   function drawHome(box) {
@@ -679,8 +729,15 @@
     if (id === 'fbud') { dir.f.max = v ? +v : null; return drawDir(); }
   });
   app.addEventListener('input', function (e) { if (e.target.id === 'fmax') { var v = +e.target.value; dir.f.max = v >= +e.target.max ? null : v; document.getElementById('fmaxv').textContent = dir.f.max ? U.eur(dir.f.max) : 'Sans limite'; fbar(); } });
-  app.addEventListener('click', function (e) {
+  var onTap; app.addEventListener('click', onTap = function (e) {
     var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.cdone) {
+      if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmer : c’est terminé'; return; }
+      b.disabled = true; var dr = b.dataset.cdone;
+      return S.clientDone(dr, b.dataset.phone).then(function (okd) { if (!okd) { b.disabled = false; b.dataset.sure = ''; b.textContent = 'Réessaie dans quelques minutes'; return; } (dir.rdv || []).forEach(function (x) { if (x.ref === dr) x.status = 'fait'; }); dir.suivi = dr; dir.revN = 0; var el = document.getElementById('suivi'); if (el) { if (dir.svm) { try { dir.svm.remove(); } catch (x) { } dir.svm = null; } el.remove(); document.body.style.overflow = ''; } live(); drawDir(); if (!document.getElementById('suivi')) drawSuivi(); }).catch(function () { b.disabled = false; });
+    }
+    if (b.dataset.suivi) { dir.suivi = b.dataset.suivi; dir.revN = 0; drawSuivi(); return nowBar(); }
+    if (b.dataset.suivix) { if (b.dataset.suivix === 'fin') { try { localStorage.setItem('perle-fin', ((localStorage.getItem('perle-fin') || '') + ' ' + dir.suivi).slice(-400)); } catch (x) { } } dir.suivi = null; drawSuivi(); return nowBar(); }
     if (b.dataset.go) return go(b.dataset.go);
     if (b.dataset.coa) { b.disabled = true; return S.oauth(b.dataset.coa, location.origin + location.pathname + (b.dataset.to || '')).then(function () { if ((window.PERLE || {}).APP) b.disabled = false; }).catch(function () { b.disabled = false; }); }
     if (b.dataset.msave) { var mv = function (i) { return String(document.getElementById(i).value || '').trim(); }, mo = {}; try { mo = JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (x) { } mo.n = mv('mn'); mo.t = mv('mt'); mo.e = mv('mm'); var mk = document.getElementById('mok'); if (mo.e && !/^\S+@\S+\.\S+$/.test(mo.e)) { mk.textContent = 'Vérifie ton e-mail : il manque quelque chose.'; return; } try { localStorage.setItem('perle-moi', JSON.stringify(mo)); mk.textContent = 'C’est enregistré.'; } catch (x) { mk.textContent = 'Impossible d’enregistrer sur ce téléphone.'; } return; }
