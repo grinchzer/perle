@@ -505,6 +505,26 @@
     out.sort(function (a, b) { return a.starts_at < b.starts_at ? -1 : 1; }); dir.rdv = out; live(); drawDir();
   }
   // Appli iPhone : le prochain rendez-vous confirmé s'affiche dans le Dynamic Island et sur l'écran verrouillé (dans les 8 heures avant).
+  // Petites scènes animées du suivi du jour (en route, en préparation, en retard, c'est ton tour).
+  function scene(k) {
+    var st = function (x, y, c) { return '<path class="sc-st ' + c + '" style="transform-origin:' + x + 'px ' + y + 'px" d="M' + x + ' ' + (y - 7) + 'Q' + x + ' ' + y + ' ' + (x + 7) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y + 7) + 'Q' + x + ' ' + y + ' ' + (x - 7) + ' ' + y + 'Q' + x + ' ' + y + ' ' + x + ' ' + (y - 7) + 'Z" fill="#D9A441"/>'; };
+    var lab = { route: 'Tu es en route', prep: 'Ta coiffeuse se prépare', late: 'Un peu de retard', ready: 'C’est ton tour' }[k], h = '';
+    if (k === 'route') h = '<path class="sc-road" d="M-10 90H330" stroke="#150B1F" stroke-opacity=".2" stroke-width="3" stroke-linecap="round" stroke-dasharray="14 12"/>' +
+      '<g class="sc-pin"><path d="M252 36a17 17 0 0 1 17 17c0 13-17 31-17 31s-17-18-17-31a17 17 0 0 1 17-17z" fill="#5B2A86"/><circle cx="252" cy="53" r="6.5" fill="#fff"/></g>' +
+      '<g class="sc-lines" stroke="#5B2A86" stroke-opacity=".4" stroke-width="3" stroke-linecap="round"><path d="M40 58h22"/><path d="M30 71h18"/><path d="M48 45h14"/></g>' +
+      '<g class="sc-hop"><circle cx="106" cy="68" r="20" fill="#D9A441"/><g class="sc-spin"><circle cx="98" cy="60" r="5" fill="#FBF1E0"/></g></g>';
+    else if (k === 'prep') { var t = ''; for (var i = 0; i < 7; i++) t += '<rect x="' + (183 + i * 7) + '" y="48" width="3.4" height="19" rx="1.7"/>';
+      h = st(66, 36, 'a') + st(262, 30, 'b') + st(246, 82, 'c') +
+        '<g class="sc-b1"><rect x="117" y="18" width="6" height="44" rx="3" fill="#150B1F"/><circle cx="110" cy="80" r="9" fill="none" stroke="#5B2A86" stroke-width="5"/></g>' +
+        '<g class="sc-b2"><rect x="117" y="18" width="6" height="44" rx="3" fill="#150B1F"/><circle cx="130" cy="80" r="9" fill="none" stroke="#5B2A86" stroke-width="5"/></g><circle cx="120" cy="60" r="3.2" fill="#D9A441"/>' +
+        '<g class="sc-comb" fill="#5B2A86"><rect x="178" y="38" width="54" height="11" rx="5.5"/>' + t + '</g>'; }
+    else if (k === 'late') h = '<circle cx="118" cy="56" r="29" fill="#fff" stroke="#150B1F" stroke-width="4"/><path class="sc-hr" d="M118 56h13" stroke="#150B1F" stroke-width="4" stroke-linecap="round"/><path class="sc-min" d="M118 56V35" stroke="#5B2A86" stroke-width="4" stroke-linecap="round"/><circle cx="118" cy="56" r="3.4" fill="#D9A441"/>' +
+      '<g class="sc-dots" fill="#5B2A86"><circle cx="198" cy="30" r="3.4"/><circle cx="210" cy="30" r="3.4"/><circle cx="222" cy="30" r="3.4"/></g>' +
+      '<ellipse class="sc-shd" cx="210" cy="92" rx="18" ry="3.5" fill="#150B1F" fill-opacity=".16"/><g class="sc-bob"><circle cx="210" cy="68" r="19" fill="#D9A441"/><circle cx="202" cy="60" r="4.8" fill="#FBF1E0"/></g>';
+    else h = st(98, 40, 'a') + st(226, 34, 'b') + st(238, 78, 'c') + st(84, 78, 'b') +
+      '<ellipse class="sc-shd2" cx="160" cy="94" rx="22" ry="4" fill="#150B1F" fill-opacity=".18"/><g class="sc-jump"><circle cx="160" cy="68" r="22" fill="#D9A441"/><circle cx="151" cy="59" r="5.4" fill="#FBF1E0"/></g>';
+    return '<svg class="scn" viewBox="0 0 320 110" role="img" aria-label="' + lab + '">' + h + '</svg>';
+  }
   function live() {
     var C = window.Capacitor; if (!(window.PERLE || {}).APP || !C) return;
     var P = C.Plugins && C.Plugins.PerleLive, go = function (m, o) { try { var r = P ? P[m](o) : (C.nativePromise ? C.nativePromise('PerleLive', m, o) : null); if (r && r.catch) r.catch(function () { }); } catch (e) { } };
@@ -541,7 +561,7 @@
         if (stt === 'confirme' && s.getTime() > Date.now() - 3 * 3600e3 && s.getTime() < Date.now() + 18 * 3600e3) {
           var pn = esc(b.pro_name), dm = b.pro_delay_min || 0, cb = ' data-ref="' + esc(b.ref) + '" data-phone="' + esc(b.phone) + '"';
           var stp = [['Confirmé', 1], ['Tu es en route', b.client_onway], [pn + ' t’attend', b.pro_ready], ['C’est ton tour', b.pro_ready && Date.now() >= s.getTime() + dm * 60000]], cur = -1; stp.forEach(function (x, i) { if (cur < 0 && !x[1]) cur = i; });
-          h += '<div class="livec" aria-live="polite"><ol class="trk" aria-label="Suivi du jour" style="margin:0 0 12px">' + stp.map(function (x, i) { return '<li class="' + (x[1] ? 'ok' : i === cur ? 'now' : '') + '">' + x[0] + '</li>'; }).join('') + '</ol>' + (b.pro_ready ? '<p class="lv"><b>' + pn + ' peut te recevoir.</b> Tu peux venir.</p>' : dm > 0 ? '<p class="lv"><b>' + pn + ' a environ ' + dm + ' min de retard.</b> Pour ne pas attendre, arrive plutôt vers ' + U.hm(new Date(s.getTime() + dm * 60000)) + '.</p>' : '<p class="lv"><b>' + pn + ' est à l’heure pour l’instant.</b> Cette ligne se met à jour toute seule si son horaire bouge.</p>') +
+          h += '<div class="livec" aria-live="polite">' + scene(b.pro_ready ? 'ready' : b.client_onway ? 'route' : dm > 0 ? 'late' : 'prep') + '<ol class="trk" aria-label="Suivi du jour" style="margin:0 0 12px">' + stp.map(function (x, i) { return '<li class="' + (x[1] ? 'ok' : i === cur ? 'now' : '') + '">' + x[0] + '</li>'; }).join('') + '</ol>' + (b.pro_ready ? '<p class="lv"><b>' + pn + ' peut te recevoir.</b> Tu peux venir.</p>' : dm > 0 ? '<p class="lv"><b>' + pn + ' a environ ' + dm + ' min de retard.</b> Pour ne pas attendre, arrive plutôt vers ' + U.hm(new Date(s.getTime() + dm * 60000)) + '.</p>' : '<p class="lv"><b>' + pn + ' est à l’heure pour l’instant.</b> Cette ligne se met à jour toute seule si son horaire bouge.</p>') +
             (b.client_onway ? '<p class="mut">Tu as indiqué que tu es en route' + (b.client_eta_min > 0 ? ' : environ ' + b.client_eta_min + ' min de trajet, ' + pn + ' est au courant' : '') + '.</p>' : '<button type="button" class="btn sm dark" data-csig="onway"' + cb + '>Je suis en route</button>') +
             '<div class="dly"><span class="mut">Tu as du retard ?</span>' + [10, 20, 30].map(function (m) { return '<button type="button" data-csig="late" data-min="' + m + '"' + cb + ' aria-pressed="' + (b.client_late_min === m) + '">+' + m + ' min</button>'; }).join('') + '</div></div>';
         }
