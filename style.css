@@ -867,36 +867,111 @@ a.srow{text-decoration:none;box-sizing:border-box}
 .impb li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
 .impb li span:last-child{color:var(--mut);white-space:nowrap}
 
-/* Scènes animées du suivi du jour */
-.scn{display:block;width:100%;height:auto;border-radius:14px;background:#fff;margin:0 0 14px;overflow:hidden}
-.sc-road{animation:scDash .7s linear infinite}
-.sc-spin{transform-origin:106px 68px;animation:scSpin 1.1s linear infinite}
-.sc-hop{animation:scHop .35s ease-in-out infinite alternate}
-.sc-pin{transform-origin:252px 84px;animation:scBob 1.2s ease-in-out infinite}
-.sc-lines path{animation:scLine .7s ease-in infinite}
-.sc-lines path:nth-child(2){animation-delay:.2s}.sc-lines path:nth-child(3){animation-delay:.4s}
-.sc-b1,.sc-b2{transform-origin:120px 60px;animation:scCut1 .9s ease-in-out infinite alternate}
-.sc-b2{animation-name:scCut2}
-.sc-comb{animation:scComb 1.4s ease-in-out infinite alternate}
-.sc-st{animation:scTw 1.5s ease-in-out infinite}.sc-st.b{animation-delay:.5s}.sc-st.c{animation-delay:1s}
-.sc-min{transform-origin:118px 56px;animation:scSpin 3s linear infinite}
-.sc-hr{transform-origin:118px 56px;animation:scSpin 24s linear infinite}
-.sc-dots circle{animation:scDot 1.2s ease-in-out infinite}.sc-dots circle:nth-child(2){animation-delay:.2s}.sc-dots circle:nth-child(3){animation-delay:.4s}
-.sc-bob{animation:scHop 1.1s ease-in-out infinite alternate}
-.sc-shd{transform-origin:210px 92px;animation:scSh 1.1s ease-in-out infinite alternate}
-.sc-jump{transform-origin:160px 90px;animation:scJump .8s cubic-bezier(.4,0,.6,1) infinite}
-.sc-shd2{transform-origin:160px 94px;animation:scSh2 .8s cubic-bezier(.4,0,.6,1) infinite}
-@keyframes scDash{to{stroke-dashoffset:-26}}
+/* Suivi du jour : titre, barre d'étapes et scène animée */
+.lvh{margin:0;font-family:var(--hb);font-weight:700;font-size:24px;line-height:1.15;letter-spacing:-.02em;color:var(--noir)}
+.lvk{margin:4px 0 0;font-size:16px;font-weight:600;color:var(--violet,#5B2A86)}
+.seg{list-style:none;display:flex;gap:5px;padding:0;margin:14px 0}
+.seg li{flex:1;height:5px;border-radius:3px;background:rgba(21,11,31,.12);overflow:hidden;position:relative}
+.seg li.ok{background:var(--noir)}
+.seg li.now::before{content:"";position:absolute;inset:0;border-radius:3px;background:var(--noir);transform-origin:left center;animation:segRun 1.8s cubic-bezier(.45,0,.2,1) infinite}
+@keyframes segRun{0%{transform:scaleX(0);opacity:1}70%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
+.scn{display:block;width:100%;height:auto;border-radius:16px;background:#EFE7F8;margin:0 0 14px;overflow:hidden}
+.sc-braid{animation:scBraid 1.5s linear infinite}
+.sc-h1{animation:scH1 .75s ease-in-out infinite alternate}
+.sc-h2{animation:scH2 .75s ease-in-out infinite alternate}
+.sc-min{transform-origin:160px 86px;animation:scSpin 3.2s linear infinite}
+.sc-hr{transform-origin:160px 86px;animation:scSpin 32s linear infinite}
+.sc-ring{transform-origin:160px 86px;animation:scRing 1.8s ease-out infinite}
+.sc-badge{transform-origin:208px 44px;animation:scPop 1.8s ease-in-out infinite}
+.sc-trace{stroke-dasharray:100;stroke-dashoffset:100;animation:scTrace 2.8s linear infinite}
+.sc-pin{transform-origin:262px 78px;animation:scBob 1.2s ease-in-out infinite}
+.sc-chair{transform-origin:160px 142px;animation:scChair 2.4s ease-in-out infinite alternate}
+@keyframes scBraid{to{transform:translateY(60px)}}
+@keyframes scH1{from{transform:translate(-6px,-4px)}to{transform:translate(22px,10px)}}
+@keyframes scH2{from{transform:translate(6px,4px)}to{transform:translate(-22px,-10px)}}
 @keyframes scSpin{to{transform:rotate(360deg)}}
-@keyframes scHop{to{transform:translateY(-4px)}}
-@keyframes scBob{50%{transform:translateY(-6px) scale(1.04)}}
-@keyframes scLine{0%{transform:translateX(10px);opacity:0}40%{opacity:1}100%{transform:translateX(-16px);opacity:0}}
-@keyframes scCut1{from{transform:rotate(-20deg)}to{transform:rotate(-5deg)}}
-@keyframes scCut2{from{transform:rotate(20deg)}to{transform:rotate(5deg)}}
-@keyframes scComb{from{transform:translate(-6px,2px) rotate(-4deg)}to{transform:translate(8px,-2px) rotate(3deg)}}
-@keyframes scTw{0%,100%{transform:scale(.35);opacity:.35}50%{transform:scale(1);opacity:1}}
-@keyframes scDot{0%,60%,100%{transform:none;opacity:.35}30%{transform:translateY(-4px);opacity:1}}
-@keyframes scSh{to{transform:scale(.82)}}
-@keyframes scJump{0%,100%{transform:translateY(0) scale(1.1,.9)}20%{transform:translateY(-8px) scale(.95,1.06)}50%{transform:translateY(-26px) scale(1)}80%{transform:translateY(-8px) scale(.95,1.06)}}
-@keyframes scSh2{0%,100%{transform:scale(1.05)}50%{transform:scale(.55)}}
-@media (prefers-reduced-motion:reduce){.scn *{animation:none!important}}
+@keyframes scRing{from{transform:scale(1);opacity:1}to{transform:scale(1.28);opacity:0}}
+@keyframes scPop{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@keyframes scTrace{to{stroke-dashoffset:0}}
+@keyframes scBob{50%{transform:translateY(-8px) scale(1.05)}}
+@keyframes scChair{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+@media (prefers-reduced-motion:reduce){.scn *,.seg li.now::before{animation:none!important}.sc-trace{stroke-dashoffset:0}}
+
+/* Bannière « en cours » au-dessus des onglets */
+#nowbar{position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom));z-index:6;max-width:480px;margin:0 auto;padding:0 12px 8px;pointer-events:none}
+#nowbar button{pointer-events:auto;width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px;border-radius:18px;background:var(--noir);color:#fff;box-shadow:0 10px 28px rgba(21,11,31,.3);font-size:13px;line-height:1.35;animation:nbIn .38s cubic-bezier(.2,.9,.3,1) both}
+#nowbar b{font-size:15px;font-weight:700}#nowbar .grow{min-width:0}#nowbar .grow span{opacity:.75}
+.nbd{flex:none;width:12px;height:12px;border-radius:50%;background:#D9A441;animation:nbPulse 1.6s ease-out infinite}
+@keyframes nbPulse{from{box-shadow:0 0 0 0 rgba(217,164,65,.65)}to{box-shadow:0 0 0 12px rgba(217,164,65,0)}}
+@keyframes nbIn{from{transform:translateY(24px);opacity:0}}
+/* Suivi en plein écran */
+#suivi{position:fixed;inset:0;z-index:30;background:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:svIn .34s cubic-bezier(.2,.9,.3,1) both}
+@keyframes svIn{from{transform:translateY(100%)}}
+#svmap{position:relative;z-index:0;height:36vh;min-height:220px;background:#EFE7F8}
+#svmap .leaflet-tile-pane{filter:grayscale(1) brightness(1.06) contrast(.9)}
+#svbody{position:relative;z-index:1;max-width:480px;margin:-24px auto 0;border-radius:24px 24px 0 0;background:#fff;padding:22px 18px calc(30px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(21,11,31,.1)}
+#suivi.nomap #svmap{display:none}#suivi.nomap #svbody{margin-top:0;box-shadow:none;padding-top:calc(72px + env(safe-area-inset-top))}
+.sv-x{position:fixed;left:14px;top:calc(12px + env(safe-area-inset-top));z-index:31;background:#fff;color:var(--noir);box-shadow:0 4px 14px rgba(21,11,31,.2)}
+#svbody .livec{background:none;padding:0;margin:0;border-radius:0}
+#svbody .btn{display:flex;width:100%;justify-content:center}
+@media (prefers-reduced-motion:reduce){#nowbar button,#suivi,.nbd{animation:none!important}}
+.sc-st{animation:scTw 1.6s ease-in-out infinite}.sc-st.b{animation-delay:.5s}
+.sc-cf{transform-box:fill-box;transform-origin:center;animation:scFall 2.2s linear infinite}
+.sc-jump{transform-origin:160px 140px;animation:scJump .9s cubic-bezier(.4,0,.6,1) infinite}
+.sc-shd2{transform-origin:160px 146px;animation:scSh2 .9s cubic-bezier(.4,0,.6,1) infinite}
+@keyframes scTw{0%,100%{transform:scale(.3);opacity:.3}50%{transform:scale(1);opacity:1}}
+@keyframes scFall{from{transform:translateY(0) rotate(0)}to{transform:translateY(200px) rotate(320deg)}}
+@keyframes scJump{0%,100%{transform:translateY(0) scale(1.08,.92)}50%{transform:translateY(-26px) scale(1)}}
+@keyframes scSh2{0%,100%{transform:scale(1.05)}50%{transform:scale(.6)}}
+/* Sobriété : aplats au lieu des dégradés, un seul ton par titre, barres d'étapes sans clignotement */
+.trk li.ok::before,.trk li.now::before{animation:none}
+.trk li.now::before{background:var(--noir);opacity:.4}
+.trk li.now{box-shadow:inset 0 4px 0 var(--line)}
+.photo-card.nc::after{display:none}
+.photo-card.nc .glass{background:rgba(255,255,255,.14);-webkit-backdrop-filter:none;backdrop-filter:none;border-color:transparent}
+.hi{background:#EFE7F8}
+.noi{background:var(--vio)}
+.pass,.vit-cov,.mp-cov{background-image:none;background-color:var(--vio)}
+.pearl{background:var(--or)}
+.hl{font-weight:inherit}
+.dark-screen .hl,.openb .hl{color:inherit !important}
+.t1{color:var(--noir)}
+@media (min-width:720px){html{background:#F1EDF6}}
+body.hasbar .wrap{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
+/* Page d'une coiffeuse : photo pleine largeur, lignes séparées par un filet, coiffures façon menu */
+.hero{height:292px}
+.sheet{border-radius:0;margin-top:0;padding-top:20px}
+.hero .fprice.hp{display:none}
+.hero .count{bottom:16px}
+.irows{margin:16px 0 0;border-top:1px solid var(--line)}
+.irow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:13px 0;border-bottom:1px solid var(--line);font-size:15px}
+.irow span{color:var(--ink2);flex-shrink:0}.irow b{font-weight:500;text-align:right}
+.irow:first-child b{color:var(--vio);font-weight:700}
+.sech{margin:22px 0 0;font-family:var(--hb);font-weight:700;font-size:22px;letter-spacing:-.01em}
+.svc.mrow{align-items:center;gap:16px;padding:16px 0;border-radius:0}
+.svc.mrow .grow{display:flex;flex-direction:column;gap:5px;min-width:0}
+.svc.mrow .sn{font-size:17px;font-weight:700;line-height:1.2}
+.svc.mrow .sp{font-size:15px;color:var(--ink2)}.svc.mrow .sp b{color:var(--noir);font-weight:700}
+.svc.mrow .thumb{width:96px;height:96px;border-radius:10px}
+.svc.mrow:active{transform:none;background:var(--soft)}
+/* Fonds neutres : un gris très clair à la place du lavande, le violet reste pour ce qui compte */
+:root{--soft:#F5F5F6}
+.scn{background:var(--soft)}
+#svmap{background:#ECECEE}
+/* Cartes coiffeuse : la photo seule, le nom et le prix dessous */
+.ucard{display:block;text-decoration:none;color:var(--noir)}
+.ucard .uimg{position:relative;display:block;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background-size:cover;background-position:center}
+.ucard .uimg .ini{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--hb);font-weight:700;font-size:72px;letter-spacing:-.04em;color:rgba(255,255,255,.18)}
+.ucard .u1{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:10px}
+.ucard .u1 b{font-size:17px;font-weight:700;line-height:1.2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ucard .u1 em{font-style:normal;font-size:15px;font-weight:700;white-space:nowrap}
+.ucard .u2{display:block;margin-top:3px;font-size:14px;color:var(--ink2)}
+.ucard .u2 b{color:var(--vio);font-weight:700}
+.ucard:active .uimg{opacity:.86}
+.pwrap{margin-bottom:22px}
+.pwrap .heart.wb2{top:10px;right:10px;width:40px;height:40px;box-shadow:none}
+.pwrap .slots{margin:10px 0 0}
+.slots a{border-radius:10px;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+/* Bouton retour sur une photo : rond blanc, sans verre */
+.hero .round{background:#fff;color:var(--noir);border:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+.ptiles button{border-radius:12px}
