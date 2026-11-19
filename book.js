@@ -174,7 +174,7 @@
   I.home = '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>'; I.grid = '<rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/>';
   function saved() { try { return JSON.parse(localStorage.getItem('perle-rdv') || '[]'); } catch (e) { return []; } }
   // ----- compte cliente (facultatif) : retrouve ses rendez-vous sur tous ses appareils -----
-  var cu = null, cprov = null, CAN = !!(S.providers && S.oauth && !(window.PERLE || {}).APP);
+  var cu = null, cprov = null, CAN = !!(S.providers && S.oauth);
   function cacct() {
     if (!CAN) return '';
     if (cu) return '<p class="cin">Compte : <b>' + esc(cu.email || '') + '</b> <button class="link" data-cout="1">Me déconnecter</button></p>';
@@ -648,7 +648,7 @@
   app.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.go) return go(b.dataset.go);
-    if (b.dataset.coa) { b.disabled = true; return S.oauth(b.dataset.coa, location.origin + location.pathname + (b.dataset.to || '')).catch(function () { b.disabled = false; }); }
+    if (b.dataset.coa) { b.disabled = true; return S.oauth(b.dataset.coa, location.origin + location.pathname + (b.dataset.to || '')).then(function () { if ((window.PERLE || {}).APP) b.disabled = false; }).catch(function () { b.disabled = false; }); }
     if (b.dataset.msave) { var mv = function (i) { return String(document.getElementById(i).value || '').trim(); }, mo = {}; try { mo = JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (x) { } mo.n = mv('mn'); mo.t = mv('mt'); mo.e = mv('mm'); var mk = document.getElementById('mok'); if (mo.e && !/^\S+@\S+\.\S+$/.test(mo.e)) { mk.textContent = 'Vérifie ton e-mail : il manque quelque chose.'; return; } try { localStorage.setItem('perle-moi', JSON.stringify(mo)); mk.textContent = 'C’est enregistré.'; } catch (x) { mk.textContent = 'Impossible d’enregistrer sur ce téléphone.'; } return; }
     if (b.dataset.mclear) { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.querySelector('b').textContent = 'Touche encore pour confirmer'; return; } try { localStorage.removeItem('perle-moi'); } catch (x) { } dir.view = 'moi'; return landing(); }
     if (b.dataset.fav) { var fs = b.dataset.fav, fa = favs(), fi = fa.indexOf(fs), fon = fi < 0; if (fon) fa.unshift(fs); else fa.splice(fi, 1); try { localStorage.setItem('perle-fav', JSON.stringify(fa.slice(0, 100))); } catch (x) { } if (cu && S.setFav) S.setFav(fs, fon).catch(function () { }); b.outerHTML = favBtn(fs); return; }
