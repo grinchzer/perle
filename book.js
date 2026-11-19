@@ -725,7 +725,7 @@
   function drawHome(box) {
     tabs('chips');
     if (!dir.busy) { box.innerHTML = sk(1, 340); return loadBusyAll(); }
-    var tip = document.getElementById('tip'), ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !navigator.standalone && !AP, hid = false; try { hid = localStorage.getItem('perle-tip') === '1'; } catch (e) { }
+    var tip = document.getElementById('tip'), ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !navigator.standalone && !AP && !(window.PERLE || {}).APP, hid = false; try { hid = localStorage.getItem('perle-tip') === '1'; } catch (e) { }
     if (tip) tip.innerHTML = ios && !hid ? '<div class="card row" style="margin-top:14px;border-radius:24px;align-items:flex-start"><span class="grow mut" style="color:var(--ink2)"><b style="color:var(--noir)">Garde Perle comme une appli.</b><br>Touche le bouton Partager de Safari, puis « Sur l’écran d’accueil ».</span><button class="round sm" data-tipx="1" aria-label="Fermer">×</button></div>' : '';
     var l = results(true);
     if (!l.length) { box.innerHTML = '<p class="note info">Personne pour ce type de coiffure pour l’instant.</p>'; return; }
