@@ -86,6 +86,9 @@
   // ---------- Supabase ----------
   function live() {
     var sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_KEY);
+    // Dans l'appli : la connexion Google ou Apple s'ouvre dans le navigateur du téléphone, puis revient ici par le lien fr.perleapp.app://
+    var APPURL = 'fr.perleapp.app://login', CAPP = C.APP && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+    if (CAPP) { try { CAPP.addListener('appUrlOpen', function (ev) { var u = String((ev && ev.url) || ''); if (u.indexOf('fr.perleapp.app://') !== 0) return; var q = new URLSearchParams(u.split('#')[1] || u.split('?')[1] || ''), at = q.get('access_token'), rt = q.get('refresh_token'); if (!at || !rt) return; sb.auth.setSession({ access_token: at, refresh_token: rt }).then(function () { location.reload(); }); }); } catch (e) { } }
     function ok(r) { if (r.error) { var e = new Error(r.error.message || 'ERREUR'); e.code = r.error.code; throw e; } return r.data; }
     async function uid() { var s = await sb.auth.getSession(); return s.data.session ? s.data.session.user.id : null; }
     return {
@@ -110,8 +113,8 @@
       signUp: async function (email, pw) { var d = ok(await sb.auth.signUp({ email: email, password: pw, options: { emailRedirectTo: ((window.PERLE || {}).SITE ? window.PERLE.SITE + 'pro.html' : location.origin + location.pathname) } })); return d.session ? d.user : null; },
       signIn: async function (email, pw) { return ok(await sb.auth.signInWithPassword({ email: email, password: pw })).user; },
       signOut: async function () { await sb.auth.signOut(); },
-      providers: async function () { var r = await fetch(C.SUPABASE_URL + '/auth/v1/settings', { headers: { apikey: C.SUPABASE_KEY } }), j = await r.json(), x = j.external || {}; return { google: !!x.google, apple: !!x.apple }; },
-      oauth: async function (p, to) { if (p !== 'google' && p !== 'apple') return; ok(await sb.auth.signInWithOAuth({ provider: p, options: { redirectTo: to || ((window.PERLE || {}).SITE ? window.PERLE.SITE + 'pro.html' : location.origin + location.pathname) } })); },
+      providers: async function () { if (C.APP && !CAPP) return {}; var r = await fetch(C.SUPABASE_URL + '/auth/v1/settings', { headers: { apikey: C.SUPABASE_KEY } }), j = await r.json(), x = j.external || {}; return { google: !!x.google, apple: !!x.apple }; },
+      oauth: async function (p, to) { if (p !== 'google' && p !== 'apple') return; if (C.APP) { var d = ok(await sb.auth.signInWithOAuth({ provider: p, options: { redirectTo: APPURL, skipBrowserRedirect: true } })); if (d && d.url) window.open(d.url, '_blank'); return; } ok(await sb.auth.signInWithOAuth({ provider: p, options: { redirectTo: to || ((window.PERLE || {}).SITE ? window.PERLE.SITE + 'pro.html' : location.origin + location.pathname) } })); },
       claimRefs: async function (l) { return ok(await sb.rpc('claim_refs', { p_list: (l || []).slice(-30) })); },
       myRefs: async function () { return ok(await sb.rpc('my_refs')); },
       addReview: async function (ref, phone, n, body) { return ok(await sb.rpc('add_review', { p_ref: ref, p_phone: phone, p_rating: n, p_body: body || '' })); },
