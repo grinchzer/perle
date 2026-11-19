@@ -32,7 +32,7 @@
   }
   function auth() {
     document.body.classList.add('dark');
-    if (!st.prov && S.providers && !(window.PERLE || {}).APP) { st.prov = {}; S.providers().then(function (x) { st.prov = x || {}; var o = document.getElementById('oa'); if (o && !st.user) o.innerHTML = oab(); }).catch(function () { }); }
+    if (!st.prov && S.providers) { st.prov = {}; S.providers().then(function (x) { st.prov = x || {}; var o = document.getElementById('oa'); if (o && !st.user) o.innerHTML = oab(); }).catch(function () { }); }
     app.innerHTML = '<div class="dark-screen" style="background-image:url(img/bgLocks.jpg)"><div class="top">' + U.logo() + (S.live ? '' : '<span class="badge">Mode essai</span>') + '</div><h1 style="margin-top:210px">Ton espace <span class="hl" style="color:var(--noir)">coiffeuse</span>.</h1><p class="soft" style="font-size:16px;margin:10px 0 0">Crée ta page de réservation et reçois tes rendez-vous avec acompte.</p>' + note() +
       (function () { try { known = !!localStorage.getItem('perle-known'); } catch (e) {} return ''; })() + '<div id="oa">' + oab() + '</div><form id="fa"><label for="em" style="color:#E4DBEE">Ton e-mail</label><input id="em" type="email" autocomplete="email" required style="color:var(--noir)">' +
       '<label for="pw" style="color:#E4DBEE">Ton mot de passe (8 caractères au moins)</label><input id="pw" type="password" autocomplete="current-password" minlength="8" required style="color:var(--noir)">' +
@@ -375,7 +375,7 @@
         return refresh();
       }
       if (a === 'out') { await S.signOut(); st.user = st.pro = null; st.tab = 'rdv'; st.pw = st.recovery = false; return render(); }
-      if (a === 'oa') { var ob = document.getElementById('oa'); if (ob) ob.querySelectorAll('button').forEach(function (x) { x.disabled = true; }); await S.oauth(b.dataset.p); return; }
+      if (a === 'oa') { var ob = document.getElementById('oa'); if (ob) ob.querySelectorAll('button').forEach(function (x) { x.disabled = true; }); await S.oauth(b.dataset.p); if ((window.PERLE || {}).APP && ob) ob.querySelectorAll('button').forEach(function (x) { x.disabled = false; }); return; }
       if (a === 'paste' || a === 'pasteno') { document.getElementById('pbx').innerHTML = pasteBox(a === 'paste'); if (a === 'paste') document.getElementById('pt').focus(); return; }
       if (a === 'pastego') {
         var pr = parsePaste(document.getElementById('pt').value), done = [], LB = { pc: 'ville', pb: 'présentation', pi: 'Instagram', pw2: 'WhatsApp', pl: 'PayPal', rl: 'Revolut' };
