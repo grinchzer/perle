@@ -234,6 +234,10 @@
     h += '<h2>Congés et jours fermés</h2><p class="mut">Ces jours-là, aucun créneau n’est proposé. C’est enregistré tout de suite.</p>';
     cl.forEach(function (r, i) { if (r[1] >= ts) h += '<div class="card row" style="margin-bottom:8px;border-radius:22px;padding:10px 12px 10px 16px"><span class="grow b">' + (r[0] === r[1] ? 'Le ' + fr(r[0]) : 'Du ' + fr(r[0]) + ' au ' + fr(r[1])) + '</span><button type="button" class="btn sm ghost" data-act="cldel" data-i="' + i + '">Retirer</button></div>'; });
     h += '<div class="grid2"><div><label for="c0">Du</label><input id="c0" type="date" style="box-sizing:border-box;min-width:0;width:100%;min-height:52px;border-radius:26px;border:1px solid var(--line);background:var(--soft);padding:12px 14px;font-size:16px" min="' + ts + '"></div><div><label for="c1">Au (inclus)</label><input id="c1" type="date" style="box-sizing:border-box;min-width:0;width:100%;min-height:52px;border-radius:26px;border:1px solid var(--line);background:var(--soft);padding:12px 14px;font-size:16px" min="' + ts + '"></div></div><button type="button" class="btn dark" style="margin-top:12px" data-act="cladd">Bloquer ces jours</button>';
+    var bh = Math.min(td.getHours() + 1, 21), bl = st.pro.blocks || [], nowI = new Date().toISOString(), fi = 'box-sizing:border-box;min-width:0;width:100%;min-height:52px;border-radius:14px;border:1px solid var(--line);background:#fff;padding:12px 14px;font-size:16px';
+    h += '<h2>Bloquer un créneau</h2><p class="mut">Un imprévu, une pause, un rendez-vous pris ailleurs : ces heures ne sont plus proposées. C’est enregistré tout de suite.</p>';
+    bl.forEach(function (r, i) { if (r[1] > nowI) { var a = new Date(r[0]), z = new Date(r[1]); h += '<div class="card row" style="margin-bottom:8px;border-radius:14px;padding:10px 12px 10px 16px"><span class="grow b">' + a.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }) + ', ' + U.hm(a) + ' – ' + U.hm(z) + '</span><button type="button" class="btn sm ghost" data-act="blkdel" data-i="' + i + '">Retirer</button></div>'; } });
+    h += '<div><label for="kb0">Jour</label><input id="kb0" type="date" style="' + fi + '" min="' + ts + '" value="' + ts + '"></div><div class="grid2" style="margin-top:8px"><div><label for="kb1">De</label><input id="kb1" type="time" style="' + fi + '" value="' + ('0' + bh).slice(-2) + ':00"></div><div><label for="kb2">À</label><input id="kb2" type="time" style="' + fi + '" value="' + ('0' + (bh + 2)).slice(-2) + ':00"></div></div><button type="button" class="btn dark" style="margin-top:12px" data-act="blkadd">Bloquer ce créneau</button>';
     return h + '<div class="mespace"></div>';
   }
   // ----- rendez-vous -----
@@ -356,6 +360,12 @@
         await S.setStatus(b.dataset.id, b.dataset.st); st.msg = ['ok', b.dataset.st === 'confirme' ? 'Rendez-vous confirmé. Pense à prévenir ta cliente.' : 'C’est noté.']; return refresh();
       }
       var a = b.dataset.act; if (!a) return;
+      if (a === 'blkadd' || a === 'blkdel') {
+        var bk = (st.pro.blocks || []).slice();
+        if (a === 'blkdel') bk.splice(+b.dataset.i, 1);
+        else { var b0 = val('kb0'), b1 = val('kb1'), b2 = val('kb2'); if (!/^\d{4}-\d\d-\d\d$/.test(b0) || !/^\d\d:\d\d$/.test(b1) || !/^\d\d:\d\d$/.test(b2) || b2 <= b1) { st.msg = ['err', 'Choisis un jour, une heure de début, et une heure de fin qui vient après.']; return render(); } var dd = b0.split('-'), t1 = b1.split(':'), t2 = b2.split(':'); bk.push([new Date(+dd[0], +dd[1] - 1, +dd[2], +t1[0], +t1[1]).toISOString(), new Date(+dd[0], +dd[1] - 1, +dd[2], +t2[0], +t2[1]).toISOString()]); var lim = new Date().toISOString(); bk = bk.filter(function (r) { return r[1] > lim; }).sort().slice(-40); }
+        var pb = base(); pb.blocks = bk; st.pro = await S.savePro(pb); st.msg = ['ok', a === 'blkdel' ? 'Ce créneau est de nouveau ouvert.' : 'C’est bloqué : ces heures ne sont plus proposées.']; return render();
+      }
       if (a === 'cladd' || a === 'cldel') {
         var cl = (st.pro.closed || []).slice();
         if (a === 'cldel') cl.splice(+b.dataset.i, 1);
