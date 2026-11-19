@@ -1044,3 +1044,8 @@ body.hasbar .wrap{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
 .espro .slist,.espro .vit,.espro .acct{border-radius:14px;box-shadow:none}
 .espro .vit{border:1px solid var(--line)}
 .ag .agt{flex-basis:64px;white-space:nowrap}.ag .agb{padding-left:78px}
+/* Offre fondatrice */
+.fnd{margin:14px 0 0;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;line-height:1.4}
+.fnd b{color:var(--or)}
+.fndb{margin:14px 0 0;padding:12px 14px;border-radius:12px;background:var(--soft);font-size:14px;line-height:1.4;color:var(--ink2)}
+.fndb b{display:block;color:var(--noir);font-size:15px}
