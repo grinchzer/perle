@@ -4,7 +4,7 @@
   var app = document.getElementById('app');
   var st = { user: null, pro: null, recovery: /type=recovery/.test(location.hash), pw: false, tab: 'rdv', svcs: [], rdv: [], edit: null, calc: null, msg: null };
   var DAYS = [['1', 'Lundi'], ['2', 'Mardi'], ['3', 'Mercredi'], ['4', 'Jeudi'], ['5', 'Vendredi'], ['6', 'Samedi'], ['0', 'Dimanche']];
-  var LAB = { attente: 'Acompte attendu', confirme: 'Confirmé', annule: 'Annulé', fait: 'Fait', expire: 'Expiré, créneau libéré' };
+  var LAB = { demande: 'À accepter', attente: 'Acompte attendu', confirme: 'Confirmé', annule: 'Annulé', fait: 'Fait', expire: 'Expiré, créneau libéré' };
   function svg(p, s, w) { return '<svg aria-hidden="true" width="' + (s || 20) + '" height="' + (s || 20) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 2) + '" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; }
   var I = {
     cal: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>', tag: '<path d="M4 4h7l9 9-7 7-9-9z"/><circle cx="8.500" cy="8.500" r="1.500"/>',
@@ -17,6 +17,7 @@
   var TABS = [['rdv', 'Rendez-vous', I.cal], ['svc', 'Prestations', I.tag], ['hrs', 'Horaires', I.clock], ['pro', 'Ma page', I.page], ['me', 'Compte', I.user]];
 
   function top() { return '<div class="top">' + ((window.PERLE || {}).APP ? '<a class="round" href="index.html" aria-label="Retour côté cliente"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></a>' : '') + U.logo() + (S.live ? '' : '<span class="badge">Mode essai</span>') + '</div>'; }
+  function topIn(t) { return '<div class="top topin">' + ((window.PERLE || {}).APP ? '<a class="round" href="index.html" aria-label="Retour côté cliente"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></a>' : '') + '<h1>' + t + '</h1>' + (S.live ? '' : '<span class="badge">Mode essai</span>') + '</div>'; }
   function note() { var m = st.msg; st.msg = null; return m ? '<p class="note ' + m[0] + '" role="' + (m[0] === 'err' ? 'alert' : 'status') + '">' + esc(m[1]) + '</p>' : ''; }
   function val(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; }
   function link() { if ((window.PERLE || {}).APERCU) return './?c=' + st.pro.slug; var base = (window.PERLE || {}).SITE || location.href.split(/[?#]/)[0].replace(/[^\/]*$/, ''); return (window.PERLE || {}).LIENS_COURTS ? location.origin + '/' + st.pro.slug : base + '?c=' + st.pro.slug; }
@@ -46,9 +47,12 @@
   // ----- ma page -----
   // moyens de paiement : lien PayPal, lien Revolut et texte libre, rangés dans pay_info
   var RE_PP = /https?:\/\/(?:www\.)?paypal\.(?:me|com\/paypalme)\/([\w.-]+)\S*/i, RE_RV = /https?:\/\/(?:www\.)?revolut\.me\/([\w.-]+)\S*/i;
-  function payParts(s) { s = s || ''; var a = s.match(RE_PP), b = s.match(RE_RV); return { pp: a ? a[1] : '', rv: b ? b[1] : '', txt: s.replace(RE_PP, '').replace(RE_RV, '').replace(/\n{2,}/g, '\n').trim() }; }
+  var RE_WE = /^[ \t]*Wero[ \t]*:[ \t]*(.+)$/mi;
+  function payParts(s) { s = s || ''; var a = s.match(RE_PP), b = s.match(RE_RV), w = s.match(RE_WE); return { pp: a ? a[1] : '', rv: b ? b[1] : '', we: w ? w[1].trim() : '', txt: s.replace(RE_PP, '').replace(RE_RV, '').replace(RE_WE, '').replace(/\n{2,}/g, '\n').trim() }; }
   function handle(v) { v = String(v || '').trim().replace(/^https?:\/\//i, '').replace(/^(www\.)?(paypal\.(me|com\/paypalme)|revolut\.me)\//i, '').replace(/^@/, '').split(/[\/?#\s]/)[0]; return v; }
-  function payInfo() { var a = handle(val('pl')), b = handle(val('rl')), ok = /^[\w.-]{2,40}$/; if ((a && !ok.test(a)) || (b && !ok.test(b))) return null; return [val('pp'), a ? 'https://paypal.me/' + a : '', b ? 'https://revolut.me/' + b : ''].filter(Boolean).join('\n').slice(0, 300); }
+  function payInfo() { var a = handle(val('pl')), b = handle(val('rl')), ok = /^[\w.-]{2,40}$/; if ((a && !ok.test(a)) || (b && !ok.test(b))) return null;
+    var we = val('pwe').replace(/[^0-9+ ]/g, '').trim(); if (we && we.replace(/\D/g, '').length < 9) return false;
+    return [we ? 'Wero : ' + we : '', val('pp').replace(/^[ \t]*Wero[ \t]*:/gmi, 'Wero'), a ? 'https://paypal.me/' + a : '', b ? 'https://revolut.me/' + b : ''].filter(Boolean).join('\n').slice(0, 300); }
   // ----- remplissage par collage : la coiffeuse colle sa bio et ses tarifs -----
   function guessMin(n) {
     n = n.toLowerCase(); var T = [[/knotless|box ?braid|micro|boho|goddess/, 300], [/fulani|tribal|lemonade/, 240], [/twist|vanille|passion|locks? ?(pose|install)|faux locs/, 210], [/crochet|tissage|weave/, 150], [/perruque|lace|wig|closure|frontal/, 90], [/cornrow|natte|tresses? coll|barbe|coupe|fade|d[ée]grad/, 60], [/retwist|reprise|entretien/, 120], [/cils|lash/, 90], [/ongle|nail|gel|vernis/, 75], [/soin|shampo|brushing|d[ée]pose/, 60]];
@@ -102,7 +106,9 @@
     function tg(t) { return '<label class="chip"><input type="checkbox" data-tag="' + t[0] + '"' + ((p.tags || []).indexOf(t[0]) >= 0 ? ' checked' : '') + '><span>' + t[1] + '</span></label>'; }
     var dep = p.deposit_pct == null ? 30 : p.deposit_pct, g = p.gallery || [], pw = payParts(p.pay_info);
     function row(id, lab, inner) { return '<div class="mp-row"><label for="' + id + '">' + lab + '</label>' + inner + '</div>'; }
-    var h = (first ? '<div class="who"><span class="grow">Connectée avec <b>' + esc((st.user && st.user.email) || '') + '</b></span><button type="button" class="lnk" data-act="out">Me déconnecter</button></div>' : '') + note() + '<div id="pbx">' + pasteBox(false) + '</div><form id="fp" class="mp">';
+    var pv = st.pv || 'look';
+    function pvh(k) { return first ? '' : ' data-pv="' + k + '"' + (pv === k ? '' : ' hidden'); }
+    var h = (first ? '<div class="who"><span class="grow">Connectée avec <b>' + esc((st.user && st.user.email) || '') + '</b></span><button type="button" class="lnk" data-act="out">Me déconnecter</button></div>' : '') + note() + (first ? '<div id="pbx">' + pasteBox(false) + '</div>' : '<div class="seg hvt pvt" role="group" aria-label="Partie affichée">' + [['look', 'Ma vitrine'], ['reach', 'Me joindre'], ['pay', 'Acompte']].map(function (o) { return '<button type="button" data-act="pv" data-v="' + o[0] + '" aria-pressed="' + (pv === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div>') + '<form id="fp" class="mp"><div' + pvh('look') + '>';
     h += '<p class="mp-hint">' + (first ? 'Voici ta future page. Écris directement dessus.' : 'Ta page, comme ta cliente la voit. Touche un texte pour le changer.') + '</p><div class="mp-sheet">';
     h += '<div class="mp-cov"' + (p.cover_url ? ' style="' + U.bg(p.cover_url) + '"' : '') + '>' + (first ? '' : '<label class="mp-covbtn" for="cover">' + svg(I.photo, 16) + (p.cover_url ? 'Changer la photo' : 'Ajouter une photo de couverture') + '</label><input type="file" id="cover" accept="image/*" data-photo="cover">') + '</div>';
     h += '<div class="mp-head">' + (first ? '<span class="mp-av" aria-hidden="true">' + esc((p.name || 'P').charAt(0).toUpperCase()) + '</span>' : '<label class="mp-av" for="avatar" aria-label="Changer ta photo de profil"' + (p.avatar_url ? ' style="' + U.bg(p.avatar_url) + '"' : '') + '>' + (p.avatar_url ? '' : esc((p.name || '?').charAt(0).toUpperCase())) + '<i>' + svg(I.plus, 13, 2.6) + '</i></label><input type="file" id="avatar" accept="image/*" data-photo="avatar"><a class="mp-see" href="' + esc(link()) + '" target="_blank" rel="noopener">Voir ma page en vrai</a>') + '</div>';
@@ -118,19 +124,23 @@
     }
     h += '</div><p class="mp-note">Sur la carte, seul ton quartier apparaît.' + (st.pro && p.city && p.lat == null ? ' Le tien n’a pas été trouvé : écris une ville, ou « Paris 19e ».' : '') + '</p>';
     h += '<h2 class="mp-h">Ton lien</h2><div class="pre"><span>perleapp.fr/?c=</span><input id="ps" type="text" maxlength="30" required aria-label="Le nom de ton lien" placeholder="awabraids" value="' + esc(p.slug) + '"></div><p class="mp-note">Minuscules, chiffres et tirets. C’est ce que tu colles dans ta bio.</p>';
+    h += (first ? '' : '<button class="btn" style="margin-top:22px">Enregistrer</button>') + '</div><div' + pvh('reach') + '>';
     h += '<h2 class="mp-h">Pour te trouver et te joindre</h2><div class="mp-list">' +
       row('pa', 'Adresse exacte', '<input id="pa" type="text" maxlength="200" autocomplete="off" placeholder="12 rue de Crimée, 75019" value="' + esc((st.priv || {}).address || '') + '">') +
       row('pw2', 'WhatsApp', '<input id="pw2" type="tel" maxlength="20" placeholder="06 12 34 56 78" value="' + esc(p.whatsapp) + '">') + row('pi', 'Instagram', '<span class="mp-pre">instagram.com/</span><input id="pi" type="text" maxlength="80" autocapitalize="none" autocomplete="off" placeholder="toncompte" value="' + esc(p.instagram || '') + '">') + '</div><p class="mp-note">Ton adresse n’apparaît qu’une fois l’acompte confirmé, jamais sur ta page. Ton WhatsApp sert au bouton « Prévenir » après une réservation. Ton Instagram s’affiche sur ta page : c’est ce qui rassure une nouvelle cliente.</p>';
+    h += (first ? '' : '<button class="btn" style="margin-top:22px">Enregistrer</button>') + '</div><div' + pvh('pay') + '>';
     h += '<h2 class="mp-h">L’acompte</h2><div class="mp-dep"><div class="mp-bar" aria-hidden="true"><span id="pdb" style="width:' + esc(dep) + '%"></span></div>' +
       '<div class="mp-split"><span><b id="pde">' + Math.round(80 * dep / 100) + ' €</b>à la réservation</span><span><b id="pdr">' + (80 - Math.round(80 * dep / 100)) + ' €</b>sur place</span></div>' +
       '<input id="pd" type="range" min="0" max="100" step="5" value="' + esc(dep) + '" aria-label="Acompte demandé, en pourcentage du prix" oninput="var v=+this.value,a=Math.round(80*v/100);document.getElementById(\'pdv\').textContent=v+\' %\';document.getElementById(\'pde\').textContent=a+\' €\';document.getElementById(\'pdr\').textContent=(80-a)+\' €\';document.getElementById(\'pdb\').style.width=v+\'%\'">' +
       '<p class="mp-note" style="margin:0">Tu demandes <b id="pdv">' + esc(dep) + ' %</b>, ici sur une coiffure à 80 €.</p></div>';
     h += '<div class="mp-list" style="margin-top:12px">' + row('ph', 'Annulation libre jusqu’à', '<select id="ph">' + [[0, 'la dernière minute'], [24, '24 h avant'], [48, '48 h avant'], [72, '3 jours avant'], [168, '7 jours avant']].map(function (o) { return '<option value="' + o[0] + '"' + ((p.cancel_hours == null ? 48 : p.cancel_hours) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select>') + '</div><p class="mp-note">Passé ce délai, elle doit t’écrire. Sans acompte confirmé sous 24 h, le créneau se libère.</p>';
+    if (!S.live || 'manual_accept' in p) h += '<div class="mp-list" style="margin-top:12px"><div class="mp-row"><label class="sw" style="flex:1"><input type="checkbox" id="pma"' + (p.manual_accept === false ? '' : ' checked') + '><i></i><span>J’accepte chaque demande avant l’acompte</span></label></div></div><p class="mp-note">Activé : tu dis oui ou non à chaque demande, et la cliente ne paie qu’après ton accord. Désactivé : elle envoie l’acompte tout de suite.</p>';
     h += '<h2 class="mp-h">Où elle t’envoie l’argent</h2><div class="mp-list">' +
       row('pl', 'PayPal', '<span class="mp-pre">paypal.me/</span><input id="pl" type="text" maxlength="40" autocapitalize="none" autocomplete="off" placeholder="tonnom" value="' + esc(pw.pp) + '">') +
       row('rl', 'Revolut', '<span class="mp-pre">revolut.me/</span><input id="rl" type="text" maxlength="40" autocapitalize="none" autocomplete="off" placeholder="tonnom" value="' + esc(pw.rv) + '">') +
-      '<div class="mp-row mp-col"><label for="pp">Autre moyen</label><textarea id="pp" maxlength="200" rows="2" placeholder="Wero ou Lydia au 06 12 34 56 78">' + esc(pw.txt) + '</textarea></div></div><p class="mp-note">Avec PayPal ou Revolut, elle a un bouton « Payer » qui l’y emmène, montant compris.</p>';
-    h += '<button class="btn" style="margin-top:24px">' + (first ? 'Créer ma page' : 'Enregistrer') + '</button></form>' + (first ? '' : '<div class="mespace"></div>');
+      row('pwe', 'Wero', '<input id="pwe" type="tel" maxlength="20" autocomplete="off" placeholder="06 12 34 56 78" value="' + esc(pw.we) + '">') +
+      '<div class="mp-row mp-col"><label for="pp">Autre moyen</label><textarea id="pp" maxlength="160" rows="2" placeholder="Lydia, espèces à l’arrivée…">' + esc(pw.txt) + '</textarea></div></div><p class="mp-note">Avec PayPal ou Revolut, elle a un bouton « Payer » qui l’y emmène, montant compris. Pour Wero, elle a un bouton « Copier » sur ton numéro.</p>';
+    h += '<button class="btn" style="margin-top:24px">' + (first ? 'Créer ma page' : 'Enregistrer') + '</button></div></form>' + (first ? '' : '<div id="pbx"' + pvh('look') + ' style="margin-top:22px">' + pasteBox(false) + '</div><div class="mespace"></div>');
     return h;
   }
   // ----- prestations -----
@@ -141,10 +151,11 @@
     var pic = p.avatar_url || p.cover_url, on = p.published !== false;
     function row(ic, t, s, attr) { return '<button type="button" class="srow" ' + attr + '>' + svg(ic, 22, 1.8) + '<span class="grow"><b>' + t + '</b><span class="mut">' + s + '</span></span>' + svg(I.chev, 18) + '</button>'; }
     var h = note() + '<section class="acct"><div class="acct-id"><span class="acct-av"' + (pic ? ' style="' + U.bg(pic) + '"' : '') + '>' + (pic ? '' : esc((p.name || '?').charAt(0).toUpperCase())) + '</span><div class="grow"><b class="acct-name">' + esc(p.name) + '</b><span class="mut">' + esc(em) + '</span></div></div>' +
-      '<div class="acct-link"><div class="grow"><span class="mut">Ton lien de réservation</span><b>' + esc(link().replace(/^https?:\/\//, '')) + '</b></div><button type="button" class="btn sm dark" data-act="copy">Copier</button></div></section>' +
+      '</section>' + linkBox() +
       (p.plan === 'fondatrice' ? '<p class="fndb"><b>Fondatrice' + (p.founder_no ? ' n° ' + p.founder_no : '') + '</b> Perle est gratuit à vie pour toi, sans commission.</p>' : '') +
-      '<div class="nums"><div><b>' + up + '</b><span>à venir</span></div><div><b>' + n + '</b><span>prestation' + (n > 1 ? 's' : '') + '</span></div><div><b class="live' + (on ? ' on' : '') + '"><i></i>' + (on ? 'En ligne' : 'Masquée') + '</b><span>ta page</span></div></div>' +
+      '<div class="nums"><div><b>' + up + '</b><span>à venir</span></div><div><b>' + n + '</b><span>prestation' + (n > 1 ? 's' : '') + '</span></div><div><b class="live' + (on ? ' on' : '') + '"><i></i>' + (on ? 'En ligne' : 'Masquée') + '</b><span>ta page</span></div></div>' + dashBox() +
       '<div class="slist" style="margin-top:22px">' +
+      row(I.user, 'Mes clientes', 'Importer ma liste et leur envoyer mon lien', 'data-act="cli"') + (st.cli ? cliBox() : '') +
       row(I.lock, 'Mot de passe', 'En choisir un nouveau', 'data-act="pw"') +
       ((st.pw || st.recovery) ? '<form id="fw" class="spw"><label for="np">Nouveau mot de passe (8 caractères au moins)</label><input id="np" type="password" autocomplete="new-password" minlength="8" required><button class="btn" style="margin-top:12px">Enregistrer</button></form>' : '') +
       row(I.page, on ? 'Mettre ma page hors ligne' : 'Remettre ma page en ligne', on ? 'Elle est visible et on peut réserver' : 'Plus personne ne peut la voir ni réserver', 'data-act="pub"') +
@@ -196,7 +207,15 @@
       '<p class="mut">Mets tes vrais chiffres. Taux des prestations de services en micro-entreprise en 2026, donné à titre indicatif : à vérifier sur le site de l’Urssaf.</p>' +
       (st.edit ? '<button type="button" class="btn" style="margin-top:14px" data-act="cuse">Garder ' + c.prix + ' € pour cette prestation</button><button type="button" class="btn ghost" style="margin-top:10px" data-act="cback">Revenir sans changer</button>' : '<button type="button" class="btn" style="margin-top:14px" data-act="cback">Mettre à jour mes prix</button>');
   }
-  var NOMS = ['Knotless braids', 'Box braids', 'Fulani braids', 'Cornrows', 'Nattes collées', 'Vanilles', 'Passion twists', 'Départ de locks', 'Retwist locks', 'Faux locs', 'Crochet braids', 'Pose de perruque', 'Tissage', 'Dégradé', 'Coupe et barbe', 'Extensions de cils'];
+  var NOMS = ['Knotless braids', 'Box braids', 'Fulani braids', 'Cornrows', 'Nattes collées', 'Vanilles', 'Passion twists', 'Départ de locks', 'Retwist locks', 'Faux locs', 'Crochet braids', 'Pose de perruque', 'Tissage', 'Retrait de tresses', 'Dégradé', 'Coupe et barbe', 'Extensions de cils'];
+  // [nom, durée en minutes, prix proposé, bas de la fourchette, haut de la fourchette]
+  var REP = [['Knotless braids', 300, 120, 80, 220], ['Box braids', 240, 100, 45, 150], ['Fulani braids', 150, 80, 60, 120], ['Nattes collées', 90, 50, 30, 100], ['Cornrows', 90, 50, 30, 100], ['Vanilles', 180, 80, 40, 160], ['Tissage', 150, 80, 45, 115], ['Pose de perruque', 120, 80, 50, 150], ['Départ de locks', 240, 150, 90, 230], ['Retwist locks', 75, 60, 40, 70], ['Retrait de tresses', 90, 60, 50, 100]];
+  // options courantes pour les tresses : le premier choix est celui de base (le moins cher)
+  var OPT_T = [{ group: 'Taille des tresses', choices: [{ label: 'L', plus: 0, minutes: 0 }, { label: 'M', plus: 10, minutes: 30 }, { label: 'S', plus: 30, minutes: 60 }] }, { group: 'Longueur', choices: [{ label: 'Épaules', plus: 0, minutes: 0 }, { label: 'Milieu du dos', plus: 15, minutes: 30 }, { label: 'Taille', plus: 30, minutes: 60 }] }, { group: 'Mèches', choices: [{ label: 'Non fournies', plus: 0, minutes: 0 }, { label: 'Fournies', plus: 20, minutes: 0 }] }];
+  var OPT_M = [{ group: 'Mèches', choices: [{ label: 'Non fournies', plus: 0, minutes: 0 }, { label: 'Fournies', plus: 20, minutes: 0 }] }];
+  function optsFor(n) { return /knotless|box braids|fulani|vanilles/i.test(n) ? OPT_T : /nattes|cornrows|tissage/i.test(n) ? OPT_M : []; }
+  function repOf(n) { n = String(n || '').trim().toLowerCase(); return REP.filter(function (r) { return r[0].toLowerCase() === n; })[0] || null; }
+  function repTxt(n) { var r = repOf(n); return r ? 'Repère : entre ' + r[3] + ' et ' + r[4] + ' € en Île-de-France, selon la taille, la longueur et le lieu. Tu fixes le prix que tu veux.' : 'Tu fixes le prix que tu veux.'; }
   function dl(id, a) { return '<datalist id="' + id + '">' + a.map(function (x) { return '<option value="' + esc(x) + '">'; }).join('') + '</datalist>'; }
   function services() {
     var h = note() + impBox();
@@ -204,16 +223,16 @@
     if (st.edit) {
       var s = st.edit;
       return h + '<form id="fs"><h2 style="margin-top:0">' + (s.id ? 'Modifier la prestation' : 'Nouvelle prestation') + '</h2><label>Photo de cette coiffure</label>' + picker('sphoto', s.photo_url, 'Choisir une photo') +
-        '<label for="sn">Nom</label><input id="sn" type="text" maxlength="60" required placeholder="Knotless braids" list="snl" value="' + esc(s.name || '') + '">' + dl('snl', NOMS) + '<span class="mut">Si ta coiffure est dans la liste proposée, garde ce nom : les clientes te trouvent plus facilement.</span>' +
-        '<div class="grid2"><div><label for="sp">Prix de base, en €</label><input id="sp" type="number" min="0" max="2000" step="1" required value="' + esc(s.price == null ? '' : s.price) + '"></div><div><label for="sm">Durée, en minutes</label><input id="sm" type="number" min="15" max="720" step="15" required value="' + esc(s.minutes || '') + '"></div></div>' +
+        '<label for="sn">Nom</label><input id="sn" type="text" maxlength="60" required placeholder="Knotless braids" list="snl" value="' + esc(s.name || '') + '">' + dl('snl', NOMS) + (s.id ? '' : '<div class="repc" role="group" aria-label="Coiffures courantes">' + REP.filter(function (r) { return r[0] !== 'Cornrows'; }).map(function (r) { return '<button type="button" data-act="rep" data-n="' + esc(r[0]) + '" aria-pressed="' + (String(s.name || '') === r[0]) + '">' + esc(r[0]) + '</button>'; }).join('') + '</div>') + '<span class="mut">' + (s.id ? 'Si ta coiffure est dans la liste proposée, garde ce nom : les clientes te trouvent plus facilement.' : 'Touche une coiffure : la durée, un prix de départ et les options courantes (taille, longueur, mèches) se remplissent. Tu changes ou tu supprimes tout ce que tu veux.') + '</span>' +
+        '<div class="grid2"><div><label for="sp">Prix de base, en €</label><input id="sp" type="number" min="0" max="2000" step="1" required value="' + esc(s.price == null ? '' : s.price) + '"></div><div><label for="sm">Durée, en minutes</label><input id="sm" type="number" min="15" max="720" step="15" required value="' + esc(s.minutes || '') + '"></div></div><span class="mut" id="srep">' + repTxt(s.name) + '</span>' +
         '<label for="sprep">Consignes avant le rendez-vous (facultatif)</label><textarea id="sprep" maxlength="300" placeholder="Exemple : cheveux lavés, démêlés et séchés. Mèches non fournies : 3 paquets de X-pression.">' + esc(s.prep || '') + '</textarea><span class="mut">La cliente les voit dès qu’elle réserve : plus besoin de les répéter par message.</span>' +
         '<button type="button" class="link" style="margin-top:10px" data-act="calcfrom">Combien je gagne vraiment avec ce prix ?</button>' +
         optEditor(s.options) + dl('ogl', ['Taille des tresses', 'Longueur', 'Mèches']) + dl('oll', ['S', 'M', 'L', 'Épaules', 'Milieu du dos', 'Taille', 'Fournies', 'Non fournies']) +
-        '<button class="btn" style="margin-top:18px">Enregistrer</button><button type="button" class="btn ghost" style="margin-top:10px" data-act="cancel">Annuler</button>' + (s.id ? '<button type="button" class="btn ghost" style="margin-top:10px;color:var(--err)" data-act="del">Supprimer cette prestation</button>' : '') + '</form>';
+        '<button class="btn" style="margin-top:18px">Enregistrer</button><button type="button" class="btn ghost" style="margin-top:10px" data-act="cancel">Annuler</button>' + (s.id ? '<button type="button" class="btn ghost" style="margin-top:10px" data-act="pause">' + (s.active === false ? 'Remettre sur ma page' : 'Mettre en pause (cachée de ta page)') + '</button>' : '') + (s.id ? '<button type="button" class="btn ghost" style="margin-top:10px;color:var(--err)" data-act="del">Supprimer cette prestation</button>' : '') + '</form>';
     }
     if (!st.svcs.length) h += '<p class="note info">Ajoute ta première prestation pour que tes clientes puissent réserver.</p>';
     st.svcs.forEach(function (s, i) {
-      h += '<button class="svc" data-edit="' + i + '">' + thumb(s.photo_url) + '<span class="grow"><span class="b">' + esc(s.name) + '</span><br><span class="mut">' + U.dur(s.minutes) + ((s.options || []).length ? ', ' + s.options.length + ' option' + (s.options.length > 1 ? 's' : '') : '') + '</span></span><span class="big">' + U.eur(s.price) + '</span></button>';
+      h += '<button class="svc' + (s.active === false ? ' off' : '') + '" data-edit="' + i + '">' + thumb(s.photo_url) + '<span class="grow"><span class="b">' + esc(s.name) + '</span><br><span class="mut">' + (s.active === false ? 'En pause · ' : '') + U.dur(s.minutes) + ((s.options || []).length ? ', ' + s.options.length + ' option' + (s.options.length > 1 ? 's' : '') : '') + '</span></span><span class="big">' + U.eur(s.price) + '</span></button>';
     });
     return h + '<button class="btn dark" data-act="new">' + svg(I.plus, 18, 2.4) + 'Ajouter une prestation</button><button class="btn ghost" style="margin-top:10px" data-act="calc">Calculer mon vrai prix</button>';
   }
@@ -222,33 +241,35 @@
     var H = st.pro.hours || {}, tot = 0, nb = 0, step = st.pro.slot_step || 30;
     DAYS.forEach(function (d) { var r = (H[d[0]] || [])[0]; if (r) { nb++; var x = r[0].split(':'), y = r[1].split(':'); tot += (+y[0] * 60 + +y[1]) - (+x[0] * 60 + +x[1]); } });
     var hh = Math.round(tot / 6) / 10;
-    var h = note() + '<div class="hsum"><div><b>' + String(hh).replace('.', ',') + '<small>h</small></b><span>ouvertes par semaine</span></div><div class="hweek" aria-hidden="true">' + DAYS.map(function (d) { return '<i class="' + ((H[d[0]] || [])[0] ? 'on' : '') + '">' + d[1].charAt(0) + '</i>'; }).join('') + '</div></div><form id="fh"><div class="slist">';
+    var hv = st.hv || 'week';
+    var h = note() + '<div class="seg hvt" role="group" aria-label="Partie affichée">' + [['week', 'Ma semaine'], ['off', 'Jours bloqués'], ['set', 'Réglages']].map(function (o) { return '<button type="button" data-act="hv" data-v="' + o[0] + '" aria-pressed="' + (hv === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div><form id="fh"><div data-hv="week"' + (hv === 'week' ? '' : ' hidden') + '><p class="hline">' + (nb ? 'Ouverte <b>' + nb + ' jour' + (nb > 1 ? 's' : '') + '</b> par semaine, <b>' + String(hh).replace('.', ',') + ' h</b> en tout' : 'Aucun jour ouvert pour l’instant') + '</p><div class="slist hlist">';
     DAYS.forEach(function (d) {
       var r = (H[d[0]] || [])[0];
       h += '<div class="hrow"><label class="sw"><input type="checkbox" id="on' + d[0] + '"' + (r ? ' checked' : '') + '><i></i><span>' + d[1] + '</span></label><div class="htimes"><input type="time" id="a' + d[0] + '" aria-label="' + d[1] + ', début" value="' + (r ? r[0] : '09:00') + '"><span aria-hidden="true">→</span><input type="time" id="b' + d[0] + '" aria-label="' + d[1] + ', fin" value="' + (r ? r[1] : '18:00') + '"></div><span class="hoff">Fermé</span></div>';
     });
-    h += '</div><p class="sect">Un créneau proposé toutes les</p><div class="seg" role="radiogroup" aria-label="Durée entre deux créneaux">' + [15, 30, 60].map(function (n) { return '<label><input type="radio" name="hs" value="' + n + '"' + (step === n ? ' checked' : '') + '><span>' + (n === 60 ? '1 heure' : n + ' min') + '</span></label>'; }).join('') + '</div>';
+    h += '</div><button class="btn" style="margin-top:18px">Enregistrer</button></div><div data-hv="set"' + (hv === 'set' ? '' : ' hidden') + '><p class="sect" style="margin-top:6px">Un créneau proposé toutes les</p><div class="seg" role="radiogroup" aria-label="Durée entre deux créneaux">' + [15, 30, 60].map(function (n) { return '<label><input type="radio" name="hs" value="' + n + '"' + (step === n ? ' checked' : '') + '><span>' + (n === 60 ? '1 heure' : n + ' min') + '</span></label>'; }).join('') + '</div>';
     var buf = st.pro.buffer_min || 0, lead = st.pro.lead_hours || 1, cl = st.pro.closed || [];
     function seg(name, lab, opts, cur) { return '<p class="sect">' + lab + '</p><div class="seg" role="radiogroup" aria-label="' + lab + '">' + opts.map(function (o) { return '<label><input type="radio" name="' + name + '" value="' + o[0] + '"' + (cur === o[0] ? ' checked' : '') + '><span>' + o[1] + '</span></label>'; }).join('') + '</div>'; }
     h += seg('hb', 'Pause entre deux clientes', [[0, 'Aucune'], [15, '15 min'], [30, '30 min'], [60, '1 heure']], buf);
     h += seg('hl', 'On peut réserver jusqu’à', [[1, '1 h avant'], [3, '3 h'], [12, '12 h'], [24, 'la veille']], lead);
-    h += '<button class="btn" style="margin-top:22px">Enregistrer</button></form>';
+    h += '<button class="btn" style="margin-top:22px">Enregistrer</button></div></form><div data-hv="off"' + (hv === 'off' ? '' : ' hidden') + '>';
     function fr(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }); }
     var td = new Date(), ts = td.getFullYear() + '-' + ('0' + (td.getMonth() + 1)).slice(-2) + '-' + ('0' + td.getDate()).slice(-2);
-    h += '<h2>Congés et jours fermés</h2><p class="mut">Ces jours-là, aucun créneau n’est proposé. C’est enregistré tout de suite.</p>';
+    h += '<h2 style="margin-top:6px">Des jours entiers</h2><p class="mut">Congés, jours fermés : ces jours-là, aucun créneau n’est proposé. C’est enregistré tout de suite.</p>';
     cl.forEach(function (r, i) { if (r[1] >= ts) h += '<div class="card row" style="margin-bottom:8px;border-radius:22px;padding:10px 12px 10px 16px"><span class="grow b">' + (r[0] === r[1] ? 'Le ' + fr(r[0]) : 'Du ' + fr(r[0]) + ' au ' + fr(r[1])) + '</span><button type="button" class="btn sm ghost" data-act="cldel" data-i="' + i + '">Retirer</button></div>'; });
     h += '<div class="grid2"><div><label for="c0">Du</label><input id="c0" type="date" style="box-sizing:border-box;min-width:0;width:100%;min-height:52px;border-radius:26px;border:1px solid var(--line);background:var(--soft);padding:12px 14px;font-size:16px" min="' + ts + '"></div><div><label for="c1">Au (inclus)</label><input id="c1" type="date" style="box-sizing:border-box;min-width:0;width:100%;min-height:52px;border-radius:26px;border:1px solid var(--line);background:var(--soft);padding:12px 14px;font-size:16px" min="' + ts + '"></div></div><button type="button" class="btn dark" style="margin-top:12px" data-act="cladd">Bloquer ces jours</button>';
     var bh = Math.min(td.getHours() + 1, 21), bl = st.pro.blocks || [], nowI = new Date().toISOString(), fi = 'box-sizing:border-box;min-width:0;width:100%;min-height:52px;border-radius:14px;border:1px solid var(--line);background:#fff;padding:12px 14px;font-size:16px';
-    h += '<h2>Bloquer un créneau</h2><p class="mut">Un imprévu, une pause, un rendez-vous pris ailleurs : ces heures ne sont plus proposées. C’est enregistré tout de suite.</p>';
+    h += '<h2>Quelques heures</h2><p class="mut">Un imprévu, une pause, un rendez-vous pris ailleurs : ces heures ne sont plus proposées. C’est enregistré tout de suite.</p>';
     bl.forEach(function (r, i) { if (r[1] > nowI) { var a = new Date(r[0]), z = new Date(r[1]); h += '<div class="card row" style="margin-bottom:8px;border-radius:14px;padding:10px 12px 10px 16px"><span class="grow b">' + a.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }) + ', ' + U.hm(a) + ' – ' + U.hm(z) + '</span><button type="button" class="btn sm ghost" data-act="blkdel" data-i="' + i + '">Retirer</button></div>'; } });
-    h += '<div><label for="kb0">Jour</label><input id="kb0" type="date" style="' + fi + '" min="' + ts + '" value="' + ts + '"></div><div class="grid2" style="margin-top:8px"><div><label for="kb1">De</label><input id="kb1" type="time" style="' + fi + '" value="' + ('0' + bh).slice(-2) + ':00"></div><div><label for="kb2">À</label><input id="kb2" type="time" style="' + fi + '" value="' + ('0' + (bh + 2)).slice(-2) + ':00"></div></div><button type="button" class="btn dark" style="margin-top:12px" data-act="blkadd">Bloquer ce créneau</button>';
+    h += '<div><label for="kb0">Jour</label><input id="kb0" type="date" style="' + fi + '" min="' + ts + '" value="' + ts + '"></div><div class="grid2" style="margin-top:8px"><div><label for="kb1">De</label><input id="kb1" type="time" style="' + fi + '" value="' + ('0' + bh).slice(-2) + ':00"></div><div><label for="kb2">À</label><input id="kb2" type="time" style="' + fi + '" value="' + ('0' + (bh + 2)).slice(-2) + ':00"></div></div><button type="button" class="btn dark" style="margin-top:12px" data-act="blkadd">Bloquer ce créneau</button></div>';
     return h + '<div class="mespace"></div>';
   }
   // ----- rendez-vous -----
   function photoFor(b) { var s = st.svcs.filter(function (x) { return x.id === b.service_id; })[0]; return (s && s.photo_url) || st.pro.cover_url || ''; }
   function acts(b, now) {
     var s = new Date(b.starts_at), a = '';
-    if (b.status === 'attente') a += '<button class="btn sm" data-st="confirme" data-id="' + esc(b.id) + '">Acompte reçu</button>';
+    if (pend(b)) a += '<button class="btn sm" data-act="accept" data-id="' + esc(b.id) + '">Accepter</button><button class="btn sm ghost" data-st="annule" data-id="' + esc(b.id) + '">Refuser</button>';
+    else if (b.status === 'attente') a += '<button class="btn sm" data-st="confirme" data-id="' + esc(b.id) + '">Acompte reçu</button>';
     if (b.status === 'confirme' && s.getTime() < now) a += '<button class="btn sm dark" data-st="fait" data-id="' + esc(b.id) + '">Rendez-vous fait</button>';
     if (b.status === 'confirme' && s.getTime() < now && b.price - b.deposit > 0) a += '<a class="btn sm" href="sms:' + esc(intl(b.client_phone)) + '?&body=' + encodeURIComponent(restMsg(b)) + '">Demander le reste</a>';
     a += '<a class="btn sm ghost" href="tel:' + esc(b.client_phone) + '">Appeler</a>';
@@ -269,6 +290,24 @@
   function intl(p) { return String(p || '').replace(/[^0-9+]/g, '').replace(/^0/, '+33'); }
   // message prêt à envoyer pour proposer à une cliente de revenir
   function backMsg(b) { return 'Bonjour ' + String(b.client_name || '').split(' ')[0] + ', c’est ' + st.pro.name + '. J’espère que tu es contente de ta coiffure ! Quand tu voudras la refaire, tu peux reprendre rendez-vous ici : ' + link() + (b.service_id ? (link().indexOf('?') < 0 ? '?' : '&') + 's=' + b.service_id : ''); }
+  function accMsg(b) {
+    var fn = String(b.client_name || '').split(' ')[0], s = new Date(b.starts_at), pay = String(st.pro.pay_info || '').split('\n').map(function (x) { return x.trim(); }).filter(Boolean).join(' · ');
+    return 'Bonjour ' + fn + ', c’est ' + st.pro.name + '. J’accepte ton rendez-vous du ' + U.day(s) + ' à ' + U.hm(s) + ' pour ' + b.service_name + '. Pour bloquer ta place, envoie l’acompte de ' + U.eur(b.deposit) + (pay ? ' (' + pay + ')' : '') + ' en indiquant la référence ' + b.ref + '. À bientôt !';
+  }
+  function okMsg(b) {
+    var fn = String(b.client_name || '').split(' ')[0], s = new Date(b.starts_at), sv = st.svcs.filter(function (x) { return x.id === b.service_id; })[0], ad = String((st.priv || {}).address || '').trim();
+    return 'Bonjour ' + fn + ', c’est ' + st.pro.name + '. J’ai bien reçu ton acompte de ' + U.eur(b.deposit) + ' : ton rendez-vous du ' + U.day(s) + ' à ' + U.hm(s) + ' pour ' + b.service_name + ' est confirmé.' + (ad ? ' L’adresse : ' + ad + '.' : '') + (sv && sv.prep ? ' Avant de venir : ' + sv.prep : '') + (b.price - b.deposit > 0 ? ' Il restera ' + U.eur(b.price - b.deposit) + ' à régler sur place.' : '') + ' À bientôt !';
+  }
+  function remMsg(b) { var fn = String(b.client_name || '').split(' ')[0], s = new Date(b.starts_at), sv = st.svcs.filter(function (x) { return x.id === b.service_id; })[0]; return 'Bonjour ' + fn + ', c’est ' + st.pro.name + '. Petit rappel : on se voit ' + U.day(s) + ' à ' + U.hm(s) + ' pour ' + b.service_name + '.' + (sv && sv.prep ? ' Avant de venir : ' + sv.prep : '') + ' Il restera ' + U.eur(b.price - b.deposit) + ' à régler. À très vite !'; }
+  function weeksFor(n) { return /retwist|locks/i.test(n) ? 4 : /tress|braid|natte|vanille|twist|cornrow|tissage|perruque/i.test(n) ? 6 : 0; }
+  function toSend(now) {
+    var h = '', d1 = new Date(); d1.setHours(24, 0, 0, 0); var t1 = d1.getTime(), t2 = t1 + 864e5, n = 0;
+    function line(b, t, s, m) { var e = encodeURIComponent(m), ph = intl(b.client_phone); return '<div class="tsr"><span class="grow"><b>' + esc(b.client_name) + '</b><span class="mut">' + t + '</span></span><a class="btn sm ghost" href="https://wa.me/' + esc(ph.replace('+', '')) + '?text=' + e + '" target="_blank" rel="noopener">WhatsApp</a><a class="btn sm ghost" href="sms:' + esc(ph) + '?&body=' + e + '">SMS</a></div>'; }
+    st.rdv.filter(function (b) { var s = new Date(b.starts_at).getTime(); return b.status === 'confirme' && s >= t1 && s < t2 && !b.client_email; }).forEach(function (b) { if (n < 4) { n++; h += line(b, 'Demain à ' + U.hm(new Date(b.starts_at)) + ' · rappel et consignes', 0, remMsg(b)); } });
+    var last = {}, next = {}; st.rdv.forEach(function (b) { var k = b.client_phone; if (!k) return; var s = new Date(b.starts_at).getTime(); if (b.status === 'fait' && (!last[k] || s > new Date(last[k].starts_at).getTime())) last[k] = b; if ((b.status === 'attente' || b.status === 'confirme') && s > now) next[k] = 1; });
+    Object.keys(last).forEach(function (k) { var b = last[k], w = weeksFor(b.service_name), ago = Math.floor((now - new Date(b.starts_at).getTime()) / 6048e5); if (!w || next[k] || ago < w || ago > w + 3 || n >= 6 || ((st.notes || {})[k] || {}).flag) return; n++; h += line(b, esc(b.service_name) + ' il y a ' + ago + ' semaines · lui proposer de revenir', 0, backMsg(b)); });
+    return h ? '<h2 class="agh">À envoyer</h2><p class="mut agp">Le message est déjà écrit, tu n’as qu’à l’envoyer.</p><div class="tsl">' + h + '</div>' : '';
+  }
   function sendLinks(b, lab, txt) { var m = encodeURIComponent(txt); return '<div class="row" style="gap:8px;margin-top:8px"><span class="grow">' + lab + '</span><a class="btn sm ghost" href="sms:' + esc(intl(b.client_phone)) + '?&body=' + m + '">SMS</a><a class="btn sm ghost" href="https://wa.me/' + esc(intl(b.client_phone).replace('+', '')) + '?text=' + m + '" target="_blank" rel="noopener">WhatsApp</a></div>'; }
   function fiche(b) {
     var all = st.rdv.filter(function (x) { return x.client_phone === b.client_phone; }), done = all.filter(function (x) { return x.status === 'fait'; }).length, ann = all.filter(function (x) { return x.status === 'annule'; }).length, n = (st.notes || {})[b.client_phone] || {}, fn = String(b.client_name || '').split(' ')[0], s = new Date(b.starts_at), sv = st.svcs.filter(function (x) { return x.id === b.service_id; })[0];
@@ -276,8 +315,8 @@
     h += '<details class="fiche" style="margin-top:8px"><summary class="mut" style="cursor:pointer">Fiche, messages et autres actions : ' + (done ? done + ' coiffure' + (done > 1 ? 's' : '') + ' faite' + (done > 1 ? 's' : '') : 'première venue') + (ann ? ', ' + ann + ' annulation' + (ann > 1 ? 's' : '') : '') + '</summary><textarea maxlength="300" aria-label="Note sur cette cliente" placeholder="Note pour toi seule : cuir chevelu sensible, préfère le matin…" style="margin-top:8px">' + esc(n.note || '') + '</textarea><label class="row" style="gap:8px;margin-top:8px"><input type="checkbox"' + (n.flag ? ' checked' : '') + ' style="width:auto"><span>À surveiller (rendez-vous manqué, retard…)</span></label><button type="button" class="btn sm dark" style="margin-top:10px" data-act="note" data-phone="' + esc(b.client_phone) + '">Enregistrer la fiche</button>';
     if ((b.status === 'attente' || b.status === 'confirme') && new Date(b.ends_at).getTime() > Date.now()) {
       h += '<p class="b" style="margin:16px 0 0">Messages prêts à envoyer</p>';
-      if (b.status === 'confirme') h += sendLinks(b, 'Acompte bien reçu', 'Bonjour ' + fn + ', c’est ' + st.pro.name + '. J’ai bien reçu ton acompte de ' + U.eur(b.deposit) + ' : ton rendez-vous du ' + U.day(s) + ' à ' + U.hm(s) + ' est confirmé. À bientôt !');
-      h += sendLinks(b, 'Rappel du rendez-vous', 'Bonjour ' + fn + ', c’est ' + st.pro.name + '. Petit rappel : on se voit ' + U.day(s) + ' à ' + U.hm(s) + ' pour ' + b.service_name + '.' + (sv && sv.prep ? ' Avant de venir : ' + sv.prep : '') + ' Il restera ' + U.eur(b.price - b.deposit) + ' à régler. À très vite !');
+      if (b.status === 'confirme') h += sendLinks(b, 'Acompte bien reçu', okMsg(b));
+      h += sendLinks(b, 'Rappel du rendez-vous', remMsg(b));
       h += sendLinks(b, 'J’ai du retard', 'Bonjour ' + fn + ', c’est ' + st.pro.name + '. J’ai environ 15 minutes de retard, désolée ! Je te préviens dès que je suis prête.');
     }
     var x = '', now2 = Date.now();
@@ -288,31 +327,112 @@
     return h + '</details>';
   }
   function detail(b) { return '<div class="mut" style="margin-top:10px">' + esc(b.client_phone) + '. Référence ' + esc(b.ref) + '. Acompte ' + U.eur(b.deposit) + ', reste ' + U.eur(b.price - b.deposit) + '.' + (b.note ? '<br>« ' + esc(b.note) + ' »' : '') + '</div>' + (b.status === 'attente' && b.paid_claimed_at ? '<p class="note ok" style="margin-top:8px"><b>' + esc(String(b.client_name || '').split(' ')[0]) + ' dit avoir envoyé l’acompte.</b> Vérifie ton compte, puis confirme.</p>' : ''); }
-  function stOf(b, now) { return (b.status === 'attente' && now - new Date(b.created_at).getTime() > 864e5) ? 'expire' : b.status; }
-  function rdv() {
-    var now = Date.now(), up = st.rdv.filter(function (b) { var e = new Date(b.ends_at).getTime(); return (e >= now || (b.status === 'confirme' && e >= now - 2 * 864e5)) && b.status !== 'annule' && stOf(b, now) !== 'expire'; }), old = st.rdv.filter(function (b) { return up.indexOf(b) < 0; }).reverse();
-    var h = note(), t = new Date(), wk = '', ag = Math.max(0, Math.min(6, st.agDay || 0));
-    if (!String(st.pro.pay_info || '').trim()) h += '<p class="note info"><b>Ta page n’est pas encore en ligne.</b> Indique comment recevoir l’acompte : elle sera en ligne dès que c’est enregistré.</p><button type="button" class="btn dark" style="margin:10px 0 14px" data-tab="pro">Indiquer mon moyen de paiement</button>';
-    var hrsOk = false; try { hrsOk = !!localStorage.getItem('perle-hrs-' + st.pro.id); } catch (e) {}
-    var todo = [[true, 'pro', 'Crée ta page', 'C’est fait, elle est en ligne'], [st.svcs.length > 0, 'svc', 'Ajoute ta première coiffure', 'Avec son prix et sa durée'], [hrsOk, 'hrs', 'Vérifie tes horaires', 'Ce sont des horaires par défaut : mets les tiens'], [!!st.pro.pay_info, 'pro', 'Dis comment recevoir l’acompte', 'Ton PayPal, ton Revolut ou un autre moyen'], [!!(st.pro.cover_url || st.pro.avatar_url), 'pro', 'Mets une photo', 'Une page avec photo donne confiance']], left = todo.filter(function (x) { return !x[0]; }).length;
-    var gd = ''; if (left) gd = '<section class="start"><b>Encore ' + left + ' chose' + (left > 1 ? 's' : '') + ' à faire avant de partager ton lien</b><div class="start-bar" role="img" aria-label="' + (todo.length - left) + ' étapes faites sur ' + todo.length + '"><span style="width:' + Math.round(100 * (todo.length - left) / todo.length) + '%"></span></div><p class="start-n">' + (todo.length - left) + ' sur ' + todo.length + ' déjà fait' + (todo.length - left > 1 ? 'es' : 'e') + '</p>' + todo.filter(function (x) { return !x[0]; }).map(function (x) { return '<button type="button" class="start-row' + (x[0] ? ' ok' : '') + '" data-tab="' + x[1] + '"><i aria-hidden="true">' + (x[0] ? '✓' : '') + '</i><span class="grow"><span class="b">' + x[2] + '</span><span class="mut">' + x[3] + '</span></span>' + svg(I.chev, 18) + '</button>'; }).join('') + '</section>';
-    if (!up.length) h += gd;
-    for (var i = 0; i < 7; i++) { var d = new Date(t.getFullYear(), t.getMonth(), t.getDate() + i), has = up.some(function (b) { var s = new Date(b.starts_at); return s.toDateString() === d.toDateString(); }); wk += '<button type="button" data-agd="' + i + '" aria-pressed="' + (i === ag) + '"><span>' + d.toLocaleDateString('fr-FR', { weekday: 'short' }) + '</span><b>' + d.getDate() + '</b>' + (has ? '<i></i>' : '') + '</button>'; }
-    var wait = up.filter(function (b) { return b.status === 'attente'; }).length, sum = up.reduce(function (a, b) { return a + Number(b.price); }, 0);
-    var nUp = up.filter(function (b) { return new Date(b.ends_at).getTime() >= now; }).length;
-    h += '<p class="agsum"><b>' + nUp + '</b> rendez-vous à venir · <b>' + U.eur(sum) + '</b> ' + (wait ? 'dont ' + wait + ' acompte' + (wait > 1 ? 's' : '') + ' à recevoir' : 'prévus') + '</p><div class="agwk" role="group" aria-label="Jour affiché">' + wk + '</div>';
+  // ----- une seule chose à la fois : la demande à traiter, sinon le rendez-vous du jour -----
+  function todayB(up, now) {
+    var d0 = new Date(); d0.setHours(0, 0, 0, 0);
+    var l = up.filter(function (b) { var s = new Date(b.starts_at).getTime(); return b.status === 'confirme' && s >= d0.getTime() && s < d0.getTime() + 864e5; }).sort(function (a, c) { return a.starts_at < c.starts_at ? -1 : 1; });
+    return l.filter(function (x) { return new Date(x.ends_at).getTime() >= now; })[0] || l[l.length - 1] || null;
+  }
+  function hero(up, now) {
+    var jb = st.just ? up.filter(function (b) { return b.id === st.just && (b.status === 'confirme' || (b.status === 'attente' && !pend(b))); })[0] : null;
+    if (jb) {
+      var jacc = jb.status === 'attente', jm = jacc ? accMsg(jb) : okMsg(jb), je = encodeURIComponent(jm), jf = esc(String(jb.client_name || '').split(' ')[0]), jp = intl(jb.client_phone);
+      return '<div class="phr"><span class="phr-k">' + (jacc ? 'Demande acceptée · acompte à recevoir' : 'Acompte reçu · rendez-vous confirmé') + '</span><b class="phr-n">Préviens ' + jf + '</b><p class="phr-msg">' + esc(jm) + '</p>' + (jacc || String((st.priv || {}).address || '').trim() ? '' : '<span class="phr-w" style="margin-bottom:12px">Ajoute ton adresse dans Ma page, « Me joindre » : elle sera mise dans ce message.</span>') + '<div class="phr-2"><a class="btn" data-just="1" href="https://wa.me/' + esc(jp.replace('+', '')) + '?text=' + je + '" target="_blank" rel="noopener">WhatsApp</a><a class="btn phr-o" data-just="1" href="sms:' + esc(jp) + '?&body=' + je + '">SMS</a></div><button type="button" class="phr-l" data-act="justno">Plus tard</button></div>';
+    }
+    var rq = up.filter(function (b) { return b.status === 'attente'; }), td = todayB(up, now), h = '', fn = td ? esc(String(td.client_name || '').split(' ')[0]) : '', s, step = '';
+    if (td) { s = new Date(td.starts_at); step = now >= s.getTime() ? ['st="fait"', 'C’est terminé'] : !td.pro_ready_at ? ['sig="ready"', 'Je suis prête'] : null; }
+    rq.sort(function (x, y) { return (pend(y) ? 1 : 0) - (pend(x) ? 1 : 0); });
+    if (rq.length && pend(rq[0])) {
+      var b0 = rq[0], s0 = new Date(b0.starts_at), np = rq.filter(pend).length;
+      h += '<div class="phr"><span class="phr-k">Nouvelle demande' + (np > 1 ? ' · 1 sur ' + np : '') + '</span><b class="phr-n">' + esc(b0.client_name) + '</b><span class="phr-w">' + esc(b0.service_name) + (b0.options_text ? ', ' + esc(b0.options_text) : '') + '</span><div class="phr-m phr-d"><b>' + esc(s0.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })) + ', ' + U.hm(s0) + '</b></div><span class="phr-w" style="margin:-8px 0 14px">' + U.eur(b0.price) + ', dont ' + U.eur(b0.deposit) + ' d’acompte une fois acceptée</span><button class="btn" data-act="accept" data-id="' + esc(b0.id) + '">Accepter</button><button type="button" class="phr-l" data-st="annule" data-id="' + esc(b0.id) + '">Refuser cette demande</button></div>';
+      if (td) h += '<div class="tdr"><span class="grow"><span class="mut">Aujourd’hui · ' + U.hm(s) + '</span><b>' + esc(td.client_name) + '</b></span>' + (step ? '<button type="button" class="btn sm dark" data-' + step[0] + ' data-id="' + esc(td.id) + '">' + step[1] + '</button>' : '<span class="mut">' + fn + ' est prévenue</span>') + '</div>';
+    } else if (rq.length) {
+      var b = rq[0], sb = new Date(b.starts_at);
+      h += '<div class="phr"><span class="phr-k">Acompte à recevoir' + (rq.length > 1 ? ' · 1 sur ' + rq.length : '') + '</span><b class="phr-n">' + esc(b.client_name) + '</b><span class="phr-w">' + esc(b.service_name) + ' · ' + esc(sb.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })) + ', ' + U.hm(sb) + '</span><div class="phr-m"><b>' + U.eur(b.deposit) + '</b><span>d’acompte à recevoir</span></div><button class="btn" data-st="confirme" data-id="' + esc(b.id) + '">Acompte reçu</button><button type="button" class="phr-l" data-st="annule" data-id="' + esc(b.id) + '">Refuser cette demande</button></div>';
+      if (td) h += '<div class="tdr"><span class="grow"><span class="mut">Aujourd’hui · ' + U.hm(s) + '</span><b>' + esc(td.client_name) + '</b></span>' + (step ? '<button type="button" class="btn sm dark" data-' + step[0] + ' data-id="' + esc(td.id) + '">' + step[1] + '</button>' : '<span class="mut">' + fn + ' est prévenue</span>') + '</div>';
+    } else if (td) {
+      var info = now >= s.getTime() ? 'La coiffure a commencé.' : (td.client_onway_at ? fn + ' est en route. ' : '') + (td.client_late_min > 0 ? 'Environ ' + td.client_late_min + ' min de retard annoncées.' : '');
+      h += '<div class="phr"><span class="phr-k">Aujourd’hui · ' + U.hm(s) + '</span><b class="phr-n">' + esc(td.client_name) + '</b><span class="phr-w">' + esc(td.service_name) + ' · ' + U.eur(td.price) + '</span>' + (info ? '<span class="phr-i">' + info + '</span>' : '') + (step ? '<button class="btn" style="margin-top:16px" data-' + step[0] + ' data-id="' + esc(td.id) + '">' + step[1] + (step[1] === 'Je suis prête' ? ' pour ' + fn : '') + '</button>' : '<span class="phr-i"><b>' + fn + ' sait que tu es prête.</b></span>') + '</div>';
+    }
+    return h;
+  }
+  function ymdOf(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function fullBox() {
+    if (!st.full) return '';
+    return '<div class="fullp"><b>Ne plus proposer de créneau :</b><div class="row" style="gap:8px;flex-wrap:wrap"><button type="button" class="btn sm dark" data-act="fullset" data-n="0">Aujourd’hui</button><button type="button" class="btn sm dark" data-act="fullset" data-n="1">Demain</button><button type="button" class="btn sm dark" data-act="fullset" data-n="7">7 jours</button></div><span class="mut">Tes rendez-vous déjà pris restent. Tu rouvres ces jours dans Horaires, « Jours bloqués ».</span></div>';
+  }
+  function pend(b) { return b.status === 'attente' && b.accepted_at === null; }
+  function stOf(b, now) { return (b.status === 'attente' && now - new Date(b.accepted_at || b.created_at).getTime() > 864e5) ? 'expire' : pend(b) ? 'demande' : b.status; }
+  function monthBox() {
     var d0 = new Date(), m0 = new Date(d0.getFullYear(), d0.getMonth(), 1).getTime(), m1 = new Date(d0.getFullYear(), d0.getMonth() + 1, 1).getTime();
     var mois = st.rdv.filter(function (b) { var t = new Date(b.starts_at).getTime(); return t >= m0 && t < m1 && (b.status === 'confirme' || b.status === 'fait'); });
     var tot = mois.reduce(function (a, b) { return a + Number(b.price); }, 0), acc = mois.reduce(function (a, b) { return a + Number(b.deposit); }, 0);
     var seen = {}, rev = 0; st.rdv.forEach(function (b) { if (b.status !== 'confirme' && b.status !== 'fait') return; var k = String(b.client_phone || '').replace(/\D/g, ''); if (!k) return; seen[k] = (seen[k] || 0) + 1; if (seen[k] === 2) rev++; });
     var mo = '<div class="pblk"><span class="mut">Ton mois de ' + d0.toLocaleDateString('fr-FR', { month: 'long' }) + '</span><div style="font-family:var(--hb);font-weight:700;font-size:38px;letter-spacing:-.03em;line-height:1.1">' + U.eur(tot) + '</div><div class="mut">' + mois.length + ' rendez-vous confirmé' + (mois.length > 1 ? 's' : '') + ', ' + U.eur(acc) + ' d’acomptes reçus, ' + U.eur(tot - acc) + ' sur place</div>' + (rev ? '<div class="mut" style="margin-top:4px">' + rev + ' cliente' + (rev > 1 ? 's sont revenues' : ' est revenue') + ' chez toi</div>' : '') + (mois.length ? '<a class="btn sm ghost" style="margin-top:12px" download="perle-' + d0.getFullYear() + '-' + ('0' + (d0.getMonth() + 1)).slice(-2) + '.csv" href="data:text/csv;charset=utf-8,' + encodeURIComponent('\ufeffDate;Cliente;Prestation;Prix;Acompte;Reste;Statut\r\n' + mois.map(function (b) { return [new Date(b.starts_at).toLocaleDateString('fr-FR'), b.client_name, b.service_name + (b.options_text ? ' (' + b.options_text + ')' : ''), String(b.price).replace('.', ','), String(b.deposit).replace('.', ','), String(Math.round((b.price - b.deposit) * 100) / 100).replace('.', ','), LAB[b.status]].map(function (c) { return '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"'; }).join(';'); }).join('\r\n')) + '">Télécharger le mois (tableur)</a>' : '') + '</div>';
+    return mo;
+  }
+  function dashBox() {
+    var okS = function (b) { return b.status === 'confirme' || b.status === 'fait'; }, key = function (b) { return String(b.client_phone || '').replace(/\D/g, ''); };
+    var d0 = new Date(), off = st.dm || 0, a0 = new Date(d0.getFullYear(), d0.getMonth() + off, 1), M = [];
+    for (var i = -5; i <= 0; i++) { var x = new Date(d0.getFullYear(), d0.getMonth() + i, 1), y = new Date(d0.getFullYear(), d0.getMonth() + i + 1, 1); M.push({ o: i, a: x.getTime(), z: y.getTime(), lab: x.toLocaleDateString('fr-FR', { month: 'short' }).replace('.', ''), tot: 0 }); }
+    st.rdv.forEach(function (b) { if (!okS(b)) return; var t = new Date(b.starts_at).getTime(); M.forEach(function (m) { if (t >= m.a && t < m.z) m.tot += Number(b.price); }); });
+    var cur = M.filter(function (m) { return m.o === off; })[0], prev = M.filter(function (m) { return m.o === off - 1; })[0], mx = Math.max.apply(null, M.map(function (m) { return m.tot; }).concat([1]));
+    var inM = st.rdv.filter(function (b) { var t = new Date(b.starts_at).getTime(); return t >= cur.a && t < cur.z; }), mois = inM.filter(okS), now = Date.now();
+    var tot = cur.tot, acc = mois.reduce(function (a, b) { return a + Number(b.deposit); }, 0), venir = mois.filter(function (b) { return new Date(b.starts_at).getTime() > now; }).length, ann = inM.filter(function (b) { return b.status === 'annule'; }).length;
+    var first = {}; st.rdv.filter(okS).forEach(function (b) { var k = key(b), t = new Date(b.starts_at).getTime(); if (k && (!first[k] || t < first[k])) first[k] = t; });
+    var cl = {}, nouv = 0; mois.forEach(function (b) { var k = key(b); if (k && !cl[k]) { cl[k] = 1; if (first[k] >= cur.a) nouv++; } }); var nc = Object.keys(cl).length;
+    var by = {}; mois.forEach(function (b) { var o = by[b.service_name] || (by[b.service_name] = { n: 0, e: 0 }); o.n++; o.e += Number(b.price); }); var top = Object.keys(by).sort(function (a, c) { return by[c].e - by[a].e; }).slice(0, 3);
+    var dw = [0, 0, 0, 0, 0, 0, 0]; mois.forEach(function (b) { dw[new Date(b.starts_at).getDay()]++; }); var di = dw.indexOf(Math.max.apply(null, dw));
+    var cmp = !mois.length ? 'Aucun rendez-vous confirmé ce mois-là.' : !prev || !prev.tot ? mois.length + ' rendez-vous confirmé' + (mois.length > 1 ? 's' : '') : (tot >= prev.tot ? U.eur(tot - prev.tot) + ' de plus qu’en ' : U.eur(prev.tot - tot) + ' de moins qu’en ') + new Date(prev.a).toLocaleDateString('fr-FR', { month: 'long' });
+    var ln = function (a, v, s) { return '<div class="dsh-r"><span>' + a + (s ? '<small>' + s + '</small>' : '') + '</span><b>' + v + '</b></div>'; };
+    var h = '<section class="dsh"><span class="dsh-k">' + (off === 0 ? 'Ce mois-ci, ' : '') + a0.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) + '</span><b class="dsh-n">' + U.eur(tot) + '</b><span class="dsh-c">' + cmp + '</span><div class="dsh-b" role="group" aria-label="Choisir un mois">' + M.map(function (m) { return '<button type="button" data-act="dm" data-m="' + m.o + '" aria-pressed="' + (m.o === off) + '" aria-label="' + esc(m.lab) + ', ' + U.eur(m.tot) + '"><i style="height:' + Math.max(4, Math.round(m.tot / mx * 100)) + '%"></i><span>' + esc(m.lab) + '</span></button>'; }).join('') + '</div></section>';
+    if (!mois.length) return h;
+    h += '<div class="dsh-l">' + ln('Acomptes reçus', U.eur(acc)) + ln(venir ? 'Le reste, sur place' : 'Réglé sur place', U.eur(tot - acc), venir ? 'dont une partie à venir' : '') + ln('Rendez-vous', mois.length, venir ? venir + ' encore à venir' : (ann ? ann + ' annulé' + (ann > 1 ? 's' : '') : '')) + (nc ? ln('Clientes', nc, nouv + ' nouvelle' + (nouv > 1 ? 's' : '') + ', ' + (nc - nouv) + ' déjà venue' + (nc - nouv > 1 ? 's' : '')) : '') + (mois.length > 2 ? ln('Jour le plus chargé', ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][di]) : '') + '</div>';
+    if (top.length) h += '<div class="dsh-t"><span class="mut">Ce qui te rapporte le plus</span>' + top.map(function (n) { return '<div class="dsh-p"><div><span>' + esc(n) + '<small>' + by[n].n + ' fois</small></span><b>' + U.eur(by[n].e) + '</b></div><i><u style="width:' + Math.max(3, Math.round(by[top[0]].e ? by[n].e / by[top[0]].e * 100 : 0)) + '%"></u></i></div>'; }).join('') + '</div>';
+    if (off === 0) { var csv = monthBox().match(/<a class="btn sm ghost"[\s\S]*?<\/a>/); if (csv) h += csv[0]; }
+    return h;
+  }
+  function statBox() {
+    var ok = st.rdv.filter(function (b) { return b.status === 'confirme' || b.status === 'fait'; }); if (ok.length < 3) return '';
+    var by = {}, dw = [0, 0, 0, 0, 0, 0, 0], seen = {}; ok.forEach(function (b) { by[b.service_name] = (by[b.service_name] || 0) + 1; dw[new Date(b.starts_at).getDay()]++; var k = String(b.client_phone || ''); if (k) seen[k] = (seen[k] || 0) + 1; });
+    var top = Object.keys(by).sort(function (a, c) { return by[c] - by[a]; })[0], di = dw.indexOf(Math.max.apply(null, dw)), cl = Object.keys(seen), back = cl.filter(function (k) { return seen[k] > 1; }).length;
+    return '<div class="pblk stb"><span class="mut">Tes chiffres, sur ' + ok.length + ' rendez-vous</span><div><b>' + esc(top) + '</b><span>ta coiffure la plus demandée (' + by[top] + ' fois)</span></div><div><b>Le ' + ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][di] + '</b><span>ton jour le plus chargé</span></div><div><b>' + back + ' sur ' + cl.length + '</b><span>' + (back > 1 ? 'clientes sont revenues au moins une fois' : back === 1 ? 'cliente est revenue au moins une fois' : 'aucune cliente revenue pour l’instant') + '</span></div></div>';
+  }
+  function cliList() { return Object.keys(st.notes || {}).map(function (k) { return st.notes[k]; }).filter(function (n) { return /^Cliente : /.test(n.note || ''); }).sort(function (a, c) { return a.note < c.note ? -1 : 1; }); }
+  function cliBox() {
+    var l = cliList(), lk = link(); if (!/^https?:/.test(lk)) lk = new URL(lk, location.href).href;
+    var h = '<div class="spw clib"><b>Tes clientes d’avant Perle</b><p class="mut" style="margin:4px 0 10px">Colle ta liste, une cliente par ligne, avec son prénom et son numéro. Tu pourras envoyer ton lien à chacune en un geste.</p><label for="cli" class="sr">Ta liste de clientes</label><textarea id="cli" rows="5" placeholder="Aminata 06 12 34 56 78&#10;Sarah 07 98 76 54 32"></textarea><button type="button" class="btn sm dark" style="margin-top:10px" data-act="cliadd">Ajouter à mes clientes</button><p id="clim" class="mut" role="status" style="margin:8px 0 0"></p>';
+    if (l.length) { h += '<p class="b" style="margin:16px 0 4px">' + l.length + ' cliente' + (l.length > 1 ? 's' : '') + '</p>'; l.slice(0, 60).forEach(function (n) { var nm = n.note.replace(/^Cliente : /, ''), m = encodeURIComponent('Bonjour ' + nm.split(' ')[0] + ', c’est ' + st.pro.name + '. Je prends maintenant mes rendez-vous en ligne : tu choisis ta coiffure et ton créneau ici ' + lk + ' À bientôt !'), ph = intl(n.phone); h += '<div class="tsr"><span class="grow"><b>' + esc(nm) + '</b><span class="mut">' + esc(n.phone.replace(/(\d{2})(?=\d)/g, '$1 ')) + '</span></span><a class="btn sm ghost" href="https://wa.me/' + esc(ph.replace('+', '')) + '?text=' + m + '" target="_blank" rel="noopener">WhatsApp</a><a class="btn sm ghost" href="sms:' + esc(ph) + '?&body=' + m + '">SMS</a></div>'; }); }
+    return h + '</div>';
+  }
+  function bioOk() { try { return localStorage.getItem('perle-bio-' + st.pro.id) === '1'; } catch (e) { return false; } }
+  function bioSet() { try { localStorage.setItem('perle-bio-' + st.pro.id, '1'); } catch (e) { } }
+  var REPLY = 'Tout est dans mon lien, tu peux voir les prix et réserver directement : ';
+  function linkBox() {
+    var h = '';
+    h += '<div class="pblk"><span class="mut">Ton lien de réservation, à mettre dans ta bio</span><div class="b" style="font-size:17px;word-break:break-all;margin:4px 0 12px">' + esc(link().replace(/^https?:\/\//, '')) + '</div>' + (st.views && st.views.m ? '<div class="mut" style="margin:-4px 0 12px">Ta page a été ouverte ' + st.views.w + ' fois ces 7 derniers jours' + (st.views.m > st.views.w ? ', ' + st.views.m + ' fois en 30 jours' : '') + '.' + (st.views.options ? ' Sur 30 jours, ' + st.views.options + ' personne' + (st.views.options > 1 ? 's ont' : ' a') + ' choisi une coiffure et ' + (st.views.done || 0) + ' ' + ((st.views.done || 0) > 1 ? 'ont' : 'a') + ' réservé.' : '') + '</div>' : '') + '<div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn sm" data-act="copy">Copier le lien</button><button class="btn sm ghost" data-act="share">Partager</button><button class="btn sm ghost" data-act="qr">QR code</button><button class="btn sm ghost" data-act="story">Image pour ma story</button><a class="btn sm ghost" href="' + esc(link()) + '" target="_blank" rel="noopener">Voir ma page</a></div><div id="qrbox"></div><div class="rep0"><span class="mut">Quand on te demande un prix ou une dispo, réponds :</span><p>« ' + esc(REPLY) + esc(link().replace(/^https?:\/\//, '')) + ' »</p><button class="btn sm ghost" data-act="copyrep">Copier cette réponse</button></div></div>';
+    return h;
+  }
+  function rdv() {
+    var now = Date.now(), up = st.rdv.filter(function (b) { var e = new Date(b.ends_at).getTime(); return (e >= now || (b.status === 'confirme' && e >= now - 2 * 864e5)) && b.status !== 'annule' && stOf(b, now) !== 'expire'; }), old = st.rdv.filter(function (b) { return up.indexOf(b) < 0; }).reverse();
+    var h = note(), t = new Date(), wk = '', ag = Math.max(0, Math.min(6, st.agDay || 0));
+    if (!String(st.pro.pay_info || '').trim()) h += '<p class="note info"><b>Ta page n’est pas encore en ligne.</b> Indique comment recevoir l’acompte : elle sera en ligne dès que c’est enregistré.</p><button type="button" class="btn dark" style="margin:10px 0 14px" data-tab="pro">Indiquer mon moyen de paiement</button>';
+    var hrsOk = false; try { hrsOk = !!localStorage.getItem('perle-hrs-' + st.pro.id); } catch (e) {}
+    var todo = [[true, 'pro', 'Crée ta page', 'C’est fait, elle est en ligne'], [st.svcs.length > 0, 'svc', 'Ajoute ta première coiffure', 'Avec son prix et sa durée'], [hrsOk, 'hrs', 'Vérifie tes horaires', 'Ce sont des horaires par défaut : mets les tiens'], [!!st.pro.pay_info, 'pro', 'Dis comment recevoir l’acompte', 'Ton PayPal, ton Revolut ou un autre moyen'], [!!(st.pro.cover_url || st.pro.avatar_url), 'pro', 'Mets une photo', 'Une page avec photo donne confiance'], [bioOk(), 'me', 'Mets ton lien dans ta bio', 'Sans lien, personne ne peut réserver'], [st.rdv.length > 0, 'me', 'Reçois ta première demande', 'Réponds « tout est dans mon lien » quand on t’écrit']], left = todo.filter(function (x) { return !x[0]; }).length;
+    var gd = ''; if (left) gd = '<section class="start"><b>Encore ' + left + ' étape' + (left > 1 ? 's' : '') + ' pour lancer ta page</b><div class="start-bar" role="img" aria-label="' + (todo.length - left) + ' étapes faites sur ' + todo.length + '"><span style="width:' + Math.round(100 * (todo.length - left) / todo.length) + '%"></span></div><p class="start-n">' + (todo.length - left) + ' sur ' + todo.length + ' déjà fait' + (todo.length - left > 1 ? 'es' : 'e') + '</p>' + todo.filter(function (x) { return !x[0]; }).map(function (x) { return '<button type="button" class="start-row' + (x[0] ? ' ok' : '') + '" data-tab="' + x[1] + '"><i aria-hidden="true">' + (x[0] ? '✓' : '') + '</i><span class="grow"><span class="b">' + x[2] + '</span><span class="mut">' + x[3] + '</span></span>' + svg(I.chev, 18) + '</button>'; }).join('') + '<a class="start-help" href="https://www.instagram.com/perleapp.fr/" target="_blank" rel="noopener">On règle ta page ensemble ? Écris-nous sur Instagram</a></section>';
+    if (!up.length) h += gd;
+    for (var i = 0; i < 7; i++) { var d = new Date(t.getFullYear(), t.getMonth(), t.getDate() + i), has = up.some(function (b) { var s = new Date(b.starts_at); return s.toDateString() === d.toDateString(); }); wk += '<button type="button" data-agd="' + i + '" aria-pressed="' + (i === ag) + '"><span>' + d.toLocaleDateString('fr-FR', { weekday: 'short' }) + '</span><b>' + d.getDate() + '</b>' + (has ? '<i></i>' : '') + '</button>'; }
+    var wait = up.filter(function (b) { return b.status === 'attente'; }).length, sum = up.reduce(function (a, b) { return a + Number(b.price); }, 0);
+    var nUp = up.filter(function (b) { return new Date(b.ends_at).getTime() >= now; }).length;
+    h += hero(up, now);
+    h += '<div class="wkh"><span><b>Ta semaine</b><span class="mut">' + nUp + ' rendez-vous à venir</span></span><button type="button" class="wkb" data-act="full" aria-expanded="' + !!st.full + '">Je suis complète</button></div><div class="agwk" role="group" aria-label="Jour affiché">' + wk + '</div>' + fullBox();
     function agrow(b, open) {
       var s = new Date(b.starts_at), e = new Date(b.ends_at), sto = stOf(b, Date.now()), what = esc(b.service_name) + (b.options_text ? ', ' + esc(b.options_text) : '');
       return '<details class="ag"' + (open ? ' open' : '') + '><summary><span class="agt"><b>' + U.hm(s) + '</b><span>' + U.hm(e) + '</span></span><span class="grow"><b>' + esc(b.client_name) + '</b><span class="mut">' + what + ' · ' + U.eur(b.price) + '</span></span><span class="st ' + esc(sto === 'expire' ? 'annule' : b.status) + '">' + LAB[sto] + '</span></summary><div class="agb">' + detail(b) + acts(b, now) + fiche(b) + '</div></details>';
     }
     function same(a, d) { return new Date(a).toDateString() === d.toDateString(); }
-    var dSel = new Date(t.getFullYear(), t.getMonth(), t.getDate() + ag), todo2 = up.filter(function (b) { return !same(b.starts_at, dSel) && (b.status === 'attente' || (b.status === 'confirme' && new Date(b.starts_at).getTime() < now)); });
-    if (todo2.length) { h += '<h2 class="agh">À traiter<span>' + todo2.length + '</span></h2><p class="mut agp">Un acompte à confirmer, ou un rendez-vous passé à marquer comme fait.</p>'; todo2.forEach(function (b) { h += '<p class="agd">' + esc(U.day(new Date(b.starts_at))) + '</p>' + agrow(b, false); }); }
+    var dSel = new Date(t.getFullYear(), t.getMonth(), t.getDate() + ag), todo2 = up.filter(function (b) { return !same(b.starts_at, dSel) && b.status === 'confirme' && new Date(b.starts_at).getTime() < now; });
+    if (todo2.length) { h += '<h2 class="agh">À traiter<span>' + todo2.length + '</span></h2><p class="mut agp">Un rendez-vous passé à marquer comme fait.</p>'; todo2.forEach(function (b) { h += '<p class="agd">' + esc(U.day(new Date(b.starts_at))) + '</p>' + agrow(b, false); }); }
     var dayB = up.filter(function (b) { return same(b.starts_at, dSel); }), blk = (st.pro.blocks || []).filter(function (r) { return same(r[0], dSel); }), hrs = (st.pro.hours || {})[String(dSel.getDay())] || [], ymd = dSel.getFullYear() + '-' + ('0' + (dSel.getMonth() + 1)).slice(-2) + '-' + ('0' + dSel.getDate()).slice(-2), off = (st.pro.closed || []).some(function (r) { return ymd >= r[0] && ymd <= r[1]; });
     h += '<h2 class="agh">' + (ag === 0 ? 'Aujourd’hui' : ag === 1 ? 'Demain' : esc(dSel.toLocaleDateString('fr-FR', { weekday: 'long' }).replace(/^./, function (c) { return c.toUpperCase(); }))) + '<em>' + esc(dSel.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })) + '</em></h2><p class="mut agp">' + (off ? 'Jour bloqué : aucun créneau n’est proposé.' : hrs.length ? 'Ouverte de ' + hrs.map(function (r) { return String(r[0]).replace(/^0/, '').replace(':', ' h ').replace(' h 00', ' h') + ' à ' + String(r[1]).replace(/^0/, '').replace(':', ' h ').replace(' h 00', ' h'); }).join(', puis de ') + '.' : 'Jour fermé dans tes horaires.') + '</p>';
     var items = dayB.map(function (b) { return { t: b.starts_at, h: null, b: b }; }).concat(blk.map(function (r) { return { t: r[0], h: '<div class="ag blk"><div class="agsm"><span class="agt"><b>' + U.hm(new Date(r[0])) + '</b><span>' + U.hm(new Date(r[1])) + '</span></span><span class="grow"><b>Créneau bloqué</b><span class="mut">Aucune réservation possible</span></span></div></div>' }; })).sort(function (a, c) { return a.t < c.t ? -1 : 1; });
@@ -321,20 +441,24 @@
     else h += '<div class="agl">' + items.map(function (x, k) { return x.b ? agrow(x.b, ag === 0 && k === firstOpen) : x.h; }).join('') + '</div>';
     var later = up.filter(function (b) { return !same(b.starts_at, dSel) && todo2.indexOf(b) < 0; });
     if (later.length) { h += '<h2 class="agh">Ensuite</h2>'; var lastD = ''; later.forEach(function (b) { var dk = new Date(b.starts_at).toDateString(); if (dk !== lastD) { lastD = dk; h += '<p class="agd">' + esc(U.day(new Date(b.starts_at))) + '</p>'; } h += agrow(b, false); }); }
+    h += toSend(now);
     if (up.length && gd) h += gd + '<div style="height:14px"></div>';
-    h += '<div class="pblk"><span class="mut">Ton lien de réservation, à mettre dans ta bio</span><div class="b" style="font-size:17px;word-break:break-all;margin:4px 0 12px">' + esc(link().replace(/^https?:\/\//, '')) + '</div>' + (st.views && st.views.m ? '<div class="mut" style="margin:-4px 0 12px">Ta page a été ouverte ' + st.views.w + ' fois ces 7 derniers jours' + (st.views.m > st.views.w ? ', ' + st.views.m + ' fois en 30 jours' : '') + '.' + (st.views.options ? ' Sur 30 jours, ' + st.views.options + ' personne' + (st.views.options > 1 ? 's ont' : ' a') + ' choisi une coiffure et ' + (st.views.done || 0) + ' ' + ((st.views.done || 0) > 1 ? 'ont' : 'a') + ' réservé.' : '') + '</div>' : '') + '<div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn sm" data-act="copy">Copier le lien</button><button class="btn sm ghost" data-act="share">Partager</button><button class="btn sm ghost" data-act="qr">QR code</button><a class="btn sm ghost" href="' + esc(link()) + '" target="_blank" rel="noopener">Voir ma page</a></div><div id="qrbox"></div></div>';
-    h += mo;
     if (old.length) { h += '<h2>Passés ou annulés</h2>'; old.slice(0, 20).forEach(function (b) { var s = new Date(b.starts_at); h += '<div class="card row" style="margin-bottom:8px;border-radius:24px;padding:10px 14px 10px 10px">' + thumb(photoFor(b), 'sm') + '<span class="grow"><span class="b">' + esc(b.client_name) + '</span><br><span class="mut">' + esc(U.day(s)) + ', ' + esc(b.service_name) + '</span></span><span class="st ' + esc(stOf(b, Date.now()) === 'expire' ? 'annule' : b.status) + '">' + LAB[stOf(b, Date.now())] + '</span></div>'; if (b.status === 'fait') { var m = encodeURIComponent(backMsg(b)); h += '<div class="acts" style="margin:-2px 0 12px"><a class="btn sm ghost" href="sms:' + esc(intl(b.client_phone)) + '?&body=' + m + '">Proposer de revenir par SMS</a><a class="btn sm ghost" href="https://wa.me/' + esc(intl(b.client_phone).replace('+', '')) + '?text=' + m + '" target="_blank" rel="noopener">Par WhatsApp</a></div>'; } }); }
     return h;
   }
 
+  function part(k, v) {
+    st[k] = v; document.querySelectorAll('[data-' + k + ']').forEach(function (e) { e.hidden = e.getAttribute('data-' + k) !== v; });
+    document.querySelectorAll('button[data-act="' + k + '"]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.dataset.v === v)); });
+  }
+  document.addEventListener('invalid', function (e) { var z = e.target.closest && e.target.closest('[data-pv]'); if (z && z.hidden) part('pv', z.getAttribute('data-pv')); }, true);
   function render() {
     document.body.classList.remove('dark'); document.body.classList.add('espro');
     if (!st.user) return auth();
     if (!st.pro) { app.innerHTML = top() + profile(true); return; }
     if (st.recovery) st.tab = 'me';
     var T = { rdv: ['Bonjour, <span class="hl">' + esc(st.pro.name.split(' ')[0]) + '</span>.', rdv], svc: ['Tes <span class="hl">prestations</span>.', services], hrs: ['Tes <span class="hl">horaires</span>.', hours], pro: ['Ta <span class="hl">page</span>.', function () { return profile(false); }], me: ['Ton <span class="hl">compte</span>.', me] }[st.tab];
-    app.innerHTML = top() + '<h1>' + T[0] + '</h1><div style="margin-top:14px">' + T[1]() + '</div>' +
+    app.innerHTML = topIn(T[0]) + '<div style="margin-top:14px">' + T[1]() + '</div>' +
       '<nav class="nav" aria-label="Menu">' + TABS.map(function (t) { return '<button data-tab="' + t[0] + '" aria-selected="' + (st.tab === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '<span>' + t[1] + '</span></button>'; }).join('') + '</nav>';
   }
   async function poll() {
@@ -359,7 +483,9 @@
       st.pro = await S.savePro(p); st.msg = ['ok', 'Photo enregistrée.']; render();
     } catch (err) { fail(err); }
   });
+  app.addEventListener('input', function (e) { if (e.target && e.target.id === 'sn' && document.getElementById('srep')) document.getElementById('srep').textContent = repTxt(e.target.value); });
   app.addEventListener('input', function (e) { if (e.target && e.target.closest && e.target.closest('#fp')) { st.dirty = true; e.target.closest('#fp').classList.add('dirty'); } });
+  app.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('a[data-just]')) setTimeout(function () { st.just = null; st.msg = ['ok', 'Message prêt à partir. Tu le retrouves dans la fiche du rendez-vous.']; render(); }, 1500); });
   app.addEventListener('click', async function (e) {
     var b = e.target.closest('button'); if (!b) return;
     try {
@@ -371,9 +497,46 @@
       if (b.dataset.sig) { b.disabled = true; await S.proSignal(b.dataset.id, b.dataset.sig, +b.dataset.min || 0); st.rdv = await S.myBookings() || []; return render(); }
       if (b.dataset.st) {
         if (b.dataset.st === 'annule' && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmer l’annulation'; return; }
-        await S.setStatus(b.dataset.id, b.dataset.st); st.msg = ['ok', b.dataset.st === 'confirme' ? 'Rendez-vous confirmé. Pense à prévenir ta cliente.' : 'C’est noté.']; return refresh();
+        await S.setStatus(b.dataset.id, b.dataset.st); if (b.dataset.st === 'confirme') { st.just = b.dataset.id; st.msg = null; await refresh(); return window.scrollTo(0, 0); }
+        st.msg = ['ok', 'C’est noté.']; return refresh();
       }
       var a = b.dataset.act; if (!a) return;
+      if (a === 'hv' || a === 'pv') return part(a, b.dataset.v);
+      if (a === 'rep') { var rr = repOf(b.dataset.n); if (!rr) return; keepForm(); st.edit.name = rr[0]; st.edit.minutes = rr[1]; st.edit.price = rr[2]; st.edit.options = JSON.parse(JSON.stringify(optsFor(rr[0]))); st.repPick = rr[0]; var yr = window.scrollY; render(); return window.scrollTo(0, yr); }
+      if (a === 'justno') { st.just = null; return render(); }
+      if (a === 'dm') { st.dm = Number(b.dataset.m) || 0; var yd = window.scrollY; render(); return window.scrollTo(0, yd); }
+      if (a === 'accept') { b.disabled = true; await S.acceptBooking(b.dataset.id); st.just = b.dataset.id; st.msg = null; await refresh(); return window.scrollTo(0, 0); }
+      if (a === 'cli') { st.cli = !st.cli; var yc = window.scrollY; render(); return window.scrollTo(0, yc); }
+      if (a === 'cliadd') {
+        var cm = document.getElementById('clim'), add = [], bad = 0; String(document.getElementById('cli').value || '').split(/\n/).forEach(function (ln) { ln = ln.trim(); if (!ln) return; var mt = ln.match(/(?:\+33|0033|0)\s*[1-9](?:[\s.\-]*\d{2}){4}/); if (!mt) { bad++; return; } var ph = mt[0].replace(/[^0-9+]/g, '').replace(/^(\+33|0033)/, '0'), nm = ln.replace(mt[0], '').replace(/[,;:\t|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40); if (!nm) { bad++; return; } if (!(st.notes || {})[ph] && !add.some(function (x) { return x.phone === ph; })) add.push({ phone: ph, note: 'Cliente : ' + nm, flag: false }); });
+        if (!add.length) { cm.textContent = bad ? 'Rien de reconnu. Écris un prénom puis un numéro sur chaque ligne, par exemple « Aminata 06 12 34 56 78 ».' : 'Ces clientes sont déjà dans ta liste.'; return; }
+        add = add.slice(0, 100); b.disabled = true; cm.textContent = 'Ajout en cours…'; for (var ci = 0; ci < add.length; ci++) { await S.saveNote(add[ci]); st.notes[add[ci].phone] = add[ci]; }
+        st.msg = ['ok', add.length + ' cliente' + (add.length > 1 ? 's ajoutées' : ' ajoutée') + (bad ? ', ' + bad + ' ligne' + (bad > 1 ? 's' : '') + ' non reconnue' + (bad > 1 ? 's' : '') : '') + '. Envoie-leur ton lien depuis la liste.']; var yd = window.scrollY; render(); return window.scrollTo(0, yd);
+      }
+      if (a === 'story') {
+        var sb2 = document.getElementById('qrbox'); if (sb2.dataset.k === 'story') { sb2.innerHTML = ''; sb2.dataset.k = ''; return; }
+        if (!window.qrcode) await new Promise(function (ok, ko) { var sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); });
+        try { await document.fonts.load('800 100px "Bricolage Grotesque"'); await document.fonts.load('600 40px "DM Sans"'); } catch (x) { }
+        var su2 = link(); if (!/^https?:/.test(su2)) su2 = new URL(su2, location.href).href; var q2 = window.qrcode(0, 'M'); q2.addData(su2); q2.make();
+        var cv = document.createElement('canvas'); cv.width = 1080; cv.height = 1920; var g = cv.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 1920); gr.addColorStop(0, '#5B2A86'); gr.addColorStop(1, '#150B1F'); g.fillStyle = gr; g.fillRect(0, 0, 1080, 1920);
+        g.textAlign = 'center'; g.fillStyle = '#D9A441'; g.font = '700 46px "DM Sans", sans-serif'; g.fillText('Réserve ton créneau en ligne', 540, 330);
+        g.fillStyle = '#fff'; var nm2 = String(st.pro.name || ''), fs = 132; do { g.font = '800 ' + fs + 'px "Bricolage Grotesque", sans-serif'; fs -= 6; } while (g.measureText(nm2).width > 940 && fs > 50); g.fillText(nm2, 540, 480);
+        if (st.pro.city) { g.fillStyle = '#D9D0E4'; g.font = '500 48px "DM Sans", sans-serif'; g.fillText(st.pro.city, 540, 570); }
+        g.fillStyle = '#fff'; g.beginPath(); if (g.roundRect) g.roundRect(240, 700, 600, 600, 56); else g.rect(240, 700, 600, 600); g.fill();
+        var nq = q2.getModuleCount(), cs = 500 / nq; g.fillStyle = '#150B1F'; for (var qy = 0; qy < nq; qy++) for (var qx = 0; qx < nq; qx++) if (q2.isDark(qy, qx)) g.fillRect(290 + qx * cs, 750 + qy * cs, cs + .6, cs + .6);
+        g.fillStyle = '#fff'; g.font = '600 50px "DM Sans", sans-serif'; g.fillText('Scanne, choisis ta coiffure,', 540, 1420); g.fillText('bloque ta place.', 540, 1486);
+        var lt = su2.replace(/^https?:\/\//, ''), ls = 46; do { g.font = '700 ' + ls + 'px "DM Sans", sans-serif'; ls -= 2; } while (g.measureText(lt).width > 900 && ls > 24); g.fillStyle = '#D9A441'; g.fillText(lt, 540, 1620);
+        g.fillStyle = 'rgba(255,255,255,.55)'; g.font = '700 40px "Bricolage Grotesque", sans-serif'; g.fillText('perle', 540, 1790);
+        var du = cv.toDataURL('image/png'); sb2.dataset.k = 'story';
+        sb2.innerHTML = '<img src="' + du + '" alt="Image à publier en story, avec ton nom, ton QR code et ton lien" style="display:block;width:200px;border-radius:18px;margin:14px auto 10px"><div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap">' + (navigator.canShare ? '<button type="button" class="btn sm" data-act="storyshare">Partager</button>' : '') + '<a class="btn sm ghost" style="color:var(--noir)" href="' + du + '" download="perle-story-' + esc(st.pro.slug) + '.png">Enregistrer l’image</a></div><div class="mut" style="margin-top:8px">Au format story. Publie-la, ou imprime-la pour ton miroir.</div>'; return;
+      }
+      if (a === 'storyshare') { var im = document.querySelector('#qrbox img'); if (!im) return; var bl = await (await fetch(im.src)).blob(), fl = new File([bl], 'perle-story.png', { type: 'image/png' }); try { if (navigator.canShare && navigator.canShare({ files: [fl] })) await navigator.share({ files: [fl] }); else b.textContent = 'Utilise « Enregistrer l’image »'; } catch (x) { } return; }
+      if (a === 'full') { st.full = !st.full; var yf = window.scrollY; render(); return window.scrollTo(0, yf); }
+      if (a === 'fullset') {
+        var nf = +b.dataset.n || 0, t0 = new Date(), f0 = new Date(t0.getFullYear(), t0.getMonth(), t0.getDate() + (nf === 1 ? 1 : 0)), f1 = new Date(t0.getFullYear(), t0.getMonth(), t0.getDate() + (nf === 7 ? 6 : nf === 1 ? 1 : 0)), cf = (st.pro.closed || []).slice();
+        cf.push([ymdOf(f0), ymdOf(f1)]); cf.sort(); cf = cf.slice(-40); var pf = base(); pf.closed = cf; st.pro = await S.savePro(pf); st.full = false; st.msg = ['ok', 'C’est bloqué : plus aucun créneau proposé ' + (nf === 7 ? 'pendant 7 jours' : nf === 1 ? 'demain' : 'aujourd’hui') + '. Tu rouvres dans Horaires, « Jours bloqués ».']; render(); return window.scrollTo(0, 0);
+      }
+      if (a === 'pause') { var op = JSON.parse(JSON.stringify(st.svcs.filter(function (x) { return x.id === st.edit.id; })[0])); op.active = op.active === false; await S.saveService(op); st.edit = null; st.msg = ['ok', op.active ? 'Elle est de nouveau sur ta page.' : 'En pause : elle n’est plus sur ta page. Tes rendez-vous déjà pris restent.']; return refresh(); }
       if (a === 'blkadd' || a === 'blkdel') {
         var bk = (st.pro.blocks || []).slice();
         if (a === 'blkdel') bk.splice(+b.dataset.i, 1);
@@ -389,7 +552,7 @@
       if (a === 'note') { var bx = b.closest('.fiche'), ph = b.dataset.phone; await S.saveNote({ phone: ph, note: bx.querySelector('textarea').value, flag: bx.querySelector('input').checked }); st.msg = ['ok', 'Fiche cliente enregistrée.']; return refresh(); }
       if (a === 'share') { var su = link(); if (!/^https?:/.test(su)) su = new URL(su, location.href).href; if (navigator.share) { try { await navigator.share({ title: st.pro.name, text: 'Réserve ta coiffure avec ' + st.pro.name, url: su }); } catch (x) { } } else { try { await navigator.clipboard.writeText(su); st.msg = ['ok', 'Lien copié.']; } catch (x) { st.msg = ['info', 'Ton lien : ' + su]; } render(); } return; }
       if (a === 'qr') {
-        var qb = document.getElementById('qrbox'); if (qb.innerHTML) { qb.innerHTML = ''; return; }
+        var qb = document.getElementById('qrbox'); if (qb.innerHTML && qb.dataset.k !== 'story') { qb.innerHTML = ''; return; } qb.dataset.k = '';
         if (!window.qrcode) await new Promise(function (ok, ko) { var sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); });
         var qu = link(); if (!/^https?:/.test(qu)) qu = new URL(qu, location.href).href; var qr = window.qrcode(0, 'M'); qr.addData(qu); qr.make(); var src = qr.createDataURL(10, 20);
         qb.innerHTML = '<img src="' + src + '" alt="QR code de ta page de réservation" style="display:block;width:200px;height:200px;border-radius:18px;margin:14px auto 10px;background:#fff"><a class="btn sm ghost" style="color:var(--noir)" href="' + src + '" download="perle-qr-' + esc(st.pro.slug) + '.gif">Enregistrer l’image</a><div class="mut" style="margin-top:8px">À imprimer ou à mettre sur ta carte : la cliente le scanne et arrive sur ta page.</div>'; return;
@@ -417,7 +580,8 @@
       if (a === 'delacct') { var pdm = document.getElementById('pdm'); if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Touche encore pour supprimer définitivement'; pdm.textContent = 'Ta page, tes prestations, tes photos et tes rendez-vous seront effacés. C’est irréversible.'; return; } b.disabled = true; var dr = await S.deleteAccount(); if (dr === 'OK') { try { await S.signOut(); } catch (x) { } st.user = st.pro = null; st.tab = 'rdv'; st.msg = ['ok', 'Ton compte est supprimé.']; return render(); } b.disabled = false; b.dataset.sure = ''; b.textContent = 'Supprimer mon compte'; pdm.textContent = dr === 'RDV' ? 'Tu as des rendez-vous à venir. Annule-les ou attends qu’ils soient passés, puis réessaie.' : 'La suppression n’a pas abouti. Écris-nous à contact@perleapp.fr.'; return; }
       if (a === 'forgot') { var fe = val('em'); if (!/^\S+@\S+\.\S+$/.test(fe)) { st.msg = ['err', 'Écris d’abord ton e-mail, puis touche « Mot de passe oublié ? ».']; return render(); } await S.resetPw(fe); st.msg = ['ok', 'Si un compte existe avec cet e-mail, tu vas recevoir un lien pour choisir un nouveau mot de passe. Regarde aussi dans tes indésirables.']; return render(); }
       if (a === 'pw') { st.pw = !st.pw; return render(); }
-      if (a === 'copy') { var l = link(); if (!/^https?:/.test(l)) l = new URL(l, location.href).href; try { await navigator.clipboard.writeText(l); st.msg = ['ok', 'Lien copié. Colle-le dans ta bio.']; } catch (x) { st.msg = ['info', 'Ton lien : ' + l]; } return render(); }
+      if (a === 'copyrep') { var lr = link(); if (!/^https?:/.test(lr)) lr = new URL(lr, location.href).href; try { await navigator.clipboard.writeText(REPLY + lr); b.textContent = 'Réponse copiée'; } catch (x) { b.textContent = 'Copie impossible ici'; } return; }
+      if (a === 'copy') { bioSet(); var l = link(); if (!/^https?:/.test(l)) l = new URL(l, location.href).href; try { await navigator.clipboard.writeText(l); st.msg = ['ok', 'Lien copié. Colle-le dans ta bio.']; } catch (x) { st.msg = ['info', 'Ton lien : ' + l]; } return render(); }
       if (a === 'pub' && st.pro.published === false && !String(st.pro.pay_info || '').trim()) { st.msg = ['info', 'Indique d’abord comment recevoir l’acompte (PayPal, Revolut ou autre). Dès que c’est enregistré, ta page passe en ligne.']; st.tab = 'pro'; return render(); }
       if (a === 'decl') { window.open('https://formalites.entreprises.gouv.fr/', '_blank', 'noopener'); return; }
       if (a === 'pub') { var pq = base(); pq.published = st.pro.published === false; st.pro = await S.savePro(pq); st.msg = ['ok', st.pro.published === false ? 'Ta page est hors ligne : plus personne ne peut réserver.' : 'Ta page est de nouveau en ligne.']; return render(); }
@@ -435,7 +599,7 @@
       if (a === 'rmg') { keepForm(); st.edit.options.splice(+b.dataset.g, 1); return render(); }
       if (a === 'rmc') { keepForm(); st.edit.options[+b.dataset.g].choices.splice(+b.dataset.c, 1); return render(); }
       if (a === 'del') { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmer la suppression'; return; } await S.deleteService(st.edit.id); st.edit = null; st.msg = ['ok', 'Prestation supprimée.']; return refresh(); }
-      if (a === 'copy') { try { await navigator.clipboard.writeText(link()); b.textContent = 'Lien copié'; } catch (x) { b.textContent = link(); } return; }
+      if (a === 'copy') { bioSet(); try { await navigator.clipboard.writeText(link()); b.textContent = 'Lien copié'; } catch (x) { b.textContent = link(); } return; }
     } catch (err) { fail(err); }
   });
   app.addEventListener('submit', async function (e) {
@@ -446,9 +610,10 @@
         var slug = U.slug(val('ps')); if (slug.length < 3 || val('pn').length < 2) { st.msg = ['err', 'Écris ton nom et un lien de 3 caractères au moins.']; return render(); }
         var first = !st.pro;
         var g = await U.geo(val('pc'));
-        var pinf = payInfo(); if (pinf === null) { st.msg = ['err', 'Ton lien PayPal ou Revolut n’est pas reconnu. Écris seulement ton nom d’utilisateur, sans espace.']; return render(); }
+        var pinf = payInfo(); if (pinf === false) { part('pv', 'pay'); st.msg = ['err', 'Ton numéro Wero n’est pas reconnu. Écris ton numéro de téléphone en entier.']; return render(); }
+        if (pinf === null) { st.msg = ['err', 'Ton lien PayPal ou Revolut n’est pas reconnu. Écris seulement ton nom d’utilisateur, sans espace.']; return render(); }
         var adr = val('pa');
-        st.pro = await S.savePro({ name: val('pn'), slug: slug, city: val('pc'), lat: g ? g.lat : null, lng: g ? g.lng : null, tags: Array.prototype.map.call(document.querySelectorAll('[data-tag]:checked'), function (x) { return x.dataset.tag; }), bio: val('pb'), whatsapp: val('pw2'), instagram: val('pi').trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').split(/[\/?#\s]/)[0].slice(0, 30), pay_info: pinf, cancel_hours: parseInt(val('ph'), 10) || 0, deposit_pct: Math.max(0, Math.min(100, parseInt(val('pd'), 10) || 0)) });
+        var pf0 = { name: val('pn'), slug: slug, city: val('pc'), lat: g ? g.lat : null, lng: g ? g.lng : null, tags: Array.prototype.map.call(document.querySelectorAll('[data-tag]:checked'), function (x) { return x.dataset.tag; }), bio: val('pb'), whatsapp: val('pw2'), instagram: val('pi').trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').split(/[\/?#\s]/)[0].slice(0, 30), pay_info: pinf, cancel_hours: parseInt(val('ph'), 10) || 0, deposit_pct: Math.max(0, Math.min(100, parseInt(val('pd'), 10) || 0)) }; if (document.getElementById('pma')) pf0.manual_accept = document.getElementById('pma').checked; st.pro = await S.savePro(pf0);
         if (adr !== ((st.priv || {}).address || '')) { try { st.priv = await S.savePrivate({ address: adr }); } catch (e) { } }
         st.dirty = false;
         st.msg = ['ok', (first ? 'Ta page est créée. Ajoute maintenant tes prestations et tes photos.' : 'C’est enregistré.') + (val('pc') ? (g ? ' Sur la carte, tu es placée au centre de ' + g.label + '. Si ce n’est pas le bon endroit, ajoute le code postal.' : ' Ton quartier n’a pas été trouvé pour la carte : écris une ville avec son code postal, ou « Paris 19e ».') : '')]; if (first) st.tab = 'svc'; return refresh();

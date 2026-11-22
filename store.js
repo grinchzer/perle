@@ -144,6 +144,7 @@
       myNotes: async function () { var id = await uid(); return ok(await sb.from('client_notes').select('phone,note,flag').eq('pro_id', id)) || []; },
       saveNote: async function (n) { var id = await uid(); return ok(await sb.from('client_notes').upsert({ pro_id: id, phone: n.phone, note: String(n.note || '').slice(0, 300), flag: !!n.flag }).select().single()); },
       setStatus: async function (bid, st) { ok(await sb.from('bookings').update({ status: st }).eq('id', bid)); },
+      acceptBooking: async function (bid) { ok(await sb.from('bookings').update({ accepted_at: new Date().toISOString() }).eq('id', bid)); },
       upload: async function (blob) { var id = await uid(), path = id + '/' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) + '.jpg'; ok(await sb.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg', cacheControl: '31536000' })); return sb.storage.from('photos').getPublicUrl(path).data.publicUrl; }
     };
   }
@@ -194,7 +195,7 @@
       };
     }
     function err(c) { return new Error(c); }
-    function holds(b) { return b.status === 'confirme' || b.status === 'fait' || (b.status === 'attente' && Date.now() - new Date(b.created_at).getTime() < 864e5); }
+    function holds(b) { return b.status === 'confirme' || b.status === 'fait' || (b.status === 'attente' && Date.now() - new Date(b.accepted_at || b.created_at).getTime() < 864e5); }
     function me() { return db().user; }
     return {
       live: false,
@@ -212,9 +213,9 @@
         var q = U.quote(s, b.choices), st = new Date(b.start), en = new Date(st.getTime() + q.minutes * 6e4);
         if (st.getTime() < Date.now() + 36e5) throw err('DATE');
         if (d.bookings.some(function (x) { return x.pro_id === p.id && holds(x) && x.ends_at > st.toISOString() && x.starts_at < en.toISOString(); })) throw err('PRIS');
-        var r = { id: id(), ref: Math.random().toString(16).slice(2, 8).toUpperCase(), pro_id: p.id, service_id: s.id, service_name: s.name, options_text: q.text, starts_at: st.toISOString(), ends_at: en.toISOString(), price: q.price, deposit: Math.round(q.price * p.deposit_pct) / 100, client_name: name, client_phone: phone, note: String(b.note || '').slice(0, 300), status: 'attente', created_at: new Date().toISOString() };
+        var r = { id: id(), ref: Math.random().toString(16).slice(2, 8).toUpperCase(), pro_id: p.id, service_id: s.id, service_name: s.name, options_text: q.text, starts_at: st.toISOString(), ends_at: en.toISOString(), price: q.price, deposit: Math.round(q.price * p.deposit_pct) / 100, client_name: name, client_phone: phone, note: String(b.note || '').slice(0, 300), status: 'attente', created_at: new Date().toISOString(), accepted_at: p.manual_accept === false ? new Date().toISOString() : null };
         d.bookings.push(r); save();
-        return { ref: r.ref, price: r.price, deposit: r.deposit, starts_at: r.starts_at, ends_at: r.ends_at, service: r.service_name, options: r.options_text };
+        return { ref: r.ref, price: r.price, deposit: r.deposit, starts_at: r.starts_at, ends_at: r.ends_at, service: r.service_name, options: r.options_text, accepted_at: r.accepted_at };
       },
       claimPaid: async function (ref, phone) { var d = db(), ph = String(phone || '').replace(/[^0-9+]/g, ''), b = d.bookings.filter(function (x) { return x.ref === String(ref).toUpperCase().trim() && x.client_phone === ph; })[0]; if (b && !b.paid_claimed_at) { b.paid_claimed_at = new Date().toISOString(); save(); } return true; },
       proSignal: async function (id, kind, min) { var d = db(), b = d.bookings.filter(function (x) { return x.id === id; })[0]; if (!b) return false; if (kind === 'ready') b.pro_ready_at = new Date().toISOString(); else d.bookings.forEach(function (x) { if (x.pro_id === b.pro_id && x.status === 'confirme' && x.starts_at >= b.starts_at && String(x.starts_at).slice(0, 10) === String(b.starts_at).slice(0, 10)) { x.pro_delay_min = min || 0; x.pro_ready_at = null; } }); save(); return true; },
@@ -224,7 +225,7 @@
       step: async function () { return true; },
       myViews: async function () { return { w: 0, m: 0 }; },
       proDone: async function (slug) { var d = db(), p = d.pros.filter(function (x) { return x.slug === slug; })[0]; return p ? d.bookings.filter(function (x) { return x.pro_id === p.id && x.status === 'fait'; }).length : 0; },
-      clientBooking: async function (ref, phone) { var d = db(), ph = String(phone || '').replace(/[^0-9+]/g, ''), b = d.bookings.filter(function (x) { return x.ref === String(ref).toUpperCase().trim() && x.client_phone === ph; })[0]; if (!b) return null; var p = d.pros.filter(function (x) { return x.id === b.pro_id; })[0] || {}; return { moved_n: b.moved_n || 0, ref: b.ref, status: b.status, starts_at: b.starts_at, ends_at: b.ends_at, created_at: b.created_at, service: b.service_name, options: b.options_text, price: b.price, deposit: b.deposit, pro_name: p.name, pro_slug: p.slug, pro_city: p.city, cover_url: p.cover_url, pay_info: p.pay_info, cancel_hours: p.cancel_hours == null ? 48 : p.cancel_hours, service_id: b.service_id, prep: (d.services.filter(function (x) { return x.id === b.service_id; })[0] || {}).prep || '', address: (b.status === 'confirme' || b.status === 'fait') ? ((d.priv || {})[p.id] || '') : '', whatsapp: p.whatsapp || '', paid_claimed: !!b.paid_claimed_at, pro_delay_min: b.pro_delay_min || 0, pro_ready: !!b.pro_ready_at, client_onway: !!b.client_onway_at, client_late_min: b.client_late_min || 0 }; },
+      clientBooking: async function (ref, phone) { var d = db(), ph = String(phone || '').replace(/[^0-9+]/g, ''), b = d.bookings.filter(function (x) { return x.ref === String(ref).toUpperCase().trim() && x.client_phone === ph; })[0]; if (!b) return null; var p = d.pros.filter(function (x) { return x.id === b.pro_id; })[0] || {}; return { accepted_at: b.accepted_at, moved_n: b.moved_n || 0, ref: b.ref, status: b.status, starts_at: b.starts_at, ends_at: b.ends_at, created_at: b.created_at, service: b.service_name, options: b.options_text, price: b.price, deposit: b.deposit, pro_name: p.name, pro_slug: p.slug, pro_city: p.city, cover_url: p.cover_url, pay_info: p.pay_info, cancel_hours: p.cancel_hours == null ? 48 : p.cancel_hours, service_id: b.service_id, prep: (d.services.filter(function (x) { return x.id === b.service_id; })[0] || {}).prep || '', address: (b.status === 'confirme' || b.status === 'fait') ? ((d.priv || {})[p.id] || '') : '', whatsapp: p.whatsapp || '', paid_claimed: !!b.paid_claimed_at, pro_delay_min: b.pro_delay_min || 0, pro_ready: !!b.pro_ready_at, client_onway: !!b.client_onway_at, client_late_min: b.client_late_min || 0 }; },
       moveBooking: async function (ref, phone, start) { var d = db(), ph = String(phone || '').replace(/[^0-9+]/g, ''), b = d.bookings.filter(function (x) { return x.ref === String(ref).toUpperCase().trim() && x.client_phone === ph; })[0]; if (!b) throw err('INTROUVABLE'); if (b.status !== 'attente' && b.status !== 'confirme') throw err('STATUT'); if ((b.moved_n || 0) >= 2) throw err('DEPLACE'); var len = new Date(b.ends_at) - new Date(b.starts_at), s0 = new Date(start), e0 = new Date(+s0 + len); if (d.bookings.some(function (x) { return x !== b && x.pro_id === b.pro_id && holds(x) && x.ends_at > s0.toISOString() && x.starts_at < e0.toISOString(); })) throw err('PRIS'); b.starts_at = s0.toISOString(); b.ends_at = e0.toISOString(); b.moved_n = (b.moved_n || 0) + 1; save(); return { starts_at: b.starts_at, ends_at: b.ends_at }; },
       cancelBooking: async function (ref, phone) { var d = db(), ph = String(phone || '').replace(/[^0-9+]/g, ''), b = d.bookings.filter(function (x) { return x.ref === String(ref).toUpperCase().trim() && x.client_phone === ph; })[0]; if (!b) throw err('INTROUVABLE'); if (b.status !== 'attente' && b.status !== 'confirme') throw err('STATUT'); var p = d.pros.filter(function (x) { return x.id === b.pro_id; })[0] || {}; if (new Date(b.starts_at).getTime() - Date.now() < (p.cancel_hours == null ? 48 : p.cancel_hours) * 36e5) throw err('TARD'); b.status = 'annule'; save(); return 'annule'; },
       session: async function () { return me(); },
@@ -243,7 +244,8 @@
       myNotes: async function () { var d = db(), u = me(); return ((d.notes || {})[u.id] || []); },
       saveNote: async function (n) { var d = db(), u = me(); d.notes = d.notes || {}; var l = (d.notes[u.id] = (d.notes[u.id] || []).filter(function (x) { return x.phone !== n.phone; })); l.push({ phone: n.phone, note: String(n.note || '').slice(0, 300), flag: !!n.flag }); save(); return n; },
       myBookings: async function () { var u = me(); return db().bookings.filter(function (b) { return b.pro_id === u.id; }).sort(function (a, b) { return a.starts_at < b.starts_at ? -1 : 1; }); },
-      setStatus: async function (bid, st) { var b = db().bookings.filter(function (x) { return x.id === bid; })[0]; if (b) { b.status = st; save(); } },
+      setStatus: async function (bid, st) { var b = db().bookings.filter(function (x) { return x.id === bid; })[0]; if (b) { b.status = st; if (st === 'confirme' && b.accepted_at === null) b.accepted_at = new Date().toISOString(); save(); } },
+      acceptBooking: async function (bid) { var b = db().bookings.filter(function (x) { return x.id === bid; })[0]; if (b) { b.accepted_at = new Date().toISOString(); save(); } },
       upload: function (blob) { return new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(r.result); }; r.onerror = rej; r.readAsDataURL(blob); }); }
     };
   }

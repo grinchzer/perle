@@ -1049,3 +1049,171 @@ body.hasbar .wrap{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
 .fnd b{color:var(--or)}
 .fndb{margin:14px 0 0;padding:12px 14px;border-radius:12px;background:var(--soft);font-size:14px;line-height:1.4;color:var(--ink2)}
 .fndb b{display:block;color:var(--noir);font-size:15px}
+
+/* espace coiffeuse : une seule carte forte (la demande, sinon le rendez-vous du jour), le reste discret */
+.phr{margin:4px 0 12px;padding:22px 20px 14px;border-radius:26px;background:var(--noir);color:#fff;display:flex;flex-direction:column}
+.phr-k{font-size:13px;font-weight:700;color:var(--or);margin-bottom:6px}
+.phr-n{font-family:var(--hb);font-size:34px;font-weight:700;letter-spacing:-.025em;line-height:1.05}
+.phr-w{color:#CFC6DA;font-size:15px;margin-top:4px}
+.phr-i{color:#fff;font-size:15px;margin-top:12px}
+.phr-m{display:flex;align-items:baseline;gap:10px;margin:22px 0 16px}
+.phr-m b{font-family:var(--hb);font-size:46px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.phr-m span{color:#CFC6DA;font-size:15px}
+.phr .btn{margin:0;min-height:58px;font-size:17px}
+.phr-l{margin:6px auto 0;padding:10px 14px;background:none;border:0;color:#CFC6DA;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.phr>:last-child:not(.phr-l){margin-bottom:8px}
+.tdr{display:flex;align-items:center;gap:12px;margin:0 0 6px;padding:12px 12px 12px 18px;border-radius:22px;background:var(--soft)}
+.tdr .grow{display:flex;flex-direction:column}.tdr b{font-size:17px}.tdr .btn{margin:0;width:auto;flex:0 0 auto}
+.wkh{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:24px 0 12px}
+.wkh>span{display:flex;flex-direction:column}.wkh b{font-family:var(--hb);font-size:22px;letter-spacing:-.01em}
+.wkb{background:none;border:0;padding:8px 0;color:var(--vio);font-size:14px;font-weight:700;cursor:pointer}
+.fullp{margin-top:12px;padding:14px;border-radius:16px;background:var(--soft);display:flex;flex-direction:column;gap:10px}
+.svc.off{opacity:.55}
+.topin{margin:4px 0 0;gap:12px}
+.topin h1{margin:0;flex:1;min-width:0}
+
+/* écran « envoie l'acompte » : le montant en grand, la référence à copier, un seul bouton fort */
+.dark-screen.dn2{background:linear-gradient(180deg,#3A1A5C 0%,var(--noir) 48%)}
+.dark-screen.dn2::before{display:none}
+.dn2-k{margin:34px 0 4px;color:var(--or);font-size:14px;font-weight:700}
+.dark-screen.dn2 h1{margin-top:0;font-size:30px}
+.dn2-a{font-family:var(--hb);font-weight:700;font-size:76px;letter-spacing:-.04em;line-height:1;margin:22px 0}
+.dn2-c{border-radius:22px;background:#fff;color:var(--noir);padding:4px 18px}
+.dn2-how{margin:0;padding:14px 0;font-size:17px;font-weight:600;line-height:1.4;border-bottom:1px solid var(--line)}
+.dn2-r{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
+.dn2-r>span{display:flex;flex-direction:column;min-width:0}
+.dn2-r>span>span{font-size:13px;color:var(--mut)}
+.dark-screen.dn2 .ref{font-size:28px;animation:none;-webkit-user-select:all;user-select:all}
+.dn2-cp{flex:0 0 auto;min-height:44px;padding:0 18px;border-radius:22px;border:0;background:var(--soft);color:var(--noir);font-weight:700;font-size:15px;cursor:pointer}
+.dn2 .btn{min-height:58px;font-size:17px}
+.dn2-s{display:flex;flex-direction:column;gap:3px;margin-top:28px;padding-top:20px;border-top:1px solid rgba(255,255,255,.16);font-size:15px;color:#E4DBEE}
+.dn2-s b{color:#fff;font-size:18px}
+.dn2-l{display:flex;flex-wrap:wrap;gap:4px 22px;margin-top:16px}
+#chips2 .chips.one{flex-wrap:nowrap;overflow-x:auto;margin-left:-20px;margin-right:-20px;padding:0 20px 2px;scrollbar-width:none}
+#chips2 .chips.one::-webkit-scrollbar{display:none}
+#chips2 .chips.one .pill{flex:0 0 auto}
+.dn2-lk{display:inline-flex;align-items:center;gap:6px;color:#fff;font-weight:600;font-size:15px;text-decoration:underline;text-underline-offset:3px;padding:8px 0}
+
+/* horaires en trois parties */
+.hvt{display:flex;margin:2px 0 18px}
+.hvt button{flex:1;justify-content:center;height:42px;font-size:13.5px;padding:0 4px;white-space:nowrap}
+[data-hv][hidden]{display:none!important}
+.hline{margin:0 2px 14px;font-size:15px;color:var(--mut)}
+.hline b{color:var(--noir);font-weight:700}
+.hlist .hrow{min-height:64px;padding:8px 12px 8px 16px}
+.hlist .sw{gap:14px;font-size:17px}
+.hlist .sw i{width:50px;height:30px;border-radius:15px;background:#E4E0EA}
+.hlist .sw i:after{width:26px;height:26px;left:2px;top:2px;box-shadow:0 1px 3px rgba(21,11,31,.3)}
+.hlist .sw input:checked+i{background:var(--vio)}
+.hlist .sw input:checked+i:after{transform:translateX(20px);background:#fff}
+.hlist .htimes{gap:8px}
+.hlist .htimes input[type=time]{min-width:76px;min-height:42px;padding:6px 8px;border:0;border-radius:12px;background:var(--soft);font-size:16px;font-weight:700;color:var(--noir)}
+.hlist .hoff{font-weight:500;color:#A79DB4}
+
+/* réglages : des choix de même largeur, sur toute la ligne */
+[data-hv="set"] .sect{margin:22px 2px 10px}
+[data-hv="set"] .seg{display:flex;width:100%;box-sizing:border-box;border-radius:16px}
+[data-hv="set"] .seg label{flex:1}
+[data-hv="set"] .seg span{min-height:46px;font-size:15px;border-radius:12px}
+[data-hv="set"] .seg input:checked+span{background:var(--vio)}
+[data-pv][hidden]{display:none!important}
+/* ma page : plus de carte flottante, des champs calmes */
+.pvt+form .mp-hint{margin-top:0}
+.mp [data-pv]>.mp-h:first-child{margin-top:4px}
+
+/* acompte : Wero, une ligne avec « Copier » */
+.dn2-how{white-space:pre-line}
+.dn2-r+.dn2-r{border-top:1px solid var(--line)}
+.dn2-v{font-size:17px;font-weight:700;letter-spacing:.01em;overflow-wrap:anywhere;-webkit-user-select:all;user-select:all}
+
+/* après « Acompte reçu » : le message prêt, deux façons de l'envoyer */
+.phr-msg{margin:14px 0 14px;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.1);color:#fff;font-size:15px;line-height:1.45}
+.phr-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.phr-2 .btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.phr .btn.phr-o{background:none;color:#fff;border:1px solid rgba(255,255,255,.45)}
+
+/* moins d'effets : étapes écrites, cartes plates, plus de verre sur les photos */
+.segl{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0 2px;font-size:12px;color:#A79DB4}
+.segl .ok{color:var(--noir)}
+.segl .now{color:var(--vio);font-weight:700}
+.rvx{display:flex;align-items:center;gap:14px;margin-top:18px}
+.rvx-p{width:72px;height:72px;border-radius:18px;flex-shrink:0;background:var(--vio) center/cover no-repeat}
+.rvx .grow{display:flex;flex-direction:column;min-width:0;font-size:15px}
+.rvx .grow b{font-family:var(--hb);font-size:18px;letter-spacing:-.02em;line-height:1.25;white-space:nowrap}
+.rvx-s{align-self:flex-start;flex-shrink:0;padding:5px 10px;border-radius:10px;font-size:12px;font-weight:700;background:var(--soft);color:var(--ink2)}
+.rvx-s.attente{background:#FBEFD5;color:#7A5200}
+.rvx-s.confirme{background:#E3F3E8;color:#1F6B3F}
+.rv0{margin:18px 0 14px;padding:18px;border-radius:18px;background:var(--soft);color:var(--ink2);font-size:15px}
+.rv0 b{display:block;margin-bottom:4px;font-family:var(--hb);font-size:20px;color:var(--noir)}
+.mapcta{background:var(--soft);background-image:none;color:var(--noir);padding:10px 14px 10px 10px;border-radius:24px}
+.mapcta b{font-family:inherit;font-size:15px;letter-spacing:0}
+.mapcta .grow>span{color:var(--mut)}
+.mapcta-i,.rdvrow[data-today] .dsq{width:48px;height:48px;border-radius:16px;background:#fff;color:var(--vio)}
+.mapcta .go{width:auto;height:auto;background:none;color:var(--mut)}
+
+/* nouvelle prestation : coiffures courantes à toucher */
+.repc{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 8px}
+.repc button{padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:14px;font-weight:600;color:var(--noir)}
+.repc button[aria-pressed="true"]{background:var(--vio);border-color:var(--vio);color:#fff}
+#srep{display:block;margin-top:8px}
+
+/* messages à envoyer, mes clientes, chiffres */
+.tsl,.clib{display:flex;flex-direction:column}
+.tsr{display:flex;align-items:center;gap:8px;padding:12px 0;border-top:1px solid var(--line)}
+.tsl .tsr:first-child{border-top:0}
+.tsr .grow{display:flex;flex-direction:column;min-width:0}
+.tsr .grow b{font-size:16px}
+.tsr .btn{margin:0;flex:0 0 auto;width:auto}
+.stb>div{display:flex;flex-direction:column;margin-top:12px}
+.stb>div b{font-family:var(--hb);font-size:20px;letter-spacing:-.01em}
+.stb>div span{color:var(--mut);font-size:14px}
+
+/* demande à accepter */
+.st.demande{background:#EFE7F8;color:var(--vio)}
+.rvx-s.demande{background:#EFE7F8;color:var(--vio)}
+.phr-d b{font-size:34px}
+
+/* tableau de bord de la coiffeuse (Compte) */
+.dsh{margin:22px 0 0;padding:22px 20px 16px;border-radius:26px;background:var(--noir);color:#fff;display:flex;flex-direction:column}
+.dsh-k{font-size:13px;font-weight:700;color:var(--or);text-transform:none}
+.dsh-k::first-letter{text-transform:uppercase}
+.dsh-n{font-family:var(--hb);font-weight:700;font-size:56px;letter-spacing:-.035em;line-height:1.05;margin-top:4px}
+.dsh-c{font-size:14px;color:rgba(255,255,255,.72)}
+.dsh-b{display:flex;gap:8px;align-items:flex-end;height:104px;margin-top:20px}
+.dsh-b button{flex:1;height:100%;min-width:0;padding:0;border:0;background:none;color:rgba(255,255,255,.6);font:inherit;font-size:12px;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:6px;cursor:pointer}
+.dsh-b button i{display:block;border-radius:8px;background:rgba(255,255,255,.2);min-height:4px}
+.dsh-b button span{text-align:center}
+.dsh-b button[aria-pressed=true]{color:#fff;font-weight:700}
+.dsh-b button[aria-pressed=true] i{background:var(--or)}
+.dsh-b button:focus-visible{outline:2px solid var(--or);outline-offset:3px;border-radius:8px}
+.dsh-l{margin-top:8px}
+.dsh-r{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 2px;border-bottom:1px solid var(--line)}
+.dsh-r span{display:flex;flex-direction:column;color:var(--ink2);font-size:15px}
+.dsh-r small,.dsh-p small{color:var(--mut);font-size:13px}
+.dsh-r b{font-family:'DM Sans',system-ui,sans-serif;font-weight:600;font-size:17px;white-space:nowrap}
+.dsh-t{margin-top:22px}
+.dsh-p{margin-top:14px}
+.dsh-p>div{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.dsh-p span{display:flex;flex-direction:column;font-weight:600;font-size:15px}
+.dsh-p small{font-weight:400}
+.dsh-p b{font-family:'DM Sans',system-ui,sans-serif;font-weight:600;white-space:nowrap}
+.dsh-p>i{display:block;height:6px;border-radius:99px;background:var(--soft);margin-top:8px}
+.dsh-p>i u{display:block;height:100%;border-radius:99px;background:var(--vio)}
+.dsh+.btn,.dsh-t+.btn,.dsh-l+.btn{margin-top:18px}
+/* accueil cliente : réserver de nouveau, en cartes photo */
+.agn{display:flex;gap:12px;overflow-x:auto;margin:0 -20px;padding:0 20px 4px;scrollbar-width:none}
+.agn::-webkit-scrollbar{display:none}
+.agn a{flex:0 0 148px;display:flex;flex-direction:column;text-decoration:none;color:var(--noir);min-width:0}
+.agn-p{display:block;height:148px;border-radius:22px;background:var(--vio) center/cover no-repeat;margin-bottom:8px}
+.agn b{font-family:var(--hb);font-size:16px;letter-spacing:-.02em;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agn a>span:last-child{font-size:13px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agn a:focus-visible .agn-p{outline:3px solid var(--vio);outline-offset:2px}
+/* accueil : pour elle, pour lui */
+.pq{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.pq button{min-height:48px;border-radius:14px;background:var(--soft);color:var(--noir);font-size:16px;font-weight:600;transition:background-color .15s ease,color .15s ease}
+.pq button[aria-pressed="true"]{background:var(--noir);color:#fff}
+.pq button:focus-visible{outline:3px solid var(--vio);outline-offset:2px}
+/* démarrage de la coiffeuse : réponse toute prête et contact */
+.rep0{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.rep0 p{margin:6px 0 12px;font-size:16px;line-height:1.4;color:var(--noir);word-break:break-word}
+.start-help{display:block;margin-top:14px;padding:12px 0 2px;font-size:15px;font-weight:600;color:var(--vio);text-decoration:underline;text-underline-offset:3px}
