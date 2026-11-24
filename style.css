@@ -1217,7 +1217,6 @@ body.hasbar .wrap{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
 .rep0{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
 .rep0 p{margin:6px 0 12px;font-size:16px;line-height:1.4;color:var(--noir);word-break:break-word}
 .start-help{display:block;margin-top:14px;padding:12px 0 2px;font-size:15px;font-weight:600;color:var(--vio);text-decoration:underline;text-underline-offset:3px}
-
 /* ===== Animations sobres (v66) : recherche, attente, montant, confirmation, étapes ===== */
 .u-scan{background:var(--soft);border-radius:28px;padding:18px 16px 16px;margin-top:14px;text-align:center;overflow:hidden}
 .u-map{position:relative;height:150px;border-radius:20px;background:#ECEAEF;overflow:hidden;margin-bottom:12px}
@@ -1256,3 +1255,8 @@ body.hasbar .wrap{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
 .trk li.ok::before{background:var(--noir);opacity:1;animation:trkf .45s ease both}
 .trk li.now::before{background:var(--noir);opacity:1;animation:segRun 2.6s ease-in-out .5s infinite}
 @media (prefers-reduced-motion:reduce){.u-map i,.u-av::after,.u-dots i,.u-steps span.go::after,.trk li::before{animation:none}.u-ok *,.u-ok{animation:none!important;opacity:1!important;stroke-dashoffset:0!important}}
+.u-eta{position:absolute;right:14px;top:calc(12px + env(safe-area-inset-top));z-index:600;background:#000;color:#fff;border-radius:14px;padding:8px 12px;box-shadow:0 6px 18px rgba(0,0,0,.25);animation:uUp .4s ease-out both}
+.u-eta b{display:block;font-family:var(--hb);font-size:17px;line-height:1.1}.u-eta span{font-size:12px;color:#D6D6D6}
+.u-eta:has(.u-eta-b),.u-eta:has(.u-eta-e){padding:0;background:none;box-shadow:none}
+.u-eta-b{border:0;background:#000;color:#fff;border-radius:999px;padding:11px 16px;font-weight:700;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.u-eta-e{display:block;background:#fff;color:var(--noir);border-radius:12px;padding:8px 12px;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.15)}

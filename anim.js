@@ -45,5 +45,58 @@
     setTimeout(close, 3600);
     if (navigator.vibrate) try { navigator.vibrate(15); } catch (e) {}
   }
-  window.UA = { count: count, confirm: confirm };
+
+  // ----- trajet animé du jour J (carte du suivi) : ligne qui se trace, point qui avance, durée, heure de départ -----
+  function km(a, b) { var R = Math.PI / 180, x = Math.sin((b.lat - a.lat) * R / 2), y = Math.sin((b.lng - a.lng) * R / 2); return 12742 * Math.asin(Math.sqrt(x * x + Math.cos(a.lat * R) * Math.cos(b.lat * R) * y * y)); }
+  function etaMin(k) { return Math.max(3, Math.min(90, Math.round(k * 4.5 + 4))); }   // même estimation que « Je suis en route »
+  function hm(d) { return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); }
+  function trip(L, m, b, dir, root) {
+    var box = m.getContainer(), dest = { lat: b.pro_lat, lng: b.pro_lng };
+    var start = new Date(b.starts_at).getTime() + (b.pro_delay_min || 0) * 60000;
+    if (Date.now() >= start) return;
+    var chip = document.createElement('div'); chip.className = 'u-eta'; box.appendChild(chip);
+    function ask() {
+      chip.innerHTML = '<button type="button" class="u-eta-b">Voir mon trajet</button>';
+      chip.firstChild.addEventListener('click', function (e) {
+        e.stopPropagation(); if (!navigator.geolocation) return;
+        chip.firstChild.textContent = 'Calcul du trajet…';
+        // position lue une seule fois, gardée en mémoire le temps de la session, jamais envoyée
+        navigator.geolocation.getCurrentPosition(function (p) { dir.me = { lat: p.coords.latitude, lng: p.coords.longitude }; draw(dir.me); },
+          function () { chip.innerHTML = '<span class="u-eta-e">Position indisponible</span>'; }, { timeout: 8000, maximumAge: 120000 });
+      });
+    }
+    function draw(me) {
+      var k = km(me, dest);
+      if (k > 80) { chip.innerHTML = '<span class="u-eta-e">Tu es loin du salon</span>'; return; }
+      var eta = etaMin(k), leave = new Date(start - (eta + 5) * 60000), now = Date.now();
+      var top = b.client_onway ? 'Arrivée vers ' + hm(new Date(now + eta * 60000)) : leave.getTime() <= now ? 'Pars maintenant' : 'Pars à ' + hm(leave);
+      chip.innerHTML = '<b>' + eta + ' min</b><span>' + top + '</span>';
+      // tracé en arc entre toi et le salon (à vol d'oiseau : l'itinéraire exact reste dans « Itinéraire »)
+      var A = [me.lat, me.lng], B = [dest.lat, dest.lng], dx = B[1] - A[1], dy = B[0] - A[0], C = [(A[0] + B[0]) / 2 + dx * 0.18, (A[1] + B[1]) / 2 - dy * 0.18], pts = [];
+      for (var i = 0; i <= 48; i++) { var t = i / 48, u = 1 - t; pts.push([u * u * A[0] + 2 * u * t * C[0] + t * t * B[0], u * u * A[1] + 2 * u * t * C[1] + t * t * B[1]]); }
+      L.polyline(pts, { color: '#150B1F', weight: 4, opacity: .25, dashArray: '1 10', lineCap: 'round', interactive: false }).addTo(m);
+      var line = L.polyline([A], { color: '#150B1F', weight: 5, lineCap: 'round', interactive: false }).addTo(m);
+      L.circleMarker(A, { radius: 7, color: '#fff', weight: 3, fillColor: '#150B1F', fillOpacity: 1, interactive: false }).addTo(m);
+      L.circleMarker(B, { radius: 11, color: '#fff', weight: 4, fillColor: '#5B2A86', fillOpacity: 1, interactive: false }).addTo(m);
+      var dot = L.circleMarker(A, { radius: 8, color: '#fff', weight: 3, fillColor: '#5B2A86', fillOpacity: 1, interactive: false });
+      try { m.fitBounds(L.latLngBounds([A, B]), { paddingTopLeft: [40, 80], paddingBottomRight: [40, 70], maxZoom: 16 }); } catch (e) {}
+      if (reduce) { line.setLatLngs(pts); return; }
+      var t0 = 0;
+      (function grow(ts) {
+        if (!document.body.contains(box)) return;
+        if (!t0) t0 = ts; var k2 = Math.min(1, (ts - t0) / 1100), n = Math.max(1, Math.round(k2 * 48));
+        line.setLatLngs(pts.slice(0, n + 1));
+        if (k2 < 1) return requestAnimationFrame(grow);
+        dot.addTo(m); var t1 = 0;
+        (function move(ts2) {
+          if (!document.body.contains(box)) return;
+          if (!t1) t1 = ts2; var c = ((ts2 - t1) % 4800) / 4000, e = c >= 1 ? 1 : c < .5 ? 2 * c * c : 1 - Math.pow(-2 * c + 2, 2) / 2, f = e * 48, j = Math.min(47, Math.floor(f)), r = f - j;
+          dot.setLatLng([pts[j][0] + (pts[j + 1][0] - pts[j][0]) * r, pts[j][1] + (pts[j + 1][1] - pts[j][1]) * r]);
+          requestAnimationFrame(move);
+        })(ts);
+      })(performance.now());
+    }
+    if (dir.me) draw(dir.me); else ask();
+  }
+  window.UA = { count: count, confirm: confirm, trip: trip };
 })();
