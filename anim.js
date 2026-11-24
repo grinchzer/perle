@@ -5,13 +5,31 @@
   try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   // comptes à rebours : <span class="u-cd" data-until="timestamp ms">
-  setInterval(function () {
-    var l = document.querySelectorAll('.u-cd[data-until]');
-    for (var i = 0; i < l.length; i++) {
-      var s = Math.max(0, Math.round((+l[i].getAttribute('data-until') - Date.now()) / 1000));
+  function tick() {
+    var l = document.querySelectorAll('.u-cd[data-until]'), i, s;
+    for (i = 0; i < l.length; i++) {
+      s = Math.max(0, Math.round((+l[i].getAttribute('data-until') - Date.now()) / 1000));
       l[i].textContent = pad(Math.floor(s / 3600)) + ':' + pad(Math.floor(s % 3600 / 60)) + ':' + pad(s % 60);
     }
-  }, 1000);
+    // anneau de temps restant (demande à accepter côté coiffeuse)
+    var r = document.querySelectorAll('.u-ring[data-until]');
+    for (i = 0; i < r.length; i++) {
+      var a = +r[i].getAttribute('data-from'), b = +r[i].getAttribute('data-until'), left = Math.max(0, b - Date.now()), f = b > a ? left / (b - a) : 0;
+      var c = r[i].querySelector('.u-ring-p'), t = r[i].querySelector('.u-ring-t');
+      if (c) c.style.strokeDashoffset = (163.4 * (1 - f)).toFixed(1);
+      r[i].classList.toggle('low', left < 3 * 36e5);
+      if (t) { var h = Math.floor(left / 36e5), m = Math.floor(left % 36e5 / 6e4); t.innerHTML = h >= 1 ? '<b>' + h + ' h</b>restantes' : '<b>' + m + ' min</b>restantes'; }
+    }
+    // une petite vibration à l'arrivée d'une nouvelle demande (une fois par demande)
+    var q = document.querySelectorAll('.u-req[data-req]');
+    for (i = 0; i < q.length; i++) {
+      var id = 'perle-buzz-' + q[i].getAttribute('data-req'), done = true;
+      try { done = !!sessionStorage.getItem(id); if (!done) sessionStorage.setItem(id, '1'); } catch (e) {}
+      if (!done && navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) try { navigator.vibrate([12, 60, 12]); } catch (e) {}
+    }
+  }
+  setInterval(tick, 1000);
+  try { var mo, pend = 0; mo = new MutationObserver(function () { if (pend) return; pend = 1; requestAnimationFrame(function () { pend = 0; tick(); }); }); document.addEventListener('DOMContentLoaded', function () { mo.observe(document.body, { childList: true, subtree: true }); tick(); }); } catch (e) {}
   // montant qui défile de 0 jusqu'à la valeur
   function count(el, v, fmt) {
     if (!el) return;
@@ -43,7 +61,7 @@
     d.addEventListener('click', close);
     document.body.appendChild(d);
     setTimeout(close, 3600);
-    if (navigator.vibrate) try { navigator.vibrate(15); } catch (e) {}
+    if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) try { navigator.vibrate(15); } catch (e) {}
   }
 
   // ----- trajet animé du jour J (carte du suivi) : ligne qui se trace, point qui avance, durée, heure de départ -----
