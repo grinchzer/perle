@@ -21,6 +21,15 @@
     dayS: function (d) { return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }); },
     day: function (d) { return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }); },
     // prix, durée et texte d'une prestation selon les options choisies (un numéro par groupe)
+    // Formules coiffeuses (25 nov. 2026) : commission seulement sur une nouvelle cliente, 0 % sur les fidèles
+    FORMULES: [['gratuit', 'Gratuit', 0, 10], ['pro', 'Perle Pro', 14.99, 7], ['salon', 'Perle Salon', 29.99, 5]],
+    FRAIS: 1.99, FONDATRICES: 30, LANCEMENT_J: 90,
+    // taux de commission (en %) appliqué à une nouvelle cliente, à la date donnée
+    taux: function (p, when) {
+      var pl = (p && p.plan) || 'gratuit';
+      if (pl === 'fondatrice') return (when ? new Date(when).getTime() : Date.now()) < (p.founder_until ? new Date(p.founder_until).getTime() : 0) ? 0 : 7;
+      return pl === 'salon' ? 5 : (pl === 'pro' || pl === 'abonne') ? 7 : 10;
+    },
     quote: function (svc, choices) {
       var price = Number(svc.price), minutes = Number(svc.minutes), txt = [];
       (svc.options || []).forEach(function (g, i) {
@@ -214,8 +223,12 @@
         if (st.getTime() < Date.now() + 36e5) throw err('DATE');
         if (d.bookings.some(function (x) { return x.pro_id === p.id && holds(x) && x.ends_at > st.toISOString() && x.starts_at < en.toISOString(); })) throw err('PRIS');
         var r = { id: id(), ref: Math.random().toString(16).slice(2, 8).toUpperCase(), pro_id: p.id, service_id: s.id, service_name: s.name, options_text: q.text, starts_at: st.toISOString(), ends_at: en.toISOString(), price: q.price, deposit: Math.round(q.price * p.deposit_pct) / 100, client_name: name, client_phone: phone, note: String(b.note || '').slice(0, 300), status: 'attente', created_at: new Date().toISOString(), accepted_at: p.manual_accept === false ? new Date().toISOString() : null };
+        // nouvelle cliente Perle = aucune réservation non annulée de ce numéro chez cette coiffeuse
+        r.new_client = !d.bookings.some(function (x) { return x.pro_id === p.id && x.client_phone === phone && x.status !== 'annule'; });
+        r.commission_pct = r.new_client ? U.taux(p, r.created_at) : 0; r.commission = Math.round(r.price * r.commission_pct) / 100;
+        r.service_fee = (window.PERLE || {}).PAIEMENT_APPLI ? U.FRAIS : 0;
         d.bookings.push(r); save();
-        return { ref: r.ref, price: r.price, deposit: r.deposit, starts_at: r.starts_at, ends_at: r.ends_at, service: r.service_name, options: r.options_text, accepted_at: r.accepted_at };
+        return { ref: r.ref, price: r.price, deposit: r.deposit, service_fee: r.service_fee, starts_at: r.starts_at, ends_at: r.ends_at, service: r.service_name, options: r.options_text, accepted_at: r.accepted_at };
       },
       claimPaid: async function (ref, phone) { var d = db(), ph = String(phone || '').replace(/[^0-9+]/g, ''), b = d.bookings.filter(function (x) { return x.ref === String(ref).toUpperCase().trim() && x.client_phone === ph; })[0]; if (b && !b.paid_claimed_at) { b.paid_claimed_at = new Date().toISOString(); save(); } return true; },
       proSignal: async function (id, kind, min) { var d = db(), b = d.bookings.filter(function (x) { return x.id === id; })[0]; if (!b) return false; if (kind === 'ready') b.pro_ready_at = new Date().toISOString(); else d.bookings.forEach(function (x) { if (x.pro_id === b.pro_id && x.status === 'confirme' && x.starts_at >= b.starts_at && String(x.starts_at).slice(0, 10) === String(b.starts_at).slice(0, 10)) { x.pro_delay_min = min || 0; x.pro_ready_at = null; } }); save(); return true; },
@@ -236,8 +249,8 @@
       signOut: async function () { db().user = null; save(); },
       resetPw: async function () { }, setPw: async function () { }, onRecovery: function () { },
       myPro: async function () { var u = me(); if (!u) return null; return db().pros.filter(function (p) { return p.id === u.id; })[0] || null; },
-      savePro: async function (f) { var d = db(), u = me(); if (d.pros.some(function (p) { return p.slug === f.slug && p.id !== u.id; })) { var e = err('SLUG'); e.code = '23505'; throw e; } var p = d.pros.filter(function (x) { return x.id === u.id; })[0]; if (!p) { p = { id: u.id, published: true, deposit_pct: 30, cancel_hours: 48, slot_step: 30, hours: { '2': [['09:00', '18:00']], '3': [['09:00', '18:00']], '4': [['09:00', '18:00']], '5': [['09:00', '18:00']], '6': [['09:00', '18:00']] }, whatsapp: '', pay_info: '', bio: '', city: '', cover_url: '', avatar_url: '', tags: [], gallery: [] }; var nf = d.pros.filter(function (x) { return x.plan === 'fondatrice'; }).length; if (nf < 20) { p.plan = 'fondatrice'; p.founder_no = nf + 1; } else p.plan = 'gratuit'; d.pros.push(p); } var had = !!String(p.pay_info || '').trim(); for (var k in f) p[k] = f[k]; if (!String(p.pay_info || '').trim()) p.published = false; else if (!had) p.published = true; p.id = u.id; save(); return p; },
-      foundersLeft: async function () { return Math.max(0, 20 - db().pros.filter(function (x) { return x.plan === 'fondatrice'; }).length); },
+      savePro: async function (f) { var d = db(), u = me(); if (d.pros.some(function (p) { return p.slug === f.slug && p.id !== u.id; })) { var e = err('SLUG'); e.code = '23505'; throw e; } var p = d.pros.filter(function (x) { return x.id === u.id; })[0]; if (!p) { p = { id: u.id, published: true, deposit_pct: 30, cancel_hours: 48, slot_step: 30, hours: { '2': [['09:00', '18:00']], '3': [['09:00', '18:00']], '4': [['09:00', '18:00']], '5': [['09:00', '18:00']], '6': [['09:00', '18:00']] }, whatsapp: '', pay_info: '', bio: '', city: '', cover_url: '', avatar_url: '', tags: [], gallery: [] }; var nf = d.pros.filter(function (x) { return x.plan === 'fondatrice'; }).length; if (nf < U.FONDATRICES) { p.plan = 'fondatrice'; p.founder_no = nf + 1; p.founder_until = new Date(Date.now() + U.LANCEMENT_J * 864e5).toISOString(); } else p.plan = 'gratuit'; d.pros.push(p); } var had = !!String(p.pay_info || '').trim(); for (var k in f) p[k] = f[k]; if (!String(p.pay_info || '').trim()) p.published = false; else if (!had) p.published = true; p.id = u.id; save(); return p; },
+      foundersLeft: async function () { return Math.max(0, U.FONDATRICES - db().pros.filter(function (x) { return x.plan === 'fondatrice'; }).length); },
       myPrivate: async function () { var d = db(), u = me(); return { address: (d.priv || {})[u.id] || '' }; },
       savePrivate: async function (f) { var d = db(), u = me(); d.priv = d.priv || {}; d.priv[u.id] = String(f.address || '').slice(0, 200); save(); return { address: d.priv[u.id] }; },
       myServices: async function () { var u = me(); return db().services.filter(function (s) { return s.pro_id === u.id; }).sort(function (a, b) { return a.position - b.position; }); },

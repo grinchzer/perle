@@ -1302,3 +1302,49 @@ body.hasbar .wrap{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
 .oldm[open]>summary{display:none}
 .lead b{white-space:nowrap}
 .catsel{max-width:236px;text-overflow:ellipsis}
+
+/* ===== Formules coiffeuses (v71), façon Uber One ===== */
+.ub{margin-top:-4px}
+.ub-back{display:inline-flex;align-items:center;gap:4px;font-weight:600;font-size:15px;color:var(--noir);padding:6px 10px 6px 2px;margin-bottom:10px}
+.ub-hero{background:var(--noir);color:#fff;border-radius:24px;padding:20px 18px 18px;display:flex;flex-direction:column}
+.ub-k{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--or)}
+.ub-t{font-family:var(--hb);font-weight:700;font-size:34px;letter-spacing:-.03em;line-height:1.05;margin-top:6px}
+.ub-s{font-size:15px;line-height:1.4;color:#D8D0E2;margin-top:6px}
+.ub-bar{height:6px;border-radius:6px;background:rgba(255,255,255,.16);margin-top:16px;overflow:hidden}
+.ub-bar i{display:block;height:100%;border-radius:6px;background:var(--or);transition:width .6s ease}
+.ub-bl{display:flex;justify-content:space-between;font-size:13px;color:#CFC6DA;margin-top:6px}
+.ub-bl b{color:#fff;font-weight:600}
+.ub-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14)}
+.ub-stats div{display:flex;flex-direction:column}
+.ub-stats b{font-family:var(--hb);font-size:22px;letter-spacing:-.02em;line-height:1.1}
+.ub-stats span{font-size:12px;line-height:1.3;color:#CFC6DA;margin-top:3px}
+.ub-h{font-family:var(--hb);font-size:22px;letter-spacing:-.02em;margin:26px 0 12px}
+.ub-list{display:flex;flex-direction:column;gap:8px}
+.ub-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:18px;padding:12px 14px;transition:border-color .15s,transform .1s}
+.ub-row:active{transform:scale(.99)}
+.ub-row.on{border-color:var(--noir)}
+.ub-ic{flex:none;width:48px;height:48px;border-radius:14px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-family:var(--hb);font-weight:700;font-size:19px;color:var(--noir);letter-spacing:-.02em}
+.ub-ic small{font-size:12px;margin-left:1px}
+.ub-row.on .ub-ic{background:var(--noir);color:#fff}
+.ub-row .grow{display:flex;flex-direction:column;min-width:0}
+.ub-row .grow b{display:flex;align-items:center;gap:6px;font-size:16px;color:var(--noir)}
+.ub-row .grow b i{font-style:normal;font-size:11px;font-weight:600;color:var(--vio);background:#EFE7F7;border-radius:20px;padding:2px 7px}
+.ub-row .grow>span{font-size:13px;color:var(--mut);margin-top:2px;line-height:1.3}
+.ub-p{display:flex;flex-direction:column;align-items:flex-end;flex:none}
+.ub-p b{font-size:16px;color:var(--noir)}
+.ub-p span{font-size:11px;color:var(--mut)}
+.ub-cta{margin-top:14px}
+.ub-cta .btn[disabled]{opacity:1;background:var(--noir);color:#fff}
+.ub-cta .btn[disabled]:not(:only-child),.ub-cta .btn[disabled]{cursor:default}
+.ub-sim{font-size:14px;color:var(--ink2);margin:10px 2px 0;line-height:1.4}
+.ub-steps{list-style:none;margin:0;padding:0 0 0 4px}
+.ub-steps li{position:relative;padding:0 0 18px 26px;display:flex;flex-direction:column}
+.ub-steps li:before{content:'';position:absolute;left:0;top:4px;width:12px;height:12px;border-radius:50%;background:var(--noir)}
+.ub-steps li:not(:last-child):after{content:'';position:absolute;left:5px;top:18px;bottom:2px;width:2px;background:var(--line)}
+.ub-steps li:last-child:before{background:var(--or)}
+.ub-steps b{font-size:15px;color:var(--noir)}
+.ub-steps span{font-size:14px;color:var(--mut);margin-top:2px}
+.ub-note{font-size:13px;color:var(--mut);line-height:1.45;margin:4px 0 0}
+.u-gain .u-com{color:var(--or);font-size:13px;margin-top:6px}
+.bk-fee{display:flex;justify-content:space-between;font-size:14px;color:var(--mut);margin-top:4px}
+.dn2-f{margin:6px 0 0;color:#CFC6DA;font-size:14px}

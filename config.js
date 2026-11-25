@@ -5,5 +5,7 @@ window.PERLE = {
   SUPABASE_URL: 'https://cftcwvunonsuaacqhuxe.supabase.co',
   SUPABASE_KEY: 'sb_publishable_45_K_epzRxy3mu0al-XLwQ_pYkHgHkI',
   // true seulement sur Netlify : les liens deviennent ton-site/awabraids au lieu de ton-site/?c=awabraids
-  LIENS_COURTS: false
+  LIENS_COURTS: false,
+  // true seulement quand l'acompte sera payé dans l'appli (Stripe Connect) : affiche alors les 1,99 € de frais de service
+  PAIEMENT_APPLI: false
 };

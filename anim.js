@@ -18,7 +18,7 @@
       var c = r[i].querySelector('.u-ring-p'), t = r[i].querySelector('.u-ring-t');
       if (c) c.style.strokeDashoffset = (163.4 * (1 - f)).toFixed(1);
       r[i].classList.toggle('low', left < 3 * 36e5);
-      if (t) { var h = Math.floor(left / 36e5), m = Math.floor(left % 36e5 / 6e4); t.innerHTML = h >= 1 ? '<b>' + h + ' h</b>restantes' : '<b>' + m + ' min</b>restantes'; }
+      if (t) { var h = Math.floor(left / 36e5), m = Math.floor(left % 36e5 / 6e4); t.innerHTML = h >= 2 ? '<b>' + h + ' h</b>restantes' : '<b>' + Math.floor(left / 6e4) + ' min</b>restantes'; }
     }
     // une petite vibration à l'arrivée d'une nouvelle demande (une fois par demande)
     var q = document.querySelectorAll('.u-req[data-req]');

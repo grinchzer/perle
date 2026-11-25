@@ -127,7 +127,7 @@
   function me() {
     var x = q(), d = dep(x.price), saved = {}; try { saved = JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (e) { }
     var ask = st.pro.manual_accept !== false;   // par défaut la coiffeuse accepte d'abord chaque demande : rien à payer à cette étape
-    var h = top('slot') + '<h1>' + (ask ? 'Envoie ta demande à ' + esc(st.pro.name) : 'Tu verses ' + U.eur(d) + ' maintenant, le reste sur place') + '</h1>' + recap(false, lead(esc(U.day(st.time)), U.hm(st.time) + ' à ' + U.hm(new Date(st.time.getTime() + x.minutes * 6e4))) + lead('Prix de la coiffure', U.eur(x.price)) + lead('Acompte de ' + st.pro.deposit_pct + ' %, ' + (ask ? 'après son accord' : 'maintenant'), U.eur(d)) + lead('À régler sur place', U.eur(x.price - d), 't'));
+    var h = top('slot') + '<h1>' + (ask ? 'Envoie ta demande à ' + esc(st.pro.name) : 'Tu verses ' + U.eur(d) + ' maintenant, le reste sur place') + '</h1>' + recap(false, lead(esc(U.day(st.time)), U.hm(st.time) + ' à ' + U.hm(new Date(st.time.getTime() + x.minutes * 6e4))) + lead('Prix de la coiffure', U.eur(x.price)) + lead('Acompte de ' + st.pro.deposit_pct + ' %, ' + (ask ? 'après son accord' : 'maintenant'), U.eur(d)) + ((window.PERLE || {}).PAIEMENT_APPLI ? lead('Frais de service Perle', U.eur(U.FRAIS)) : '') + lead('À régler sur place', U.eur(x.price - d), 't'));
     h += '<label for="fn">Ton prénom</label><input id="fn" type="text" autocomplete="given-name" maxlength="40" value="' + esc(saved.n || '') + '">';
     h += '<label for="ft">Ton numéro de téléphone</label><input id="ft" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="06 12 34 56 78" value="' + esc(saved.t || '') + '">';
     h += '<label for="fe">Ton e-mail (facultatif)</label><input id="fe" type="email" autocomplete="email" inputmode="email" maxlength="120" placeholder="Pour recevoir ta confirmation" value="' + esc(saved.e || '') + '">';
@@ -162,7 +162,7 @@
       return setBar();
     }
     // une seule chose en grand : le montant. Puis comment payer, la référence à copier, et un bouton.
-    var h = '<div class="dark-screen dn2"><p class="dn2-k">Dernière étape, ' + esc(r.name.split(' ')[0]) + '</p><h1>Envoie l’acompte</h1><div class="dn2-a">' + U.eur(r.deposit) + '</div>';
+    var h = '<div class="dark-screen dn2"><p class="dn2-k">Dernière étape, ' + esc(r.name.split(' ')[0]) + '</p><h1>Envoie l’acompte</h1><div class="dn2-a">' + U.eur(r.deposit) + '</div>' + (Number(r.service_fee) ? '<p class="dn2-f">+ ' + U.eur(r.service_fee) + ' de frais de service Perle</p>' : '');
     var prow = '', prest = [];
     ptx.split('\n').forEach(function (l) { var m = l.match(/^\s*(Wero)\s*:\s*(.+)$/i); if (m) prow += '<div class="dn2-r"><span><span>Par Wero, au numéro</span><b class="dn2-v">' + esc(m[2].trim()) + '</b></span><button type="button" class="dn2-cp" data-copy="' + esc(m[2].trim()) + '">Copier</button></div>'; else if (l.trim()) prest.push(l.trim()); });
     ptx = prest.join('\n');

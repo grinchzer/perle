@@ -31,8 +31,38 @@
     if (pv.apple) h += '<button type="button" class="btn oab dk" data-act="oa" data-p="apple">Continuer avec Apple</button>';
     return h ? h + '<div class="oasep"><span>ou avec ton e-mail</span></div>' : '';
   }
-  // Offre de lancement : les 20 premières coiffeuses gardent Perle gratuit à vie.
-  function fndTxt() { var n = st.fleft; return n == null ? '' : n > 0 ? '<b>Offre fondatrice.</b> Les 20 premières coiffeuses gardent Perle gratuit à vie. Il reste ' + n + ' place' + (n > 1 ? 's' : '') + '.' : 'Gratuit jusqu’à 5 réservations par mois, puis 9,90 € par mois. Aucune commission sur tes coiffures.'; }
+  // Offre de lancement (25 nov. 2026) : les 30 premières coiffeuses ont 0 % pendant 3 mois, puis 7 % à vie, sans abonnement.
+  function fndTxt() { var n = st.fleft; return n == null ? '' : n > 0 ? '<b>Offre de lancement.</b> Les ' + U.FONDATRICES + ' premières coiffeuses : 0 % de commission pendant 3 mois, puis 7 % à vie, sans abonnement. Il reste ' + n + ' place' + (n > 1 ? 's' : '') + '.' : '<b>Gratuit pour commencer.</b> Perle prend 10 % seulement quand il t’amène une nouvelle cliente, et 0 % sur tes habituées.'; }
+  // commission d'une réservation (affichée seulement pour une nouvelle cliente)
+  function comTxt(b) { if (!b.new_client) return ''; var pc = Number(b.commission_pct || 0); return pc ? 'Nouvelle cliente Perle : commission de ' + U.eur(b.commission) + ' (' + String(pc).replace('.', ',') + ' %)' : 'Nouvelle cliente Perle : 0 % de commission (offre de lancement)'; }
+  function fmlLabel() { var p = st.pro, fu = p.founder_until ? new Date(p.founder_until) : null; if (p.plan === 'fondatrice') return fu && fu.getTime() > Date.now() ? 'Fondatrice · 0 % jusqu’au ' + fu.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : 'Fondatrice · 7 % à vie, sans abonnement'; var f = U.FORMULES.filter(function (x) { return x[0] === (p.plan === 'abonne' ? 'pro' : p.plan); })[0] || U.FORMULES[0]; return f[1] + ' · ' + f[3] + ' % sur une nouvelle cliente'; }
+  // Page « Ma formule », façon Uber One / choix de course Uber (v71)
+  function fmlBox() {
+    var p = st.pro, fu = p.founder_until ? new Date(p.founder_until) : null, fond = p.plan === 'fondatrice', lanc = fond && fu && fu.getTime() > Date.now();
+    var cur = fond ? 'fondatrice' : p.plan === 'abonne' ? 'pro' : (p.plan || 'gratuit'), pick = st.fpick || (fond ? '' : cur), d0 = new Date(); d0.setDate(1); d0.setHours(0, 0, 0, 0);
+    var mm = st.rdv.filter(function (b) { return b.new_client && b.status !== 'annule' && new Date(b.created_at || b.starts_at) >= d0; }), com = mm.reduce(function (t, b) { return t + Number(b.commission || 0); }, 0), ca = mm.reduce(function (t, b) { return t + Number(b.price || 0); }, 0), pl = mm.length > 1 ? 's' : '';
+    var F = {}; U.FORMULES.forEach(function (f) { F[f[0]] = f; });
+    var name = fond ? 'Fondatrice' + (p.founder_no ? ' n° ' + p.founder_no : '') : F[cur][1], pct = U.taux(p);
+    var h = '<div class="ub"><button type="button" class="ub-back" data-act="fmlback" aria-label="Retour au compte">' + svg('<path d="M15 6l-6 6 6 6"/>', 20, 2.2) + '<span>Compte</span></button>' +
+      '<section class="ub-hero"><span class="ub-k">Ta formule Perle</span><b class="ub-t">' + name + '</b><span class="ub-s">' + (lanc ? '0 % de commission jusqu’au ' + fu.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + ', puis 7 % à vie, sans abonnement.' : fond ? '7 % à vie sur une nouvelle cliente, sans abonnement.' : 'Tu paies seulement quand Perle t’amène une nouvelle cliente : ' + pct + ' %.') + '</span>';
+    if (lanc) { var tot = U.LANCEMENT_J * 864e5, left = Math.max(0, fu.getTime() - Date.now()), dl = Math.ceil(left / 864e5); h += '<div class="ub-bar" role="img" aria-label="Offre de lancement : ' + dl + ' jours restants"><i style="width:' + Math.min(100, Math.round((1 - left / tot) * 100)) + '%"></i></div><span class="ub-bl"><span>Offre de lancement</span><b>encore ' + dl + ' jour' + (dl > 1 ? 's' : '') + '</b></span>'; }
+    h += '<div class="ub-stats"><div><b>' + mm.length + '</b><span>nouvelle' + pl + ' cliente' + pl + ' ce mois</span></div><div><b>' + U.eur(com) + '</b><span>de commission</span></div><div><b>0 %</b><span>sur tes habituées</span></div></div></section>';
+    h += '<h2 class="ub-h">' + (fond ? 'Les formules' : 'Choisis ta formule') + '</h2><div class="ub-list" role="radiogroup" aria-label="Formules">';
+    U.FORMULES.forEach(function (f) {
+      var on = f[0] === pick, feat = f[0] === 'pro' ? 'Rappels SMS, statistiques complètes' : f[0] === 'salon' ? 'Jusqu’à 4 coiffeuses, rappels SMS' : 'Rendez-vous et clientes illimités';
+      h += '<button type="button" class="ub-row' + (on ? ' on' : '') + '" role="radio" aria-checked="' + on + '" data-act="fmlpick" data-f="' + f[0] + '"><span class="ub-ic">' + f[3] + '<small>%</small></span><span class="grow"><b>' + f[1] + (f[0] === cur ? '<i>Actuelle</i>' : '') + '</b><span>' + feat + '</span></span><span class="ub-p"><b>' + (f[2] ? U.eur(f[2]) : '0 €') + '</b><span>' + (f[2] ? 'par mois' : 'sans abonnement') + '</span></span></button>';
+    });
+    var fp = F[pick], sim = fp ? Math.round(ca * fp[3]) / 100 + fp[2] : 0;
+    h += '</div>' + (!fp ? '' : '<div class="ub-cta">' + (pick === cur ? '<button type="button" class="btn dark" disabled>C’est ta formule</button>' : '<button type="button" class="btn dark" disabled>Passer à ' + fp[1] + ' · bientôt</button>') +
+      (mm.length && pick !== cur ? '<p class="ub-sim">Ce mois-ci, avec ' + fp[1] + ', tu aurais payé <b>' + U.eur(sim) + '</b>' + (fp[2] ? ' (abonnement compris)' : '') + ' au lieu de ' + U.eur(com) + '.</p>' : '') + '</div>');
+    h += '<h2 class="ub-h">Comment ça marche</h2><ol class="ub-steps">' +
+      '<li><b>Une cliente te découvre sur Perle</b><span>Elle réserve chez toi pour la première fois.</span></li>' +
+      '<li><b>Perle prend sa commission une seule fois</b><span>Un pourcentage du prix, pris sur l’acompte payé dans l’appli.</span></li>' +
+      '<li><b>Elle revient ? 0 %</b><span>Tes habituées ne te coûtent rien, jamais.</span></li></ol>' +
+      '<p class="ub-note">Rien n’est prélevé pour l’instant : la commission sera prise quand le paiement dans l’appli ouvrira, et on te préviendra 30 jours avant. Les abonnements Pro et Salon arrivent bientôt.</p></div>';
+    return h;
+  }
+
   function auth() {
     document.body.classList.add('dark');
     if (st.fleft == null && !st.fask && S.foundersLeft) { st.fask = true; S.foundersLeft().then(function (n) { st.fleft = Number(n); var e = document.getElementById('fnd'); if (e && !isNaN(st.fleft)) { e.innerHTML = fndTxt(); e.hidden = false; } }).catch(function () { }); }
@@ -147,14 +177,15 @@
   // ----- profil -----
   var known = false;
   function me() {
+    if (st.fml) return fmlBox();
     var p = st.pro, em = (st.user && st.user.email) || '', n = st.svcs.length, up = st.rdv.filter(function (b) { return new Date(b.ends_at).getTime() >= Date.now() && b.status !== 'annule'; }).length;
     var pic = p.avatar_url || p.cover_url, on = p.published !== false;
     function row(ic, t, s, attr) { return '<button type="button" class="srow" ' + attr + '>' + svg(ic, 22, 1.8) + '<span class="grow"><b>' + t + '</b><span class="mut">' + s + '</span></span>' + svg(I.chev, 18) + '</button>'; }
     var h = note() + '<section class="acct"><div class="acct-id"><span class="acct-av"' + (pic ? ' style="' + U.bg(pic) + '"' : '') + '>' + (pic ? '' : esc((p.name || '?').charAt(0).toUpperCase())) + '</span><div class="grow"><b class="acct-name">' + esc(p.name) + '</b><span class="mut">' + esc(em) + '</span></div></div>' +
       '</section>' + linkBox() +
-      (p.plan === 'fondatrice' ? '<p class="fndb"><b>Fondatrice' + (p.founder_no ? ' n° ' + p.founder_no : '') + '</b> Perle est gratuit à vie pour toi, sans commission.</p>' : '') +
       '<div class="nums"><div><b>' + up + '</b><span>à venir</span></div><div><b>' + n + '</b><span>prestation' + (n > 1 ? 's' : '') + '</span></div><div><b class="live' + (on ? ' on' : '') + '"><i></i>' + (on ? 'En ligne' : 'Masquée') + '</b><span>ta page</span></div></div>' + dashBox() +
       '<div class="slist" style="margin-top:22px">' +
+      row(I.doc, 'Ma formule', fmlLabel(), 'data-act="fml"') +
       row(I.user, 'Mes clientes', 'Importer ma liste et leur envoyer mon lien', 'data-act="cli"') + (st.cli ? cliBox() : '') +
       row(I.lock, 'Mot de passe', 'En choisir un nouveau', 'data-act="pw"') +
       ((st.pw || st.recovery) ? '<form id="fw" class="spw"><label for="np">Nouveau mot de passe (8 caractères au moins)</label><input id="np" type="password" autocomplete="new-password" minlength="8" required><button class="btn" style="margin-top:12px">Enregistrer</button></form>' : '') +
@@ -326,7 +357,7 @@
     if (x) h += '<div class="acts" style="margin-top:14px">' + x + '</div>';
     return h + '</details>';
   }
-  function detail(b) { return '<div class="mut" style="margin-top:10px">' + esc(b.client_phone) + '. Référence ' + esc(b.ref) + '. Acompte ' + U.eur(b.deposit) + ', reste ' + U.eur(b.price - b.deposit) + '.' + (b.note ? '<br>« ' + esc(b.note) + ' »' : '') + '</div>' + (b.status === 'attente' && b.paid_claimed_at ? '<p class="note ok" style="margin-top:8px"><b>' + esc(String(b.client_name || '').split(' ')[0]) + ' dit avoir envoyé l’acompte.</b> Vérifie ton compte, puis confirme.</p>' : ''); }
+  function detail(b) { return '<div class="mut" style="margin-top:10px">' + esc(b.client_phone) + '. Référence ' + esc(b.ref) + '. Acompte ' + U.eur(b.deposit) + ', reste ' + U.eur(b.price - b.deposit) + '.' + (comTxt(b) ? '<br>' + comTxt(b) + '.' : '') + (b.note ? '<br>« ' + esc(b.note) + ' »' : '') + '</div>' + (b.status === 'attente' && b.paid_claimed_at ? '<p class="note ok" style="margin-top:8px"><b>' + esc(String(b.client_name || '').split(' ')[0]) + ' dit avoir envoyé l’acompte.</b> Vérifie ton compte, puis confirme.</p>' : ''); }
   // ----- une seule chose à la fois : la demande à traiter, sinon le rendez-vous du jour -----
   function todayB(up, now) {
     var d0 = new Date(); d0.setHours(0, 0, 0, 0);
@@ -345,7 +376,7 @@
     if (rq.length && pend(rq[0])) {
       var b0 = rq[0], s0 = new Date(b0.starts_at), np = rq.filter(pend).length;
       var t0 = new Date(b0.created_at || Date.now()).getTime();
-      h += '<div class="phr u-req" data-req="' + esc(b0.id) + '"><div class="u-ring" data-from="' + t0 + '" data-until="' + (t0 + 864e5) + '" aria-hidden="true"><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26"/><circle class="u-ring-p" cx="30" cy="30" r="26"/></svg><span class="u-ring-t"></span></div><span class="phr-k">Nouvelle demande' + (np > 1 ? ' · 1 sur ' + np : '') + '</span><b class="phr-n">' + esc(b0.client_name) + '</b><span class="phr-w">' + esc(b0.service_name) + (b0.options_text ? ', ' + esc(b0.options_text) : '') + '</span><div class="phr-m phr-d"><b>' + esc(s0.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })) + ', ' + U.hm(s0) + '</b></div><div class="u-gain"><b>' + U.eur(b0.price) + '</b><span>dont ' + U.eur(b0.deposit) + ' d’acompte une fois acceptée</span></div><button class="btn" data-act="accept" data-id="' + esc(b0.id) + '">Accepter</button><button type="button" class="phr-l" data-st="annule" data-id="' + esc(b0.id) + '">Refuser cette demande</button></div>';
+      h += '<div class="phr u-req" data-req="' + esc(b0.id) + '"><div class="u-ring" data-from="' + t0 + '" data-until="' + (t0 + 864e5) + '" aria-hidden="true"><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26"/><circle class="u-ring-p" cx="30" cy="30" r="26"/></svg><span class="u-ring-t"></span></div><span class="phr-k">Nouvelle demande' + (np > 1 ? ' · 1 sur ' + np : '') + '</span><b class="phr-n">' + esc(b0.client_name) + '</b><span class="phr-w">' + esc(b0.service_name) + (b0.options_text ? ', ' + esc(b0.options_text) : '') + '</span><div class="phr-m phr-d"><b>' + esc(s0.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })) + ', ' + U.hm(s0) + '</b></div><div class="u-gain"><b>' + U.eur(b0.price) + '</b><span>dont ' + U.eur(b0.deposit) + ' d’acompte une fois acceptée</span>' + (comTxt(b0) ? '<span class="u-com">' + comTxt(b0) + '</span>' : '') + '</div><button class="btn" data-act="accept" data-id="' + esc(b0.id) + '">Accepter</button><button type="button" class="phr-l" data-st="annule" data-id="' + esc(b0.id) + '">Refuser cette demande</button></div>';
       if (td) h += '<div class="tdr"><span class="grow"><span class="mut">Aujourd’hui · ' + U.hm(s) + '</span><b>' + esc(td.client_name) + '</b></span>' + (step ? '<button type="button" class="btn sm dark" data-' + step[0] + ' data-id="' + esc(td.id) + '">' + step[1] + '</button>' : '<span class="mut">' + fn + ' est prévenue</span>') + '</div>';
     } else if (rq.length) {
       var b = rq[0], sb = new Date(b.starts_at);
@@ -458,7 +489,7 @@
     if (!st.user) return auth();
     if (!st.pro) { app.innerHTML = top() + profile(true); return; }
     if (st.recovery) st.tab = 'me';
-    var T = { rdv: ['Bonjour, <span class="hl">' + esc(st.pro.name.split(' ')[0]) + '</span>.', rdv], svc: ['Tes <span class="hl">prestations</span>.', services], hrs: ['Tes <span class="hl">horaires</span>.', hours], pro: ['Ta <span class="hl">page</span>.', function () { return profile(false); }], me: ['Ton <span class="hl">compte</span>.', me] }[st.tab];
+    var T = { rdv: ['Bonjour, <span class="hl">' + esc(st.pro.name.split(' ')[0]) + '</span>.', rdv], svc: ['Tes <span class="hl">prestations</span>.', services], hrs: ['Tes <span class="hl">horaires</span>.', hours], pro: ['Ta <span class="hl">page</span>.', function () { return profile(false); }], me: [st.fml ? 'Ta <span class="hl">formule</span>.' : 'Ton <span class="hl">compte</span>.', me] }[st.tab];
     app.innerHTML = topIn(T[0]) + '<div style="margin-top:14px">' + T[1]() + '</div>' +
       '<nav class="nav" aria-label="Menu">' + TABS.map(function (t) { return '<button data-tab="' + t[0] + '" aria-selected="' + (st.tab === t[0]) + '" aria-label="' + t[1] + '">' + svg(t[2], 22) + '<span>' + t[1] + '</span></button>'; }).join('') + '</nav>';
   }
@@ -492,7 +523,7 @@
     try {
       if (b.dataset.tab && st.tab === 'pro' && st.dirty && b.dataset.tab !== 'pro' && document.getElementById('fp')) { st.dirty = false; var dw = document.getElementById('dw'); if (!dw) document.getElementById('fp').insertAdjacentHTML('afterbegin', '<p class="note err" id="dw" role="alert">Tes changements ne sont pas enregistrés. Appuie sur Enregistrer en bas, ou touche encore l’onglet pour quitter sans enregistrer.</p>'); return window.scrollTo(0, 0); }
       if (b.dataset.agd != null) { st.agDay = +b.dataset.agd; var ya = window.scrollY; render(); return window.scrollTo(0, ya); }
-      if (b.dataset.tab) { st.dirty = false; st.tab = b.dataset.tab; st.edit = null; st.calc = null; render(); return window.scrollTo(0, 0); }
+      if (b.dataset.tab) { st.dirty = false; st.tab = b.dataset.tab; st.edit = null; st.calc = null; st.fml = false; render(); return window.scrollTo(0, 0); }
       if (b.dataset.edit) { st.edit = JSON.parse(JSON.stringify(st.svcs[+b.dataset.edit])); return render(); }
       if (b.dataset.rm) { var p = base(); p.gallery = (st.pro.gallery || []).filter(function (_, i) { return i !== +b.dataset.rm; }); st.pro = await S.savePro(p); return render(); }
       if (b.dataset.sig) { b.disabled = true; await S.proSignal(b.dataset.id, b.dataset.sig, +b.dataset.min || 0); st.rdv = await S.myBookings() || []; return render(); }
@@ -507,6 +538,9 @@
       if (a === 'justno') { st.just = null; return render(); }
       if (a === 'dm') { st.dm = Number(b.dataset.m) || 0; var yd = window.scrollY; render(); return window.scrollTo(0, yd); }
       if (a === 'accept') { b.disabled = true; await S.acceptBooking(b.dataset.id); st.just = b.dataset.id; st.msg = null; await refresh(); return window.scrollTo(0, 0); }
+      if (a === 'fml') { st.fml = true; st.fpick = null; render(); return window.scrollTo(0, 0); }
+      if (a === 'fmlback') { st.fml = false; render(); return window.scrollTo(0, 0); }
+      if (a === 'fmlpick') { st.fpick = b.dataset.f; var yp = window.scrollY; render(); return window.scrollTo(0, yp); }
       if (a === 'cli') { st.cli = !st.cli; var yc = window.scrollY; render(); return window.scrollTo(0, yc); }
       if (a === 'cliadd') {
         var cm = document.getElementById('clim'), add = [], bad = 0; String(document.getElementById('cli').value || '').split(/\n/).forEach(function (ln) { ln = ln.trim(); if (!ln) return; var mt = ln.match(/(?:\+33|0033|0)\s*[1-9](?:[\s.\-]*\d{2}){4}/); if (!mt) { bad++; return; } var ph = mt[0].replace(/[^0-9+]/g, '').replace(/^(\+33|0033)/, '0'), nm = ln.replace(mt[0], '').replace(/[,;:\t|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40); if (!nm) { bad++; return; } if (!(st.notes || {})[ph] && !add.some(function (x) { return x.phone === ph; })) add.push({ phone: ph, note: 'Cliente : ' + nm, flag: false }); });
