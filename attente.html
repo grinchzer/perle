@@ -114,6 +114,36 @@ body{color:#000}
 .again{display:block;margin:16px auto 0;font-size:14px;color:#757575;text-decoration:underline}
 .pfoot{color:#757575;font-size:12px;margin-top:22px;text-align:center}
 .pfoot a{color:#757575}
+
+/* ===== Animations (v74) ===== */
+@keyframes up{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes kb{from{background-size:100%}to{background-size:112%}}
+@keyframes nudge{0%,100%{transform:none}50%{transform:translateX(4px)}}
+@keyframes tickin{from{transform:translateY(-35%);opacity:.2}to{transform:none;opacity:1}}
+@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+.ps{animation:up .55s cubic-bezier(.2,.8,.2,1) both}
+.ps h1{animation:up .5s .08s cubic-bezier(.2,.8,.2,1) both}
+#pick .ptile{animation:up .5s cubic-bezier(.2,.8,.2,1) both,kb 9s ease-in-out infinite alternate;background-size:100%}
+#pick .ptile:nth-child(1){animation-delay:.15s,0s}
+#pick .ptile:nth-child(2){animation-delay:.25s,0s}
+#pick .ptile em{animation:nudge 1.6s 1s ease-in-out infinite}
+#pick .ptile:active{transform:scale(.985)}
+#f:not([hidden]) > *{animation:up .4s cubic-bezier(.2,.8,.2,1) both}
+.cats button{transition:transform .15s}
+.cats button:active{transform:scale(.92)}
+.cats button[aria-pressed="true"] i:after{animation:pop .3s ease both}
+.eta b span{display:inline-block}
+.eta b span.t{animation:tickin .35s ease}
+.pcar{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--or);box-shadow:0 0 0 4px rgba(217,164,65,.25);offset-rotate:0deg}
+.dn:not([hidden]) .dn-n{animation:pop .5s cubic-bezier(.2,.8,.2,1) both}
+.dn:not([hidden]) .ptrk i.on{transform-origin:left;animation:fill .8s .2s ease both}
+.dn:not([hidden]) .steps li{animation:up .45s cubic-bezier(.2,.8,.2,1) both}
+.dn:not([hidden]) .steps li:nth-child(2){animation-delay:.1s}
+.dn:not([hidden]) .steps li:nth-child(3){animation-delay:.2s}
+.dn:not([hidden]) .inv{animation:up .5s .3s cubic-bezier(.2,.8,.2,1) both}
+#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none !important;transition:none !important}.pcar{display:none}}
 </style>
 </head>
 <body>
@@ -125,6 +155,7 @@ body{color:#000}
     <span class="pin" style="left:80%;top:62%;animation-delay:.8s"><i style="background-image:url(img/fFulani.jpg)"></i>Fulani</span>
     <span class="pin" style="left:30%;top:72%;animation-delay:1.1s"><i style="background-image:url(img/fLace.jpg)"></i>Perruque</span>
     <span class="me"></span>
+    <span class="pcar" id="car"></span>
   </div>
   <div class="pmap-top">
     <a class="ppill" href="./" aria-label="Perle, accueil"><svg viewBox="0 0 100 100" width="22" height="22" aria-hidden="true"><rect width="100" height="100" rx="24" fill="#150B1F"></rect><circle cx="50" cy="38" r="26" fill="#D9A441"></circle><circle cx="50" cy="52" r="13" fill="#fff"></circle></svg>perle</a>
@@ -212,7 +243,10 @@ body{color:#000}
   // compte à rebours jusqu'au 1er janvier, façon temps d'arrivée Uber
   function tick() {
     var l = Math.max(0, OPEN - Date.now()), d = Math.floor(l / 864e5), h = Math.floor(l / 36e5) % 24, m = Math.floor(l / 6e4) % 60, x = Math.floor(l / 1e3) % 60;
-    $('cdT').textContent = (d ? d + ' j ' : '') + p2(h) + ':' + p2(m) + ':' + p2(x);
+    var txt = (d ? d + '\u00a0j\u00a0' : '') + p2(h) + ':' + p2(m) + ':' + p2(x), el = $('cdT'), old = el.dataset.v || '';
+    if (old.length !== txt.length) { el.innerHTML = txt.split('').map(function (c) { return '<span>' + c + '</span>'; }).join(''); }
+    else { var sp = el.children; for (var i = 0; i < txt.length; i++) if (txt[i] !== old[i]) { sp[i].textContent = txt[i]; sp[i].classList.remove('t'); void sp[i].offsetWidth; sp[i].classList.add('t'); } }
+    el.dataset.v = txt;
   }
   tick(); setInterval(tick, 1000);
 
@@ -245,6 +279,38 @@ body{color:#000}
   var je = (q.match(/[?&]je=(coiffeuse|cliente)/) || [])[1];
   if (je) setRole(je); else pick();
 
+
+  // une perle qui circule dans les rues de la carte, façon voiture Uber
+  (function () {
+    var car = $('car'); if (!car || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var pts = [[0.08, 0.45], [0.3, 0.42], [0.36, 0.2], [0.62, 0.16], [0.66, 0.5], [0.9, 0.55], [0.86, 0.82], [0.5, 0.84], [0.45, 0.6], [0.2, 0.62], [0.08, 0.45]], k = 0, t0 = performance.now(), D = 2600;
+    function step(now) {
+      var f = (now - t0) / D; if (f >= 1) { k = (k + 1) % (pts.length - 1); t0 = now; f = 0; }
+      var a = pts[k], b = pts[k + 1], e = f < .5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2;
+      car.style.left = (a[0] + (b[0] - a[0]) * e) * 100 + '%'; car.style.top = (a[1] + (b[1] - a[1]) * e) * 100 + '%';
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  })();
+  // confettis aux couleurs de Perle, une seule fois après une nouvelle inscription
+  function confetti() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var c = document.createElement('canvas'); c.id = 'conf'; document.body.appendChild(c);
+    var x = c.getContext('2d'), W = c.width = innerWidth * devicePixelRatio, H = c.height = innerHeight * devicePixelRatio, cols = ['#D9A441', '#150B1F', '#5B2A86', '#F1D48F', '#06C167'], P = [];
+    for (var i = 0; i < 120; i++) P.push({ x: W / 2 + (Math.random() - .5) * W * .3, y: H * .32, vx: (Math.random() - .5) * 16 * devicePixelRatio, vy: (-Math.random() * 15 - 5) * devicePixelRatio, r: (4 + Math.random() * 5) * devicePixelRatio, c: cols[i % cols.length], a: Math.random() * 6, round: Math.random() < .4 });
+    var t = 0;
+    (function f() {
+      x.clearRect(0, 0, W, H); t++;
+      P.forEach(function (p) { p.vy += .45 * devicePixelRatio; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.a += .15; x.save(); x.translate(p.x, p.y); x.rotate(p.a); x.fillStyle = p.c; if (p.round) { x.beginPath(); x.arc(0, 0, p.r * .6, 0, 7); x.fill(); } else x.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); x.restore(); });
+      if (t < 150) requestAnimationFrame(f); else c.remove();
+    })();
+  }
+  // le numéro défile jusqu'au rang, comme un compteur
+  function countTo(el, n) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || n < 2) { el.textContent = fmt(n); return; }
+    var t0 = performance.now(), D = Math.min(1400, 500 + n * 4);
+    (function f(now) { var p = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - p, 3); el.textContent = fmt(Math.round(n * e)); if (p < 1) requestAnimationFrame(f); })(t0);
+  }
   function err(t) { $('msg').textContent = t; $('msg').hidden = false; $('msg').scrollIntoView({ block: 'center', behavior: 'smooth' }); }
   function link(code) { return 'https://perleapp.fr/attente.html?r=' + code; }
 
@@ -252,7 +318,7 @@ body{color:#000}
     var pro = d.role === 'coiffeuse', n = Number(d.parrainages || 0), days = Math.max(0, Math.floor((OPEN - Date.now()) / 864e5));
     $('box').hidden = true; $('bar').hidden = true; $('done').hidden = false;
     $('dK').textContent = d.deja ? 'Tu étais déjà inscrite' : (pro ? 'Coiffeuse préinscrite' : 'Préinscription confirmée');
-    $('dN').textContent = fmt(d.rang);
+    countTo($('dN'), Number(d.rang || 0)); if (d.fresh) setTimeout(confetti, 250);
     $('dE').textContent = 'Ouverture le 1er janvier · dans ' + days + ' jour' + (days > 1 ? 's' : '');
     var st = pro ? [['Préinscrite', 'Un e-mail de confirmation t’attend.'], ['Ta page', 'On la crée avec toi avant le 1er janvier, en dix minutes.'], ['1er janvier', 'Tes premières clientes réservent.']]
                  : [['Préinscrite', 'Un e-mail de confirmation t’attend.'], ['Décembre', 'Les coiffeuses de ta ville arrivent sur Perle.'], ['1er janvier', 'Tu réserves ta coiffure en une minute.']];
@@ -289,7 +355,7 @@ body{color:#000}
       var r = await client().rpc('preinscription', { p_role: role, p_contact: mail, p_city: city, p_name: pro ? $('pn').value.trim() : null, p_instagram: pro ? $('ig').value.trim() : null, p_styles: picked(pro ? $('chPro') : $('chCli')), p_qualif: pro ? $('q').checked : false, p_ref: ref, p_source: src });
       if (r.error) throw r.error;
       try { localStorage.setItem(KEY, r.data.code); } catch (x) { }
-      show(r.data); counts();
+      r.data.fresh = !r.data.deja; show(r.data); counts();
     } catch (x) { err('L’inscription n’a pas pu être enregistrée. Vérifie ta connexion et réessaie.'); }
     $('go').disabled = false;
   };
