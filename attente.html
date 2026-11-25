@@ -44,11 +44,13 @@ body{color:#000}
 .plive i{width:8px;height:8px;border-radius:50%;background:#06C167;flex:none;animation:lv 1.6s infinite}
 @keyframes lv{50%{opacity:.35}}
 .plive b{color:#000}
-.ptiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
-.ptile{position:relative;height:112px;border-radius:12px;overflow:hidden;background:#F3F3F3 center/cover;text-align:left;border:3px solid transparent}
+.ptiles{display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px}
+.pback{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:15px;color:#000;padding:4px 8px 4px 0;margin:0 0 4px}
+.ptile{position:relative;height:clamp(150px,24vh,210px);border-radius:14px;overflow:hidden;background:#F3F3F3 center/cover;text-align:left;border:3px solid transparent}
 .ptile:before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(0,0,0,.72))}
-.ptile span{position:absolute;left:10px;right:10px;bottom:9px;color:#fff;font-weight:700;font-size:15px;line-height:1.15}
-.ptile small{display:block;font-weight:500;font-size:12px;opacity:.85}
+.ptile span{position:absolute;left:16px;right:70px;bottom:14px;color:#fff;font-family:var(--hb);font-weight:700;font-size:26px;letter-spacing:-.02em;line-height:1.05}
+.ptile em{position:absolute;right:14px;bottom:14px;width:44px;height:44px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
+.ptile small{display:block;font-family:var(--hb);font-weight:500;font-size:14px;letter-spacing:0;opacity:.9;margin-top:4px}
 .ptile[aria-pressed="true"]{border-color:#000}
 .ptile[aria-pressed="true"]:after{content:'';position:absolute;right:8px;top:8px;width:22px;height:22px;border-radius:50%;background:#000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/14px no-repeat}
 .ps h2{font-family:var(--hb);font-size:21px;letter-spacing:-.02em;margin:24px 0 4px;color:#000}
@@ -135,11 +137,12 @@ body{color:#000}
     <div id="box">
       <h1>Perle ouvre le 1er janvier.</h1>
       <p class="plive" id="cnt" hidden><i></i><span><b id="nPro">0</b> coiffeuses et <b id="nCli">0</b> clientes déjà inscrites</span></p>
-      <div class="ptiles" role="group" aria-label="Tu es">
-        <button type="button" class="ptile" id="rCli" aria-pressed="true" style="background-image:url(img/fKnotless.jpg)"><span>Je réserve<small>Je cherche une coiffeuse</small></span></button>
-        <button type="button" class="ptile" id="rPro" aria-pressed="false" style="background-image:url(img/bgLocks.jpg)"><span>Je coiffe<small>Ma page de réservation</small></span></button>
+      <div class="ptiles" id="pick" role="group" aria-label="Tu viens pour">
+        <button type="button" class="ptile" id="rCli" aria-pressed="true" style="background-image:url(img/fKnotless.jpg)"><span>Je réserve<small>Je cherche une coiffeuse</small></span><em aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></em></button>
+        <button type="button" class="ptile" id="rPro" aria-pressed="false" style="background-image:url(img/bgLocks.jpg)"><span>Je coiffe<small>Ma page de réservation</small></span><em aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></em></button>
       </div>
-      <form id="f" novalidate>
+      <form id="f" novalidate hidden>
+        <button type="button" class="pback" id="back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Changer</button>
         <div id="vCli">
           <h2>Tu voudrais te faire faire</h2>
           <p class="sub2">Une ou plusieurs coiffures.</p>
@@ -190,7 +193,7 @@ body{color:#000}
     </div>
     <p class="pfoot"><a href="legal.html">Mentions et confidentialité</a> · <a href="https://www.instagram.com/perleapp.fr/">@perleapp.fr</a></p>
   </section>
-  <div class="pbar" id="bar"><div class="pbar-in"><button class="ub-btn" id="go" form="f" type="submit">Je me préinscris</button><p class="fine" id="fine"></p></div></div>
+  <div class="pbar" id="bar" hidden><div class="pbar-in"><button class="ub-btn" id="go" form="f" type="submit">Je me préinscris</button><p class="fine" id="fine"></p></div></div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js?v=72"></script>
@@ -228,15 +231,19 @@ body{color:#000}
   function picked(el) { return [].slice.call(el.querySelectorAll('[aria-pressed="true"]')).map(function (b) { return b.dataset.v; }); }
   cats($('chCli'), CATS_CLI); cats($('chPro'), CATS_PRO);
 
+  function pick() { $('rCli').setAttribute('aria-pressed', 'false'); $('rPro').setAttribute('aria-pressed', 'false'); $('pick').hidden = false; $('f').hidden = true; $('bar').hidden = true; $('msg').hidden = true; }
   function setRole(r) {
     role = r; var pro = r === 'coiffeuse';
+    $('pick').hidden = true; $('f').hidden = false; $('bar').hidden = false;
     $('rCli').setAttribute('aria-pressed', !pro); $('rPro').setAttribute('aria-pressed', pro);
     $('vCli').hidden = pro; $('vPro').hidden = !pro; $('qWrap').hidden = !pro;
     $('go').textContent = pro ? 'Préinscrire ma page' : 'Je me préinscris';
     $('fine').textContent = pro ? 'Gratuit. On crée ta page avec toi avant le 1er janvier.' : 'Gratuit, sans engagement.';
   }
-  $('rCli').onclick = function () { setRole('cliente'); }; $('rPro').onclick = function () { setRole('coiffeuse'); };
-  setRole(/[?&]je=coiffeuse/.test(q) ? 'coiffeuse' : 'cliente');
+  $('rCli').onclick = function () { setRole('cliente'); window.scrollTo(0, 230); }; $('rPro').onclick = function () { setRole('coiffeuse'); window.scrollTo(0, 230); };
+  $('back').onclick = function () { pick(); window.scrollTo(0, 0); };
+  var je = (q.match(/[?&]je=(coiffeuse|cliente)/) || [])[1];
+  if (je) setRole(je); else pick();
 
   function err(t) { $('msg').textContent = t; $('msg').hidden = false; $('msg').scrollIntoView({ block: 'center', behavior: 'smooth' }); }
   function link(code) { return 'https://perleapp.fr/attente.html?r=' + code; }
@@ -259,7 +266,7 @@ body{color:#000}
     $('cp').onclick = function () { var u = link(d.code); (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { $('cp').textContent = 'Copié'; setTimeout(function () { $('cp').textContent = 'Copier'; }, 1600); }).catch(function () { prompt('Ton lien :', u); }); };
     window.scrollTo(0, 0);
   }
-  $('again').onclick = function () { try { localStorage.removeItem(KEY); } catch (e) { } $('done').hidden = true; $('box').hidden = false; $('bar').hidden = false; $('f').reset(); [].forEach.call(document.querySelectorAll('.cats [aria-pressed="true"]'), function (b) { b.setAttribute('aria-pressed', 'false'); }); setRole(role); };
+  $('again').onclick = function () { try { localStorage.removeItem(KEY); } catch (e) { } $('done').hidden = true; $('box').hidden = false; $('f').reset(); [].forEach.call(document.querySelectorAll('.cats [aria-pressed="true"]'), function (b) { b.setAttribute('aria-pressed', 'false'); }); pick(); };
 
   // déjà inscrite sur ce téléphone : on rouvre son écran avec les chiffres à jour
   (async function () {

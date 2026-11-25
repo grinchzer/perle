@@ -1348,3 +1348,18 @@ body.hasbar .wrap{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
 .u-gain .u-com{color:var(--or);font-size:13px;margin-top:6px}
 .bk-fee{display:flex;justify-content:space-between;font-size:14px;color:var(--mut);margin-top:4px}
 .dn2-f{margin:6px 0 0;color:#CFC6DA;font-size:14px}
+
+/* ===== Écran d'entrée « Je réserve / Je coiffe », façon Uber (v73) ===== */
+.och{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;padding:calc(10px + env(safe-area-inset-top)) 0 calc(24px + env(safe-area-inset-bottom))}
+.och-top{display:flex;align-items:center;justify-content:space-between;min-height:52px}
+.och-h{font-family:var(--hb);font-size:36px;line-height:1.04;letter-spacing:-.035em;margin:26px 0 6px;color:#000}
+.och-s{font-size:16px;color:#545454;margin:0 0 18px}
+.och-t{position:relative;display:block;width:100%;height:clamp(170px,30vh,250px);margin-bottom:12px;border-radius:16px;overflow:hidden;background:#EEE center/cover;text-align:left;transition:transform .12s}
+.och-t:active{transform:scale(.985)}
+.och-t:before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(0,0,0,.78))}
+.och-t span{position:absolute;left:18px;right:76px;bottom:16px;color:#fff}
+.och-t b{display:block;font-family:var(--hb);font-size:28px;letter-spacing:-.025em;line-height:1.05}
+.och-t small{display:block;font-size:14px;opacity:.9;margin-top:4px;line-height:1.3}
+.och-t i{position:absolute;right:16px;bottom:16px;width:46px;height:46px;border-radius:50%;background:#fff;color:#000;display:flex;align-items:center;justify-content:center}
+.och-l{align-self:center;margin-top:auto;padding:12px;font-weight:600;font-size:15px;color:#000;text-decoration:underline;text-underline-offset:3px}
+.dark-screen.open .top .round{margin-right:auto}

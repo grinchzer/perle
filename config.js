@@ -7,5 +7,7 @@ window.PERLE = {
   // true seulement sur Netlify : les liens deviennent ton-site/awabraids au lieu de ton-site/?c=awabraids
   LIENS_COURTS: false,
   // true seulement quand l'acompte sera payé dans l'appli (Stripe Connect) : affiche alors les 1,99 € de frais de service
-  PAIEMENT_APPLI: false
+  PAIEMENT_APPLI: false,
+  // true jusqu'au lancement : sur le site, « Je réserve » mène à la préinscription (attente.html) au lieu de la recherche
+  PREINSCRIPTIONS: true
 };

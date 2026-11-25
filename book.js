@@ -178,8 +178,20 @@
     app.innerHTML = h; setBar();
     if (window.UA) UA.count(app.querySelector('.dn2-a'), r.deposit, U.eur);
   }
+  // choix « Je réserve / Je coiffe » mémorisé sur l'appareil (?choix=1 le remet à zéro)
+  function orole(v) { try { if (v === undefined) return localStorage.getItem('perle-role') || ''; if (v) localStorage.setItem('perle-role', v); else localStorage.removeItem('perle-role'); } catch (e) { } return ''; }
+  if (/[?&]choix=1/.test(location.search)) orole(null);
+  // période de préinscription (jusqu'au 1er janvier 2027, réglée dans config.js) : « Je réserve » mène à la préinscription, pas à la recherche
+  var PRE = !!(window.PERLE || {}).PREINSCRIPTIONS && Date.now() < Date.parse('2027-01-01T00:00:00+01:00');
+  function ochoice() {
+    return '<div class="och"><div class="och-top">' + U.logo() + badge() + '</div><h1 class="och-h">Bienvenue sur Perle</h1><p class="och-s">Coiffure afro, pour elle et pour lui.</p>' +
+      '<button class="och-t" data-orole="cliente" style="background-image:url(img/fKnotless.jpg)"><span><b>Je réserve</b><small>Je cherche une coiffeuse près de chez moi</small></span><i>' + svg(I.arrow, 20) + '</i></button>' +
+      '<button class="och-t" data-orole="pro" style="background-image:url(img/bgLocks.jpg)"><span><b>Je coiffe</b><small>Ma page de réservation et de nouvelles clientes</small></span><i>' + svg(I.arrow, 20) + '</i></button>' +
+      '<button class="och-l" data-view="how">Comment ça marche ?</button></div>';
+  }
   function seen() { try { return localStorage.getItem('perle-vu') === '1'; } catch (e) { return true; } }
   var dir = { list: null, busy: null, day: null, mom: 'all', me: null, sel: '', ck: '', csel: {}, q: '', cat: 'Tout', f: { max: null, when: 'all', pour: [], ou: [], sort: 'soon' }, view: (window.PERLE_VIEW != null ? window.PERLE_VIEW : new URLSearchParams(location.search).get('v')) || (seen() ? 'home' : 'open'), rdv: null };
+  if (/[?&]choix=1/.test(location.search)) dir.view = 'open';
   var CATS = [['Tresses', /braid|tresse|natte|knotless|fulani|cornrow|vanille/], ['Locks', /lock|locs|retwist/], ['Twists', /twist/], ['Perruques', /perruque|lace|wig|closure/], ['Cils', /cil|lash/], ['Hommes', /homme|barbe|degrade|coupe/]];
   I.home = '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>'; I.grid = '<rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/>';
   function saved() { try { return JSON.parse(localStorage.getItem('perle-rdv') || '[]'); } catch (e) { return []; } }
@@ -281,10 +293,16 @@
     if (dir.ls === 'lock' && dir.view !== 'how') dir.view = 'open';
     app.classList.remove('bkf');
     if (dir.map) { try { dir.map.remove(); } catch (e) { } dir.map = null; dir.marks = null; }
-    document.body.classList.toggle('dark', dir.view === 'open');
+    // dans l'appli, une coiffeuse qui a choisi « Je coiffe » rouvre directement son espace
+    if (!slug && orole() === 'pro' && (dir.view === 'open' || (window.PERLE || {}).APP)) { location.replace('pro.html'); return; }
+    if (PRE && !slug && dir.view !== 'open' && dir.view !== 'how') dir.view = 'open';
+    var ologin = !PRE && dir.view === 'open' && locked() && (dir.ostep === 'login' || orole() === 'cliente');
+    document.body.classList.toggle('dark', ologin);
     var NT = !!(window.PERLE || {}).APP && /^(search|rdv|moi|ideas)$/.test(dir.view), h = NT ? '' : top(), me = {}; try { me = JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (e) { }
-    if (dir.view === 'open') {
-      h = '<div class="dark-screen open" style="background-image:url(img/bgKnotless.jpg)"><div class="top">' + U.logo() + badge() + '</div><div class="openb"><h1>Trouve <span class="hl" style="color:var(--noir)">ta perle</span> près de chez toi</h1><p class="soft" style="font-size:15px;margin:0">Coiffure afro, pour elle et pour lui. Tu trouves une coiffeuse ou un coiffeur près de chez toi, tu réserves en ligne et tu bloques ta place avec un acompte.</p><div id="oopen">' + oopen() + '</div><button class="olink" data-view="how">Comment ça marche ?</button></div></div>';
+    if (dir.view === 'open' && !ologin) {
+      h = ochoice();
+    } else if (dir.view === 'open') {
+      h = '<div class="dark-screen open" style="background-image:url(img/bgKnotless.jpg)"><div class="top"><button class="round lglass" data-ochoix="1" aria-label="Changer de choix">' + svg(I.back, 20) + '</button>' + U.logo() + badge() + '</div><div class="openb"><h1>Connecte-toi pour <span class="hl" style="color:var(--noir)">réserver</span></h1><p class="soft" style="font-size:15px;margin:0">Tes rendez-vous, tes favoris et tes acomptes, retrouvés sur tous tes appareils.</p><div id="oopen">' + oopen() + '</div><button class="olink" data-view="how">Comment ça marche ?</button></div></div>';
     } else if (dir.view === 'how') {
       h += '<h1 style="font-size:30px">Comment ça <span class="hl">marche</span></h1>';
       [['1', 'Tu choisis ta coiffure', 'Tu vois le prix exact selon la taille et la longueur, avant de réserver.'], ['2', 'Tu prends ton créneau', 'Seuls les créneaux vraiment libres s’affichent. Tu en choisis un en deux touches.'], ['3', 'Tu bloques ta place', 'Tu envoies un acompte à ta coiffeuse. Elle confirme, et le reste se règle sur place.']].forEach(function (s) { h += '<div class="card row" style="margin-top:12px;align-items:flex-start;border-radius:28px;padding:16px"><span class="stepn">' + s[0] + '</span><span class="grow"><span class="b" style="font-size:17px">' + s[1] + '</span><br><span class="mut">' + s[2] + '</span></span></div>'; });
@@ -837,6 +855,14 @@
     if (b.dataset.copy) { var cp = function () { b.textContent = 'Appuie longtemps pour copier'; }; try { navigator.clipboard.writeText(b.dataset.copy).then(function () { b.textContent = 'Copié'; }, cp); } catch (e) { cp(); } return; }
     if (b.dataset.paid) { b.disabled = true; return S.claimPaid(b.dataset.paid, b.dataset.phone).then(function () { b.outerHTML = '<p class="' + (st.done ? 'soft' : 'mut') + '" style="margin-top:10px"><svg class="okc" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M7.5 12.5l3 3 6-6.5"></path></svg>C’est noté, ta coiffeuse est prévenue. Ta place est confirmée dès réception de l’acompte.</p>'; (dir.rdv || []).forEach(function (x) { if (x.ref === b.dataset.paid) x.paid_claimed = true; }); }).catch(function () { b.disabled = false; }); }
     if (b.dataset.pq) { var on = dir.f.pour.length === 1 && dir.f.pour[0] === b.dataset.pq; dir.f.pour = on ? [] : [b.dataset.pq]; [].forEach.call(document.querySelectorAll('[data-pq]'), function (x) { x.setAttribute('aria-pressed', String(!on && x === b)); }); return drawDir(); }
+    if (b.dataset.orole) {
+      orole(b.dataset.orole); try { localStorage.setItem('perle-vu', '1'); } catch (x) { }
+      if (b.dataset.orole === 'pro') { location.href = 'pro.html'; return; }
+      if (PRE) { location.href = 'attente.html?je=cliente'; return; }
+      if (locked()) { dir.ostep = 'login'; landing(); return window.scrollTo(0, 0); }
+      dir.view = 'home'; landing(); return window.scrollTo(0, 0);
+    }
+    if (b.dataset.ochoix) { orole(null); dir.ostep = null; dir.view = 'open'; landing(); return window.scrollTo(0, 0); }
     if (b.dataset.view) { if (dir.view === 'open') { try { localStorage.setItem('perle-vu', '1'); } catch (x) { } } dir.view = b.dataset.view; landing(); return window.scrollTo(0, 0); }
     if (b.dataset.fav) { var fl2 = favs(), fi = fl2.indexOf(b.dataset.fav); fi >= 0 ? fl2.splice(fi, 1) : fl2.push(b.dataset.fav); try { localStorage.setItem('perle-fav', JSON.stringify(fl2.slice(-60))); } catch (x) { } b.setAttribute('aria-pressed', fi < 0); if (dir.f.fav || dir.view === 'search') drawDir(); return; }
     if (b.dataset.favonly) { dir.f.fav = !dir.f.fav; return drawDir(); }
