@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Perle ouvre le 1er janvier · Préinscription</title>
-<meta name="description" content="Perle, la réservation de coiffure afro en Île-de-France, ouvre le 1er janvier. Préinscris-toi : coiffeuse ou cliente.">
-<meta property="og:title" content="Perle ouvre le 1er janvier">
+<title>Perle ouvre · Préinscription</title>
+<meta name="description" content="Perle, la réservation de coiffure afro en Île-de-France. Préinscris-toi : coiffeuse ou cliente.">
+<meta property="og:title" content="Perle ouvre">
 <meta property="og:description" content="La coiffure afro réservée en 1 minute : prix affichés, créneaux en direct, ta place bloquée. Préinscris-toi.">
 <meta property="og:image" content="https://perleapp.fr/icon-512.png">
 <meta property="og:url" content="https://perleapp.fr/attente.html">
@@ -110,6 +110,11 @@ body{color:#000}
 .cal a.k{background:#000;color:#fff}
 .cal a.g{display:inline-block;margin-top:10px;font-size:14px;font-weight:600;color:#545454}
 .steps{list-style:none;margin:14px 0 0;padding:0}
+.fin .steps{margin-top:18px}
+#dE{margin-top:8px}
+.rdv-c{display:block;margin-top:8px;font-size:13px;color:#BDBDBD}
+.rdv-c b{color:#fff;font-variant-numeric:tabular-nums}
+.rdv-c b span{display:inline-block}
 .steps li{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #EEE;font-size:15px;color:#545454}
 .steps li:last-child{border:0}
 .steps li b{display:block;color:#000}
@@ -177,12 +182,11 @@ body{color:#000}
     <a class="ppill" href="./" aria-label="Perle, accueil"><svg viewBox="0 0 100 100" width="22" height="22" aria-hidden="true"><rect width="100" height="100" rx="24" fill="#150B1F"></rect><circle cx="50" cy="38" r="26" fill="#D9A441"></circle><circle cx="50" cy="52" r="13" fill="#fff"></circle></svg>perle</a>
     <span class="ppill">Île-de-France</span>
   </div>
-  <div class="eta" role="timer" aria-label="Temps restant avant l’ouverture">Ouverture dans<b id="cdT">–</b></div>
 
   <section class="ps">
     <div class="grab"></div>
     <div id="box">
-      <h1>Perle ouvre le 1er janvier.</h1>
+      <h1>La coiffure afro, réservée en ligne.</h1>
       <p class="plive" id="cnt" hidden><i></i><span><b id="nPro">0</b> coiffeuses et <b id="nCli">0</b> clientes déjà inscrites</span></p>
       <div class="ptiles" id="pick" role="group" aria-label="Tu viens pour">
         <button type="button" class="ptile" id="rCli" aria-pressed="true" style="background-image:url(img/fKnotless.jpg)"><span>Je réserve<small>Je cherche une coiffeuse</small></span><em aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></em></button>
@@ -201,7 +205,7 @@ body{color:#000}
           </ul>
         </div>
         <div id="vPro" hidden>
-          <h2>Ta page, prête le 1er janvier</h2>
+          <h2>Ta page, prête à l’ouverture</h2>
           <ul class="why">
             <li><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/></svg></b>Tes prix et tes créneaux dans ta bio</li>
             <li><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></b>L’acompte bloque la place : zéro lapin</li>
@@ -218,7 +222,7 @@ body{color:#000}
         <div class="pfld"><svg width="18" height="18" viewBox="0 0 24 24" fill="#000" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><input type="text" id="city" autocomplete="address-level2" maxlength="80" placeholder="Saint-Denis, Paris 19e…"></div>
         <label for="mail">Ton e-mail</label>
         <div class="pfld"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><input type="email" id="mail" autocomplete="email" inputmode="email" maxlength="120" placeholder="toi@exemple.fr"></div>
-        <label class="ck" id="qWrap" for="q" hidden><input type="checkbox" id="q"><span><b>Je certifie avoir la qualification requise</b> (CAP coiffure ou équivalent) et être déclarée, ou l’être avant le 1er janvier.</span></label>
+        <label class="ck" id="qWrap" for="q" hidden><input type="checkbox" id="q"><span><b>Je certifie avoir la qualification requise</b> (CAP coiffure ou équivalent) et être déclarée, ou l’être avant l’ouverture.</span></label>
         <label class="ck" for="ok"><input type="checkbox" id="ok"><span>J’accepte que Perle garde ces informations pour me prévenir de l’ouverture et créer mon compte. Je peux demander leur suppression à tout moment. <a href="legal.html#confidentialite">En savoir plus</a></span></label>
         <p class="msg" id="msg" role="alert" hidden></p>
       </form>
@@ -229,7 +233,6 @@ body{color:#000}
       <p class="dn-n"><small>n°</small><span id="dN">–</span></p>
       <div class="ptrk" aria-hidden="true"><i class="on"></i><i class="go"></i><i></i><i></i></div>
       <p class="dn-k" id="dE"></p>
-      <ul class="steps" id="steps"></ul>
       <div class="inv">
         <div class="inv-h"><span class="g"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8c-2-4-6-4-6-1s6 1 6 1zm0 0c2-4 6-4 6-1s-6 1-6 1z"/></svg></span><div><b id="iT"></b><p id="iP"></p></div></div>
         <div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -239,8 +242,9 @@ body{color:#000}
       <div class="fin">
         <p class="fin-k">Dernière étape</p>
         <h2 class="fin-h">Note la date.</h2>
-        <div class="rdv"><div class="rdv-d" aria-hidden="true"><small>JANV.</small><b>1</b><i>2027</i></div><div class="rdv-t"><b id="rT">Rendez-vous le 1er janvier</b><span id="rP"></span></div></div>
+        <div class="rdv"><div class="rdv-d" aria-hidden="true"><small>JANV.</small><b>1</b><i>2027</i></div><div class="rdv-t"><b id="rT">Rendez-vous le 1er janvier</b><span id="rP"></span><span class="rdv-c">Ouverture dans <b id="cdT">–</b></span></div></div>
         <div class="cal"><a class="k" id="calA" href="perle-1er-janvier.ics"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>Ajouter à mon agenda</a><a class="g" id="calG" target="_blank" rel="noopener" href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Perle%20ouvre&amp;dates=20270101T090000Z%2F20270101T093000Z&amp;details=Perle%20ouvre%20aujourd%E2%80%99hui%20en%20%C3%8Ele-de-France.%20https%3A%2F%2Fperleapp.fr&amp;location=perleapp.fr">ou l’ajouter dans Google Agenda</a></div>
+        <ul class="steps" id="steps"></ul>
       </div>
       <button type="button" class="again" id="again">Inscrire une autre adresse</button>
     </div>
@@ -294,7 +298,7 @@ body{color:#000}
     $('rCli').setAttribute('aria-pressed', !pro); $('rPro').setAttribute('aria-pressed', pro);
     $('vCli').hidden = pro; $('vPro').hidden = !pro; $('qWrap').hidden = !pro;
     $('go').textContent = pro ? 'Préinscrire ma page' : 'Je me préinscris';
-    $('fine').textContent = pro ? 'Gratuit. On crée ta page avec toi avant le 1er janvier.' : 'Gratuit, sans engagement.';
+    $('fine').textContent = pro ? 'Gratuit. On crée ta page avec toi avant l’ouverture.' : 'Gratuit, sans engagement.';
   }
   $('rCli').onclick = function () { setRole('cliente'); window.scrollTo(0, 230); }; $('rPro').onclick = function () { setRole('coiffeuse'); window.scrollTo(0, 230); };
   $('back').onclick = function () { pick(); window.scrollTo(0, 0); };
@@ -341,18 +345,18 @@ body{color:#000}
     $('box').hidden = true; $('bar').hidden = true; $('done').hidden = false;
     $('dK').textContent = d.deja ? 'Tu étais déjà inscrite' : (pro ? 'Coiffeuse préinscrite' : 'Préinscription confirmée');
     countTo($('dN'), Number(d.rang || 0)); if (d.fresh) setTimeout(confetti, 250);
-    $('dE').textContent = '';
+    $('dE').textContent = 'Un e-mail de confirmation t’attend (regarde aussi dans les spams).';
     $('rT').textContent = pro ? 'Le 1er janvier, tes clientes réservent' : 'Le 1er janvier, tu réserves';
-    $('rP').textContent = 'On t’écrit le 15 décembre, la veille et le jour J. Ajoute la date pour ne pas l’oublier.';
-    var st = pro ? [['Préinscrite', 'Un e-mail de confirmation t’attend (pense à regarder dans les spams).'], ['Décembre', 'On crée ta page avec toi, en dix minutes.'], ['31 décembre', 'Rappel : mets ton lien Perle dans ta bio.'], ['1er janvier', 'Tes premières clientes réservent.']]
-                 : [['Préinscrite', 'Un e-mail de confirmation t’attend (pense à regarder dans les spams).'], ['15 décembre', 'On te montre les coiffeuses de ta ville qui arrivent sur Perle.'], ['31 décembre', 'Rappel : c’est demain.'], ['1er janvier', 'Tu réserves ta coiffure en une minute.']];
-    $('steps').innerHTML = st.map(function (x, k) { return '<li' + (k ? '' : ' class="on"') + '><span class="d">' + (k + 1) + '</span><span><b>' + x[0] + '</b>' + x[1] + '</span></li>'; }).join('');
+    $('rP').textContent = 'Ajoute la date pour ne pas l’oublier.';
+    var st = pro ? [['Décembre', 'On crée ta page avec toi, en dix minutes.'], ['31 décembre', 'Rappel : mets ton lien Perle dans ta bio.'], ['1er janvier', 'Tes premières clientes réservent.']]
+                 : [['15 décembre', 'On te montre les coiffeuses de ta ville qui arrivent sur Perle.'], ['31 décembre', 'Rappel : c’est demain.'], ['1er janvier', 'Tu réserves ta coiffure en une minute.']];
+    $('steps').innerHTML = st.map(function (x, k) { return '<li><span class="d">' + (k + 1) + '</span><span><b>' + x[0] + '</b>' + x[1] + '</span></li>'; }).join('');
     $('iT').textContent = pro ? (n ? n + ' collègue' + (n > 1 ? 's inscrites' : ' inscrite') + ' grâce à toi' : 'Invite tes collègues') : (n >= 3 ? 'Avant-première débloquée' : 'Invite 3 amies · ' + Math.min(n, 3) + ' sur 3');
-    $('iP').textContent = pro ? 'Plus il y a de coiffeuses dans ta ville, plus les clientes viennent.' : (n >= 3 ? 'Le 1er janvier, tu vois les créneaux 24 h avant tout le monde.' : 'Tu verras les créneaux 24 h avant tout le monde le 1er janvier.');
+    $('iP').textContent = pro ? 'Plus il y a de coiffeuses dans ta ville, plus les clientes viennent.' : (n >= 3 ? 'À l’ouverture, tu vois les créneaux 24 h avant tout le monde.' : 'Tu verras les créneaux 24 h avant tout le monde à l’ouverture.');
     $('dots').hidden = pro; [].forEach.call($('dots').children, function (i, k) { i.className = k < n ? 'on' : ''; });
     $('lnk').textContent = link(d.code).replace('https://', '');
-    var txt = pro ? 'Je serai sur Perle le 1er janvier, l’appli de réservation des coiffeuses afro. Préinscris-toi aussi : ' : 'Perle ouvre le 1er janvier : la coiffure afro réservée en une minute. Inscris-toi avec mon lien : ';
-    $('sh').onclick = function () { var u = link(d.code); if (navigator.share) navigator.share({ title: 'Perle ouvre le 1er janvier', text: txt, url: u }).catch(function () { }); else window.open('https://wa.me/?text=' + encodeURIComponent(txt + u), '_blank', 'noopener'); };
+    var txt = pro ? 'Je serai sur Perle, l’appli de réservation des coiffeuses afro. Préinscris-toi aussi : ' : 'Perle ouvre : la coiffure afro réservée en une minute. Inscris-toi avec mon lien : ';
+    $('sh').onclick = function () { var u = link(d.code); if (navigator.share) navigator.share({ title: 'Perle ouvre', text: txt, url: u }).catch(function () { }); else window.open('https://wa.me/?text=' + encodeURIComponent(txt + u), '_blank', 'noopener'); };
     $('cp').onclick = function () { var u = link(d.code); (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { $('cp').textContent = 'Copié'; setTimeout(function () { $('cp').textContent = 'Copier'; }, 1600); }).catch(function () { prompt('Ton lien :', u); }); };
     var rv = document.querySelector('.rdv'); rv.classList.remove('vu');
     if ('IntersectionObserver' in window) { var io = new IntersectionObserver(function (e) { if (e[0].isIntersecting) { rv.classList.add('vu'); io.disconnect(); } }, { threshold: .4 }); io.observe(rv); } else rv.classList.add('vu');
