@@ -27,8 +27,8 @@
   // ----- compte -----
   function oab() {
     var pv = st.prov || {}, h = '';
-    if (pv.google) h += '<button type="button" class="btn oab" data-act="oa" data-p="google">Continuer avec Google</button>';
     if (pv.apple) h += '<button type="button" class="btn oab dk" data-act="oa" data-p="apple">Continuer avec Apple</button>';
+    if (pv.google) h += '<button type="button" class="btn oab" data-act="oa" data-p="google">Continuer avec Google</button>';
     return h ? h + '<div class="oasep"><span>ou avec ton e-mail</span></div>' : '';
   }
   // Offre de lancement (25 nov. 2026) : les 30 premières coiffeuses ont 0 % pendant 3 mois, puis 7 % à vie, sans abonnement.

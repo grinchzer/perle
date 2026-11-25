@@ -201,8 +201,8 @@
     if (!CAN) return '';
     if (cu) return '<p class="cin">Compte : <b>' + esc(cu.email || '') + '</b> <button class="link" data-cout="1">Me déconnecter</button></p>';
     var pv = cprov || {}, h = '';
-    if (pv.google) h += '<button type="button" class="btn oab" data-coa="google">Continuer avec Google</button>';
     if (pv.apple) h += '<button type="button" class="btn oab dk" data-coa="apple">Continuer avec Apple</button>';
+    if (pv.google) h += '<button type="button" class="btn oab" data-coa="google">Continuer avec Google</button>';
     return h ? '<div class="cacct"><p class="mut">Connecte-toi pour retrouver tes rendez-vous sur tous tes appareils. Tu peux aussi réserver sans compte.</p>' + h.replace(/data-coa/g, 'data-to="?v=' + (dir.view === 'moi' ? 'moi' : 'rdv') + '" data-coa') + '</div>' : '';
   }
   // ----- écran Profil -----
@@ -234,8 +234,8 @@
   function pmode() { if (!CAN) return 'in'; if (!cready) return 'wait'; if (cu) return 'in'; return (!cprov || cprov.google || cprov.apple) ? 'gate' : 'in'; }
   function pgb() {
     var pv = cprov || {}, h = '';
-    if (pv.google) h += '<button type="button" class="btn oab" data-to="?v=moi" data-coa="google">Continuer avec Google</button>';
     if (pv.apple) h += '<button type="button" class="btn oab dk" data-to="?v=moi" data-coa="apple">Continuer avec Apple</button>';
+    if (pv.google) h += '<button type="button" class="btn oab" data-to="?v=moi" data-coa="google">Continuer avec Google</button>';
     return h;
   }
   function pgate() {
@@ -251,8 +251,8 @@
     if (!CAN || cu) return (cu ? '<p class="soft ocin">Connexion réussie. Tu viens pour quoi ?</p>' : '') + roles() + (cu ? '<p class="soft ocin obye">' + esc(cu.email || '') + ' · <button class="olink" data-cout="1">Me déconnecter</button></p>' : '');
     if (!cready || !cprov) return '';
     var pv = cprov, h = '';
-    if (pv.google) h += '<button type="button" class="btn oab" data-coa="google">Continuer avec Google</button>';
     if (pv.apple) h += '<button type="button" class="btn oab dk" data-coa="apple">Continuer avec Apple</button>';
+    if (pv.google) h += '<button type="button" class="btn oab" data-coa="google">Continuer avec Google</button>';
     return h ? h : roles();
   }
   // l'appli est réservée aux personnes connectées (cliente ou coiffeuse) ; la page d'une coiffeuse ouverte par son lien reste visible
