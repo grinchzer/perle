@@ -23,7 +23,7 @@
     // prix, durée et texte d'une prestation selon les options choisies (un numéro par groupe)
     // Formules coiffeuses (25 nov. 2026) : commission seulement sur une nouvelle cliente, 0 % sur les fidèles
     FORMULES: [['gratuit', 'Gratuit', 0, 10], ['pro', 'Perle Pro', 14.99, 7], ['salon', 'Perle Salon', 29.99, 5]],
-    FRAIS: 1.99, FONDATRICES: 30, LANCEMENT_J: 90,
+    FRAIS: 1.99, FONDATRICES: 0, LANCEMENT_J: 90,   // offre fondatrice retirée le 25 nov. : commissions dès le lancement
     // taux de commission (en %) appliqué à une nouvelle cliente, à la date donnée
     taux: function (p, when) {
       var pl = (p && p.plan) || 'gratuit';

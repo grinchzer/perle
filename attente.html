@@ -3,156 +3,289 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Perle arrive · Liste d’attente</title>
-<meta name="description" content="Perle, la réservation de coiffure afro en Île-de-France. Laisse ton e-mail pour être prévenue à l’ouverture.">
+<title>Perle ouvre le 1er janvier · Préinscription</title>
+<meta name="description" content="Perle, la réservation de coiffure afro en Île-de-France, ouvre le 1er janvier. Préinscris-toi : coiffeuse ou cliente.">
+<meta property="og:title" content="Perle ouvre le 1er janvier">
+<meta property="og:description" content="La coiffure afro réservée en 1 minute : prix affichés, créneaux en direct, ta place bloquée. Préinscris-toi.">
+<meta property="og:image" content="https://perleapp.fr/icon-512.png">
+<meta property="og:url" content="https://perleapp.fr/attente.html">
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#5B2A86">
+<meta name="theme-color" content="#150B1F">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=DM+Sans:wght@400;500;600;700&family=Syne:wght@800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=13">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=72">
 <style>
-html,body{min-height:100%}
-body{background:var(--vio)}
-.wl{max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden}
-.whero{position:relative;height:296px;flex-shrink:0;color:#fff}
-.whero::before,.whero::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.08)}
-.whero::before{width:300px;height:300px;right:-120px;top:-90px}
-.whero::after{width:230px;height:230px;left:-110px;bottom:-40px}
-.whero .dot{position:absolute;border-radius:50%;background:var(--or)}
-.whero .d1{width:14px;height:14px;left:42px;top:118px}
-.whero .d2{width:9px;height:9px;right:54px;top:214px;background:#fff;opacity:.55}
-.brand{position:absolute;left:0;right:0;top:44px;z-index:2;display:flex;flex-direction:column;align-items:center;gap:10px;color:#fff;text-decoration:none}
-.brand svg{display:block;border-radius:34px;box-shadow:0 18px 40px rgba(21,11,31,.4);transform:rotate(-6deg)}
-.brand span{font-family:Syne,sans-serif;font-weight:800;font-size:44px;letter-spacing:-.04em;line-height:1}
-.whero .tag{position:absolute;z-index:3;background:var(--or);color:var(--noir);font-weight:700;font-size:13px;border-radius:999px;padding:7px 13px;box-shadow:0 6px 16px rgba(21,11,31,.25);white-space:nowrap;border:0}
-.whero .t1{left:calc(50% - 172px);top:150px;transform:rotate(-7deg)}
-.whero .t2{left:calc(50% + 44px);top:52px;transform:rotate(6deg);background:#fff}
-.whero .t3{left:calc(50% + 58px);top:208px;transform:rotate(-4deg);background:var(--noir);color:#fff}
-.wsheet{background:#fff;color:var(--noir);border-radius:36px 36px 0 0;margin-top:-26px;position:relative;z-index:4;flex:1;padding:26px 22px 30px}
-.wsheet h1{font-size:31px;text-align:center}
-.wsheet h1 em{font-style:normal;background:linear-gradient(transparent 58%,#F1D48F 58%)}
-.wsheet .sub{text-align:center;font-size:15px;margin:10px auto 0;max-width:340px}
-.seg2{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--soft);border-radius:26px;padding:4px;margin-top:20px}
-.seg2 button{min-height:46px;border-radius:22px;font-weight:700;font-size:14px;color:var(--ink2)}
-.seg2 button[aria-pressed="true"]{background:var(--noir);color:#fff}
-.wsheet .promise{font-size:14px;color:var(--ink2);margin:14px 2px 0;text-align:center}
-.wsheet label{margin-top:12px}
-.check{display:flex !important;gap:10px;align-items:flex-start;font-weight:500 !important;color:var(--ink2) !important;font-size:13px !important;margin:14px 0 !important}
-.check input{width:22px;height:22px;flex-shrink:0;accent-color:var(--vio);margin:0}
-.msg{border-radius:18px;padding:10px 14px;font-size:14px;font-weight:600;margin:0 0 12px;background:var(--errb);color:var(--err)}
-.or{display:flex;align-items:center;gap:12px;color:var(--mut);font-size:13px;margin:14px 0}
-.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
-.wdone{text-align:center;padding:18px 0 6px}
-.wdone .ring{width:74px;height:74px;border-radius:50%;background:var(--okb);color:var(--ok);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
-.wdone b{font-family:var(--hb);font-size:26px;display:block;margin-bottom:6px}
-.wdone span{color:var(--ink2);font-size:15px}
-.foot{color:var(--mut);font-size:13px;margin-top:20px;text-align:center}
-@media (max-height:700px){.whero{height:262px}.brand{top:26px}}
+html,body{min-height:100%;background:#fff !important}
+.ck[hidden]{display:none !important}
+body{color:#000}
+.pi{position:relative;max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:#fff;padding-bottom:96px}
+/* carte façon Uber */
+.pmap{position:relative;height:300px;overflow:hidden;background:#EDEFF2}
+.pmap svg.map{position:absolute;inset:0;width:100%;height:100%}
+.pmap .pin{position:absolute;transform:translate(-50%,-100%);display:flex;align-items:center;gap:6px;background:#fff;border-radius:20px;padding:5px 10px 5px 5px;font-size:12px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.16);white-space:nowrap;opacity:0;animation:pin .5s ease forwards}
+.pmap .pin i{width:22px;height:22px;border-radius:50%;background:#000 center/cover;flex:none}
+.pmap .pin:after{content:'';position:absolute;left:16px;bottom:-5px;width:10px;height:10px;background:#fff;transform:rotate(45deg);border-radius:2px}
+@keyframes pin{from{opacity:0;transform:translate(-50%,-80%)}to{opacity:1;transform:translate(-50%,-100%)}}
+.pmap .me{position:absolute;left:50%;top:58%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#000;border:3px solid #fff;box-shadow:0 0 0 0 rgba(0,0,0,.35);animation:me 2s infinite}
+@keyframes me{0%{box-shadow:0 0 0 0 rgba(0,0,0,.3)}70%{box-shadow:0 0 0 22px rgba(0,0,0,0)}100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}}
+.pmap-top{position:absolute;left:14px;right:14px;top:14px;display:flex;justify-content:space-between;align-items:center}
+.ppill{display:flex;align-items:center;gap:6px;background:#fff;border-radius:20px;padding:7px 12px;font-weight:700;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.12);color:#000;text-decoration:none}
+.ppill svg{border-radius:6px}
+.eta{position:absolute;left:14px;top:222px;background:#000;color:#fff;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.eta b{display:block;font-family:var(--hb);font-size:20px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+/* feuille */
+.ps{position:relative;margin-top:-18px;background:#fff;border-radius:18px 18px 0 0;padding:10px 18px 10px;flex:1}
+.grab{width:40px;height:5px;border-radius:5px;background:#DADADA;margin:0 auto 14px}
+.ps h1{font-family:var(--hb);font-size:32px;line-height:1.03;letter-spacing:-.035em;margin:0;color:#000}
+.plive{display:flex;align-items:center;gap:8px;margin:10px 0 0;font-size:14px;color:#545454}
+.plive i{width:8px;height:8px;border-radius:50%;background:#06C167;flex:none;animation:lv 1.6s infinite}
+@keyframes lv{50%{opacity:.35}}
+.plive b{color:#000}
+.ptiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.ptile{position:relative;height:112px;border-radius:12px;overflow:hidden;background:#F3F3F3 center/cover;text-align:left;border:3px solid transparent}
+.ptile:before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(0,0,0,.72))}
+.ptile span{position:absolute;left:10px;right:10px;bottom:9px;color:#fff;font-weight:700;font-size:15px;line-height:1.15}
+.ptile small{display:block;font-weight:500;font-size:12px;opacity:.85}
+.ptile[aria-pressed="true"]{border-color:#000}
+.ptile[aria-pressed="true"]:after{content:'';position:absolute;right:8px;top:8px;width:22px;height:22px;border-radius:50%;background:#000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/14px no-repeat}
+.ps h2{font-family:var(--hb);font-size:21px;letter-spacing:-.02em;margin:24px 0 4px;color:#000}
+.sub2{font-size:14px;color:#545454;margin:0 0 10px}
+.why{list-style:none;margin:6px 0 0;padding:0}
+.why li{display:flex;gap:12px;align-items:center;font-size:15px;padding:9px 0;border-bottom:1px solid #EEE}
+.why li:last-child{border:0}
+.why li b{flex:none;width:34px;height:34px;border-radius:50%;background:#F3F3F3;display:flex;align-items:center;justify-content:center;font-size:16px}
+/* catégories façon Uber Eats */
+.cats{display:flex;gap:14px;overflow-x:auto;margin:6px -18px 0;padding:4px 18px 6px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cats button{flex:none;width:68px;text-align:center;font-size:12px;font-weight:600;color:#000}
+.cats button i{display:block;width:64px;height:64px;margin:0 auto 6px;border-radius:50%;background:#F3F3F3 center/cover;border:3px solid transparent;position:relative}
+.cats button i.tx{display:flex;align-items:center;justify-content:center;font-style:normal;font-size:22px}
+.cats button[aria-pressed="true"] i{border-color:#000}
+.cats button[aria-pressed="true"] i:after{content:'';position:absolute;right:-4px;top:-4px;width:20px;height:20px;border-radius:50%;background:#000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/12px no-repeat;border:2px solid #fff}
+.ps label{display:block;font-weight:700;font-size:14px;margin:16px 0 6px;color:#000}
+.ps input[type=text],.ps input[type=email]{border-radius:8px !important;background:#F3F3F3 !important;border:2px solid transparent !important;min-height:52px;font-size:16px}
+.ps input[type=text]:focus,.ps input[type=email]:focus{border-color:#000 !important;background:#fff !important;outline:0}
+.pfld{position:relative}
+.pfld svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);pointer-events:none}
+.pfld input{padding-left:42px !important}
+.ck{display:flex !important;gap:12px;align-items:flex-start;font-weight:500 !important;color:#545454 !important;font-size:13px !important;line-height:1.4;margin:16px 0 0 !important}
+.ck input{width:22px;height:22px;flex:none;accent-color:#000;margin:0;border-radius:4px}
+.ck b{color:#000}
+.msg{border-radius:8px;padding:10px 14px;font-size:14px;font-weight:600;margin:14px 0 0;background:var(--errb);color:var(--err)}
+.pbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;box-shadow:0 -6px 20px rgba(0,0,0,.08);padding:12px 18px calc(12px + env(safe-area-inset-bottom))}
+.pbar-in{max-width:444px;margin:0 auto}
+.ub-btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:56px;border-radius:8px;background:#000;color:#fff;font-weight:700;font-size:17px}
+.ub-btn:disabled{opacity:.5}
+.ub-btn.ghost{background:#F3F3F3;color:#000}
+.fine{font-size:12px;color:#757575;margin:8px 0 0;text-align:center}
+/* écran confirmé, façon suivi de commande Uber Eats */
+.dn h1{font-size:34px}
+.ptrk{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:16px 0 6px}
+.ptrk i{height:4px;border-radius:4px;background:#E2E2E2;overflow:hidden;position:relative}
+.ptrk i.on{background:#000}
+.ptrk i.go:after{content:'';position:absolute;inset:0;width:40%;background:#000;animation:go 1.6s ease-in-out infinite}
+@keyframes go{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+.dn-k{font-size:14px;color:#545454;margin:0}
+.dn-n{font-family:var(--hb);font-weight:700;font-size:72px;letter-spacing:-.05em;line-height:1;margin:2px 0 0}
+.dn-n small{font-size:26px;margin-right:4px;letter-spacing:-.02em}
+.steps{list-style:none;margin:14px 0 0;padding:0}
+.steps li{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #EEE;font-size:15px;color:#545454}
+.steps li:last-child{border:0}
+.steps li b{display:block;color:#000}
+.steps li span.d{flex:none;width:28px;height:28px;border-radius:50%;background:#F3F3F3;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#000}
+.steps li.on span.d{background:#000;color:#fff}
+.inv{margin-top:18px;background:#F3F3F3;border-radius:12px;padding:16px}
+.inv-h{display:flex;gap:12px;align-items:center}
+.inv-h .g{flex:none;width:44px;height:44px;border-radius:50%;background:#000;display:flex;align-items:center;justify-content:center;font-size:20px}
+.inv b{font-size:16px;color:#000}
+.inv p{font-size:14px;color:#545454;margin:2px 0 0;line-height:1.4}
+.dots{display:flex;gap:6px;margin:14px 0 2px}
+.dots i{flex:1;height:6px;border-radius:6px;background:#DADADA}
+.dots i.on{background:#06C167}
+.plnk{background:#fff;border-radius:8px;padding:12px 14px;margin-top:12px;font-size:14px;font-weight:600;word-break:break-all}
+.shr{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.shr button{min-height:48px;border-radius:8px;font-weight:700;font-size:15px;background:#000;color:#fff}
+.shr button.w{background:#fff;color:#000}
+.again{display:block;margin:16px auto 0;font-size:14px;color:#757575;text-decoration:underline}
+.pfoot{color:#757575;font-size:12px;margin-top:22px;text-align:center}
+.pfoot a{color:#757575}
 </style>
 </head>
 <body>
-<main class="wl">
-<div class="whero">
-<a class="brand" href="./" aria-label="Perle, accueil"><svg viewBox="0 0 100 100" width="118" height="118" aria-hidden="true"><rect x="0" y="0" width="100" height="100" rx="24" fill="#150B1F"></rect><circle cx="50" cy="38" r="26" fill="#D9A441"></circle><circle cx="40.9" cy="28.9" r="5.700" fill="#FFFFFF" fill-opacity="0.850"></circle><circle cx="50" cy="52" r="13" fill="#FFFFFF"></circle><path d="M24 88 Q24 68 50 68 Q76 68 76 88 Z" fill="#FFFFFF"></path></svg><span>perle</span></a>
-<span class="dot d1"></span><span class="dot d2"></span>
-<span class="tag t1">Prix affichés</span><span class="tag t2">Créneaux en direct</span><span class="tag t3">Ta place bloquée</span>
-</div>
+<main class="pi">
+  <div class="pmap" aria-hidden="true">
+    <svg class="map" viewBox="0 0 390 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="390" height="300" fill="#EDEFF2"/><rect x="250" y="40" width="90" height="60" rx="8" fill="#DCEFD9"/><rect x="30" y="200" width="70" height="50" rx="8" fill="#DCEFD9"/><path d="M-10 150 C80 120 140 190 230 160 S360 110 410 140" stroke="#CFE3F5" stroke-width="22" fill="none"/><path d="M-20 19 L410 17" stroke="#fff" stroke-width="6"/><path d="M-20 60 L410 81" stroke="#fff" stroke-width="6"/><path d="M-20 86 L410 54" stroke="#fff" stroke-width="6"/><path d="M-20 132 L410 162" stroke="#fff" stroke-width="6"/><path d="M-20 157 L410 145" stroke="#fff" stroke-width="10"/><path d="M-20 203 L410 198" stroke="#fff" stroke-width="6"/><path d="M-20 231 L410 224" stroke="#fff" stroke-width="6"/><path d="M-20 264 L410 257" stroke="#fff" stroke-width="6"/><path d="M-20 306 L410 287" stroke="#fff" stroke-width="6"/><path d="M9 -20 L29 320" stroke="#fff" stroke-width="9"/><path d="M66 -20 L17 320" stroke="#fff" stroke-width="9"/><path d="M120 -20 L145 320" stroke="#fff" stroke-width="6"/><path d="M181 -20 L152 320" stroke="#fff" stroke-width="5"/><path d="M227 -20 L227 320" stroke="#fff" stroke-width="6"/><path d="M277 -20 L337 320" stroke="#fff" stroke-width="9"/><path d="M339 -20 L279 320" stroke="#fff" stroke-width="6"/><path d="M403 -20 L433 320" stroke="#fff" stroke-width="6"/><path d="M-20 232 L410 212" stroke="#FFE7A8" stroke-width="10"/></svg>
+    <span class="pin" style="left:22%;top:34%;animation-delay:.2s"><i style="background-image:url(img/fKnotless.jpg)"></i>Knotless</span>
+    <span class="pin" style="left:70%;top:30%;animation-delay:.5s"><i style="background-image:url(img/fLocks.jpg)"></i>Locks</span>
+    <span class="pin" style="left:80%;top:62%;animation-delay:.8s"><i style="background-image:url(img/fFulani.jpg)"></i>Fulani</span>
+    <span class="pin" style="left:30%;top:72%;animation-delay:1.1s"><i style="background-image:url(img/fLace.jpg)"></i>Perruque</span>
+    <span class="me"></span>
+  </div>
+  <div class="pmap-top">
+    <a class="ppill" href="./" aria-label="Perle, accueil"><svg viewBox="0 0 100 100" width="22" height="22" aria-hidden="true"><rect width="100" height="100" rx="24" fill="#150B1F"></rect><circle cx="50" cy="38" r="26" fill="#D9A441"></circle><circle cx="50" cy="52" r="13" fill="#fff"></circle></svg>perle</a>
+    <span class="ppill">Île-de-France</span>
+  </div>
+  <div class="eta" role="timer" aria-label="Temps restant avant l’ouverture">Ouverture dans<b id="cdT">–</b></div>
 
-<div class="wsheet">
-<h1>Ta coiffure afro, <em>réservée en 1 minute</em></h1>
-<p class="sub" id="lead">Fini les dix messages pour un prix. Perle ouvre bientôt en Île-de-France.</p>
+  <section class="ps">
+    <div class="grab"></div>
+    <div id="box">
+      <h1>Perle ouvre le 1er janvier.</h1>
+      <p class="plive" id="cnt" hidden><i></i><span><b id="nPro">0</b> coiffeuses et <b id="nCli">0</b> clientes déjà inscrites</span></p>
+      <div class="ptiles" role="group" aria-label="Tu es">
+        <button type="button" class="ptile" id="rCli" aria-pressed="true" style="background-image:url(img/fKnotless.jpg)"><span>Je réserve<small>Je cherche une coiffeuse</small></span></button>
+        <button type="button" class="ptile" id="rPro" aria-pressed="false" style="background-image:url(img/bgLocks.jpg)"><span>Je coiffe<small>Ma page de réservation</small></span></button>
+      </div>
+      <form id="f" novalidate>
+        <div id="vCli">
+          <h2>Tu voudrais te faire faire</h2>
+          <p class="sub2">Une ou plusieurs coiffures.</p>
+          <div class="cats" id="chCli"></div>
+          <ul class="why">
+            <li><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round"><path d="M17 7a6 6 0 1 0 0 10M5 10h8M5 14h8"/></svg></b>Les prix affichés, sans « c’est combien ? »</li>
+            <li><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></b>Les créneaux libres en direct</li>
+            <li><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></b>Ta place bloquée par un acompte</li>
+          </ul>
+        </div>
+        <div id="vPro" hidden>
+          <h2>Ta page, prête le 1er janvier</h2>
+          <ul class="why">
+            <li><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/></svg></b>Tes prix et tes créneaux dans ta bio</li>
+            <li><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></b>L’acompte bloque la place : zéro lapin</li>
+            <li><b style="font-weight:800;font-size:12px">10 %</b>Seulement sur une nouvelle cliente, 0 % sur tes habituées</li>
+          </ul>
+          <label for="pn">Ton nom de coiffeuse</label>
+          <input type="text" id="pn" maxlength="60" autocomplete="organization" placeholder="Awa Braids">
+          <label for="ig">Ton Instagram</label>
+          <input type="text" id="ig" maxlength="40" autocapitalize="off" autocomplete="off" placeholder="@awabraids">
+          <h2>Tu fais</h2>
+          <div class="cats" id="chPro"></div>
+        </div>
+        <label for="city">Ta ville</label>
+        <div class="pfld"><svg width="18" height="18" viewBox="0 0 24 24" fill="#000" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><input type="text" id="city" autocomplete="address-level2" maxlength="80" placeholder="Saint-Denis, Paris 19e…"></div>
+        <label for="mail">Ton e-mail</label>
+        <div class="pfld"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><input type="email" id="mail" autocomplete="email" inputmode="email" maxlength="120" placeholder="toi@exemple.fr"></div>
+        <label class="ck" id="qWrap" for="q" hidden><input type="checkbox" id="q"><span><b>Je certifie avoir la qualification requise</b> (CAP coiffure ou équivalent) et être déclarée, ou l’être avant le 1er janvier.</span></label>
+        <label class="ck" for="ok"><input type="checkbox" id="ok"><span>J’accepte que Perle garde ces informations pour me prévenir de l’ouverture et créer mon compte. Je peux demander leur suppression à tout moment. <a href="legal.html#confidentialite">En savoir plus</a></span></label>
+        <p class="msg" id="msg" role="alert" hidden></p>
+      </form>
+    </div>
 
-<div id="box">
-<div class="seg2" role="group" aria-label="Tu es">
-<button type="button" id="rCli" aria-pressed="true">Je cherche une coiffeuse</button>
-<button type="button" id="rPro" aria-pressed="false">Je coiffe</button>
-</div>
-<form id="f" novalidate>
-<p class="promise" id="promise"></p>
-<label for="city">Ta ville</label>
-<input type="text" id="city" name="city" autocomplete="address-level2" maxlength="80" placeholder="Saint-Denis, Paris 19e…" required>
-<label for="contact">Ton e-mail</label>
-<input type="email" id="contact" name="contact" autocomplete="email" inputmode="email" maxlength="120" placeholder="toi@exemple.fr">
-<label class="check" for="ok"><input type="checkbox" id="ok"><span>J’accepte que Perle garde mon e-mail et ma ville pour me prévenir de l’ouverture. Rien d’autre, et je peux demander leur suppression à tout moment. <a href="legal.html#confidentialite">En savoir plus</a></span></label>
-<p class="msg" id="msg" role="alert" hidden></p>
-<button class="btn dark" id="go" type="submit">Me prévenir</button>
-<div id="gz" hidden><div class="or">ou</div><button class="btn ghost" id="gg" type="button">Continuer avec Google</button></div>
-</form>
-</div>
-
-<div class="wdone" id="done" hidden><div class="ring"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></div><b>C’est noté.</b><span id="doneT"></span></div>
-
-<p class="foot">Déjà prête à essayer ? <a href="./">Voir l’appli</a> · <a href="pro.html">Créer ma page de coiffeuse</a></p>
-</div>
+    <div class="dn" id="done" hidden>
+      <p class="dn-k" id="dK">Préinscription confirmée</p>
+      <p class="dn-n"><small>n°</small><span id="dN">–</span></p>
+      <div class="ptrk" aria-hidden="true"><i class="on"></i><i class="go"></i><i></i><i></i></div>
+      <p class="dn-k" id="dE"></p>
+      <ul class="steps" id="steps"></ul>
+      <div class="inv">
+        <div class="inv-h"><span class="g"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8c-2-4-6-4-6-1s6 1 6 1zm0 0c2-4 6-4 6-1s-6 1-6 1z"/></svg></span><div><b id="iT"></b><p id="iP"></p></div></div>
+        <div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="plnk" id="lnk"></div>
+        <div class="shr"><button type="button" id="sh">Partager</button><button type="button" class="w" id="cp">Copier</button></div>
+      </div>
+      <button type="button" class="again" id="again">Inscrire une autre adresse</button>
+    </div>
+    <p class="pfoot"><a href="legal.html">Mentions et confidentialité</a> · <a href="https://www.instagram.com/perleapp.fr/">@perleapp.fr</a></p>
+  </section>
+  <div class="pbar" id="bar"><div class="pbar-in"><button class="ub-btn" id="go" form="f" type="submit">Je me préinscris</button><p class="fine" id="fine"></p></div></div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=13"></script>
+<script src="config.js?v=72"></script>
 <script>
 (function () {
-  var C = window.PERLE || {}, role = 'cliente', KEY = 'perle-attente-en-cours';
+  var C = window.PERLE || {}, role = 'cliente', KEY = 'perle-preinscription', OPEN = new Date('2027-01-01T00:00:00+01:00').getTime();
+  var CATS_CLI = [['Knotless', 'fKnotless'], ['Box braids', 'bgKnotless'], ['Fulani', 'fFulani'], ['Locks', 'fLocks'], ['Perruque', 'fLace'], ['Nattes collées', 'fDetail'], ['Twists', 'fPerles'], ['Tissage', ''], ['Coupe homme', ''], ['Cils', 'fCils']];
+  var CATS_PRO = CATS_CLI.concat([['Barbe', ''], ['Ongles', '']]);
   var $ = function (id) { return document.getElementById(id); };
-  var TXT = {
-    cliente: ['On te prévient dès que des coiffeuses de ta ville sont réservables.', 'Me prévenir', 'On te prévient dès que des coiffeuses sont réservables près de chez toi.'],
-    coiffeuse: ['Ta page avec tes prix, tes créneaux et ton acompte, à mettre dans ta bio. On te recontacte pour la créer avec toi.', 'Je veux ma page', 'On te recontacte très vite pour créer ta page avec toi.']
-  };
+  var q = location.search, src = (q.match(/[?&]s=([a-z0-9_-]{1,40})/i) || [])[1] || null, ref = (q.match(/[?&]r=([a-z0-9]{4,10})/i) || [])[1] || null;
   var live = !!(C.SUPABASE_URL && C.SUPABASE_KEY && window.supabase), sb = null;
-  function client() { return sb || (sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_KEY, { auth: { storageKey: 'perle-attente', persistSession: true, detectSessionInUrl: true } })); }
+  function client() { return sb || (sb = window.supabase.createClient(C.SUPABASE_URL, C.SUPABASE_KEY, { auth: { persistSession: false } })); }
+  function fmt(n) { return Number(n || 0).toLocaleString('fr-FR'); }
+  function p2(n) { return ('0' + n).slice(-2); }
+
+  // compte à rebours jusqu'au 1er janvier, façon temps d'arrivée Uber
+  function tick() {
+    var l = Math.max(0, OPEN - Date.now()), d = Math.floor(l / 864e5), h = Math.floor(l / 36e5) % 24, m = Math.floor(l / 6e4) % 60, x = Math.floor(l / 1e3) % 60;
+    $('cdT').textContent = (d ? d + ' j ' : '') + p2(h) + ':' + p2(m) + ':' + p2(x);
+  }
+  tick(); setInterval(tick, 1000);
+
+  // compteurs en direct (affichés seulement à partir de 20 inscriptions en tout)
+  async function counts() {
+    if (!live) return;
+    try { var r = await client().rpc('waitlist_counts'); if (r.error || !r.data) return; var a = r.data.coiffeuses || 0, b = r.data.clientes || 0; if (a + b < 20) return; $('nPro').textContent = fmt(a); $('nCli').textContent = fmt(b); $('cnt').hidden = false; } catch (e) { }
+  }
+  counts(); setInterval(counts, 60000);
+
+  // catégories en ronds, façon Uber Eats
+  function cats(el, list) {
+    el.innerHTML = list.map(function (c) { return '<button type="button" aria-pressed="false" data-v="' + c[0] + '"><i' + (c[1] ? ' style="background-image:url(img/' + c[1] + '.jpg)"' : ' class="tx"') + '>' + (c[1] ? '' : c[0].charAt(0)) + '</i>' + c[0] + '</button>'; }).join('');
+    el.onclick = function (e) { var b = e.target.closest('button'); if (b) b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); };
+  }
+  function picked(el) { return [].slice.call(el.querySelectorAll('[aria-pressed="true"]')).map(function (b) { return b.dataset.v; }); }
+  cats($('chCli'), CATS_CLI); cats($('chPro'), CATS_PRO);
+
   function setRole(r) {
-    role = r;
-    $('rCli').setAttribute('aria-pressed', r === 'cliente'); $('rPro').setAttribute('aria-pressed', r === 'coiffeuse');
-    $('promise').textContent = TXT[r][0]; $('go').textContent = TXT[r][1];
+    role = r; var pro = r === 'coiffeuse';
+    $('rCli').setAttribute('aria-pressed', !pro); $('rPro').setAttribute('aria-pressed', pro);
+    $('vCli').hidden = pro; $('vPro').hidden = !pro; $('qWrap').hidden = !pro;
+    $('go').textContent = pro ? 'Préinscrire ma page' : 'Je me préinscris';
+    $('fine').textContent = pro ? 'Gratuit. On crée ta page avec toi avant le 1er janvier.' : 'Gratuit, sans engagement.';
   }
   $('rCli').onclick = function () { setRole('cliente'); }; $('rPro').onclick = function () { setRole('coiffeuse'); };
-  var m = location.search.match(/[?&]je=(coiffeuse|cliente)/); setRole(m ? m[1] : 'cliente');
-  var src = (location.search.match(/[?&]s=([a-z0-9_-]{1,40})/i) || [])[1] || null;
-  function err(t) { $('msg').textContent = t; $('msg').hidden = false; }
-  function finish(r) { $('box').hidden = true; $('lead').hidden = true; $('doneT').textContent = TXT[r][2]; $('done').hidden = false; }
-  async function save(row) {
-    var r = await client().from('waitlist').insert(row);
-    if (r.error && r.error.code !== '23505') throw r.error;
-    // e-mail de confirmation, envoyé par la fonction attente-mail (sans bloquer l'écran)
-    if (!r.error) { try { client().functions.invoke('attente-mail', { body: { role: row.role, contact: row.contact } }).catch(function () { }); } catch (x) { } }
+  setRole(/[?&]je=coiffeuse/.test(q) ? 'coiffeuse' : 'cliente');
+
+  function err(t) { $('msg').textContent = t; $('msg').hidden = false; $('msg').scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+  function link(code) { return 'https://perleapp.fr/attente.html?r=' + code; }
+
+  function show(d) {
+    var pro = d.role === 'coiffeuse', n = Number(d.parrainages || 0), days = Math.max(0, Math.floor((OPEN - Date.now()) / 864e5));
+    $('box').hidden = true; $('bar').hidden = true; $('done').hidden = false;
+    $('dK').textContent = d.deja ? 'Tu étais déjà inscrite' : (pro ? 'Coiffeuse préinscrite' : 'Préinscription confirmée');
+    $('dN').textContent = fmt(d.rang);
+    $('dE').textContent = 'Ouverture le 1er janvier · dans ' + days + ' jour' + (days > 1 ? 's' : '');
+    var st = pro ? [['Préinscrite', 'Un e-mail de confirmation t’attend.'], ['Ta page', 'On la crée avec toi avant le 1er janvier, en dix minutes.'], ['1er janvier', 'Tes premières clientes réservent.']]
+                 : [['Préinscrite', 'Un e-mail de confirmation t’attend.'], ['Décembre', 'Les coiffeuses de ta ville arrivent sur Perle.'], ['1er janvier', 'Tu réserves ta coiffure en une minute.']];
+    $('steps').innerHTML = st.map(function (x, k) { return '<li' + (k ? '' : ' class="on"') + '><span class="d">' + (k + 1) + '</span><span><b>' + x[0] + '</b>' + x[1] + '</span></li>'; }).join('');
+    $('iT').textContent = pro ? (n ? n + ' collègue' + (n > 1 ? 's inscrites' : ' inscrite') + ' grâce à toi' : 'Invite tes collègues') : (n >= 3 ? 'Avant-première débloquée' : 'Invite 3 amies · ' + Math.min(n, 3) + ' sur 3');
+    $('iP').textContent = pro ? 'Plus il y a de coiffeuses dans ta ville, plus les clientes viennent.' : (n >= 3 ? 'Le 1er janvier, tu vois les créneaux 24 h avant tout le monde.' : 'Tu verras les créneaux 24 h avant tout le monde le 1er janvier.');
+    $('dots').hidden = pro; [].forEach.call($('dots').children, function (i, k) { i.className = k < n ? 'on' : ''; });
+    $('lnk').textContent = link(d.code).replace('https://', '');
+    var txt = pro ? 'Je serai sur Perle le 1er janvier, l’appli de réservation des coiffeuses afro. Préinscris-toi aussi : ' : 'Perle ouvre le 1er janvier : la coiffure afro réservée en une minute. Inscris-toi avec mon lien : ';
+    $('sh').onclick = function () { var u = link(d.code); if (navigator.share) navigator.share({ title: 'Perle ouvre le 1er janvier', text: txt, url: u }).catch(function () { }); else window.open('https://wa.me/?text=' + encodeURIComponent(txt + u), '_blank', 'noopener'); };
+    $('cp').onclick = function () { var u = link(d.code); (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { $('cp').textContent = 'Copié'; setTimeout(function () { $('cp').textContent = 'Copier'; }, 1600); }).catch(function () { prompt('Ton lien :', u); }); };
+    window.scrollTo(0, 0);
   }
-  // ville et accord sont demandés dans les deux cas, e-mail ou Google
-  function common() {
-    $('msg').hidden = true;
-    var city = $('city').value.trim();
-    if (city.length < 2) { err('Indique ta ville.'); return null; }
-    if (!$('ok').checked) { err('Coche la case pour qu’on puisse te prévenir.'); return null; }
-    if (!live) { err('L’inscription est indisponible pour le moment. Réessaie plus tard.'); return null; }
-    return { role: role, city: city, source: src };
-  }
+  $('again').onclick = function () { try { localStorage.removeItem(KEY); } catch (e) { } $('done').hidden = true; $('box').hidden = false; $('bar').hidden = false; $('f').reset(); [].forEach.call(document.querySelectorAll('.cats [aria-pressed="true"]'), function (b) { b.setAttribute('aria-pressed', 'false'); }); setRole(role); };
+
+  // déjà inscrite sur ce téléphone : on rouvre son écran avec les chiffres à jour
+  (async function () {
+    var c = null; try { c = localStorage.getItem(KEY); } catch (e) { }
+    if (!c || !live) return;
+    try { var r = await client().rpc('preinscription_suivi', { p_code: c }); if (r.data && r.data.code) show(r.data); } catch (e) { }
+  })();
+
   $('f').onsubmit = async function (e) {
-    e.preventDefault();
-    var row = common(); if (!row) return;
-    var contact = $('contact').value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contact)) return err('Écris une adresse e-mail valide.');
-    row.contact = contact; $('go').disabled = true;
-    try { await save(row); finish(role); }
-    catch (x) { $('go').disabled = false; err('L’inscription n’a pas pu être enregistrée. Vérifie ta connexion et réessaie.'); }
+    e.preventDefault(); $('msg').hidden = true;
+    var pro = role === 'coiffeuse', city = $('city').value.trim(), mail = $('mail').value.trim();
+    if (pro && $('pn').value.trim().length < 2) return err('Indique ton nom de coiffeuse.');
+    if (city.length < 2) return err('Indique ta ville.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) return err('Écris une adresse e-mail valide.');
+    if (pro && !$('q').checked) return err('Coche la case sur la qualification pour préinscrire ta page.');
+    if (!$('ok').checked) return err('Coche la case pour qu’on puisse te prévenir.');
+    if (!live) return err('L’inscription est indisponible pour le moment. Réessaie plus tard.');
+    $('go').disabled = true;
+    try {
+      var r = await client().rpc('preinscription', { p_role: role, p_contact: mail, p_city: city, p_name: pro ? $('pn').value.trim() : null, p_instagram: pro ? $('ig').value.trim() : null, p_styles: picked(pro ? $('chPro') : $('chCli')), p_qualif: pro ? $('q').checked : false, p_ref: ref, p_source: src });
+      if (r.error) throw r.error;
+      try { localStorage.setItem(KEY, r.data.code); } catch (x) { }
+      show(r.data); counts();
+    } catch (x) { err('L’inscription n’a pas pu être enregistrée. Vérifie ta connexion et réessaie.'); }
+    $('go').disabled = false;
   };
-  if (C.GOOGLE && live) {
-    $('gz').hidden = false;
-    $('gg').onclick = async function () {
-      var row = common(); if (!row) return;
-      try { sessionStorage.setItem(KEY, JSON.stringify(row)); } catch (x) { }
-      var r = await client().auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname } });
-      if (r.error) err('La connexion avec Google n’a pas fonctionné. Utilise ton e-mail.');
-    };
-    // retour de Google : on ne garde que l'adresse e-mail, puis on ferme la session
-    (async function () {
-      var row = null; try { row = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (x) { }
-      if (!row) return;
-      var s = await client().auth.getSession(), u = s.data.session && s.data.session.user;
-      if (!u || !u.email) { if (/error=/.test(location.hash + location.search)) { try { sessionStorage.removeItem(KEY); } catch (x) { } err('La connexion avec Google a été annulée. Tu peux utiliser ton e-mail.'); } return; }
-      try { sessionStorage.removeItem(KEY); } catch (x) { }
-      try { row.contact = u.email; await save(row); finish(row.role); }
-      catch (x) { err('L’inscription n’a pas pu être enregistrée. Réessaie avec ton e-mail.'); }
-      try { await client().auth.signOut(); history.replaceState(null, '', location.pathname); } catch (x) { }
-    })();
-  }
 })();
 </script>
 </body>
