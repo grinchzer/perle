@@ -1,0 +1,26 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Perle//Ouverture//FR
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:ouverture-2027@perleapp.fr
+DTSTAMP:20261125T120000Z
+DTSTART:20270101T090000Z
+DTEND:20270101T093000Z
+SUMMARY:Perle ouvre
+DESCRIPTION:Perle ouvre aujourd’hui en Île-de-France. Clientes : réserve ta coiffure en une minute. Coiffeuses : partage ton lien Perle en story.\nhttps://perleapp.fr
+URL:https://perleapp.fr
+LOCATION:perleapp.fr
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Demain\, Perle ouvre
+TRIGGER:-P1D
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Perle est ouvert
+TRIGGER:PT0M
+END:VALARM
+END:VEVENT
+END:VCALENDAR

@@ -108,7 +108,7 @@
       busy: async function (slug, from, to) { return ok(await sb.rpc('busy', { p_slug: slug, p_from: from, p_to: to })); },
       busyAll: async function (from, to) { var out = {}; (ok(await sb.rpc('busy_all', { p_from: from, p_to: to })) || []).forEach(function (r) { (out[r.slug] = out[r.slug] || []).push({ starts_at: r.starts_at, ends_at: r.ends_at }); }); return out; },
       bookingEmail: async function (ref, phone, email) { return ok(await sb.rpc('booking_email', { p_ref: ref, p_phone: phone, p_email: email })); },
-      book: async function (b) { return ok(await sb.rpc('book', { p_slug: b.slug, p_service: b.service, p_choices: b.choices, p_start: b.start, p_name: b.name, p_phone: b.phone, p_note: b.note || '' })); },
+      book: async function (b) { return ok(await sb.rpc('book', { p_slug: b.slug, p_service: b.service, p_choices: b.choices, p_start: b.start, p_name: b.name, p_phone: b.phone, p_note: b.note || '', p_via: b.via === 'lien' ? 'lien' : 'perle' })); },
       proDone: async function (slug) { return ok(await sb.rpc('pro_done', { p_slug: slug })); },
       claimPaid: async function (ref, phone) { return ok(await sb.rpc('claim_paid', { p_ref: ref, p_phone: phone })); },
       proSignal: async function (id, kind, min) { return ok(await sb.rpc('pro_signal', { p_id: id, p_kind: kind, p_min: min || 0 })); },
@@ -223,8 +223,10 @@
         if (st.getTime() < Date.now() + 36e5) throw err('DATE');
         if (d.bookings.some(function (x) { return x.pro_id === p.id && holds(x) && x.ends_at > st.toISOString() && x.starts_at < en.toISOString(); })) throw err('PRIS');
         var r = { id: id(), ref: Math.random().toString(16).slice(2, 8).toUpperCase(), pro_id: p.id, service_id: s.id, service_name: s.name, options_text: q.text, starts_at: st.toISOString(), ends_at: en.toISOString(), price: q.price, deposit: Math.round(q.price * p.deposit_pct) / 100, client_name: name, client_phone: phone, note: String(b.note || '').slice(0, 300), status: 'attente', created_at: new Date().toISOString(), accepted_at: p.manual_accept === false ? new Date().toISOString() : null };
-        // nouvelle cliente Perle = aucune réservation non annulée de ce numéro chez cette coiffeuse
-        r.new_client = !d.bookings.some(function (x) { return x.pro_id === p.id && x.client_phone === phone && x.status !== 'annule'; });
+        // nouvelle cliente Perle = arrivée par Perle (pas par le lien de la coiffeuse), jamais venue chez elle, absente de sa liste de clientes
+        var t9 = function (v) { return String(v || '').replace(/[^0-9]/g, '').slice(-9); };
+        r.via = b.via === 'lien' ? 'lien' : 'perle';
+        r.new_client = r.via === 'perle' && !d.bookings.some(function (x) { return x.pro_id === p.id && t9(x.client_phone) === t9(phone) && x.status !== 'annule'; }) && !((d.notes || {})[p.id] || []).some(function (x) { return t9(x.phone) === t9(phone); });
         r.commission_pct = r.new_client ? U.taux(p, r.created_at) : 0; r.commission = Math.round(r.price * r.commission_pct) / 100;
         r.service_fee = (window.PERLE || {}).PAIEMENT_APPLI ? U.FRAIS : 0;
         d.bookings.push(r); save();
@@ -281,7 +283,7 @@
       if (/^https?:|^tel:|^mailto:/.test(h)) return;
       e.preventDefault();
       if (/pro\.html/.test(h)) return window.Perle.open('pro');
-      var m = h.match(/[?&]c=([^&#]+)/), m2 = h.match(/[?&]s=([^&#]+)/), m3 = h.match(/[?&]v=([^&#]+)/), m4 = h.match(/[?&]d=([^&#]+)/), m5 = h.match(/[?&]o=([^&#]+)/), m6 = h.match(/[?&]t=([^&#]+)/); window.PERLE_T = m6 ? decodeURIComponent(m6[1]) : ''; window.PERLE_SVC = m2 ? decodeURIComponent(m2[1]) : ''; window.PERLE_DAY = m4 ? decodeURIComponent(m4[1]) : ''; window.PERLE_OPT = m5 ? decodeURIComponent(m5[1]) : ''; window.PERLE_VIEW = m3 ? decodeURIComponent(m3[1]) : 'home'; window.Perle.open('book', m ? decodeURIComponent(m[1]) : '');
+      var m = h.match(/[?&]c=([^&#]+)/), m2 = h.match(/[?&]s=([^&#]+)/), m3 = h.match(/[?&]v=([^&#]+)/), m4 = h.match(/[?&]d=([^&#]+)/), m5 = h.match(/[?&]o=([^&#]+)/), m6 = h.match(/[?&]t=([^&#]+)/); window.PERLE_T = m6 ? decodeURIComponent(m6[1]) : ''; window.PERLE_VIA = /[?&]p=1(&|$)/.test(h) ? 'perle' : ''; window.PERLE_SVC = m2 ? decodeURIComponent(m2[1]) : ''; window.PERLE_DAY = m4 ? decodeURIComponent(m4[1]) : ''; window.PERLE_OPT = m5 ? decodeURIComponent(m5[1]) : ''; window.PERLE_VIEW = m3 ? decodeURIComponent(m3[1]) : 'home'; window.Perle.open('book', m ? decodeURIComponent(m[1]) : '');
     }, true);
   }
 
