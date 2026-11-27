@@ -1502,24 +1502,22 @@ body.dark .bar{background:#000;box-shadow:none}body.dark .bar>div{background:non
 .svc .big{border-radius:8px}
 
 
-/* ===== v79 : derniers restes de couleur passés en noir et blanc (logo, badge Mode essai, étiquettes de statut) ===== */
-.logo svg rect{fill:#000}
-.logo svg circle:nth-of-type(1){fill:#BDBDBD}
-.hero .logo svg rect,.dark-screen .logo svg rect,body.dark .logo svg rect,.dn2 .logo svg rect{fill:#fff}
-.hero .logo svg circle:nth-of-type(1),.dark-screen .logo svg circle:nth-of-type(1),body.dark .logo svg circle:nth-of-type(1),.dn2 .logo svg circle:nth-of-type(1){fill:#8A8A8A}
-.hero .logo svg circle:nth-of-type(2),.dark-screen .logo svg circle:nth-of-type(2),body.dark .logo svg circle:nth-of-type(2),.dn2 .logo svg circle:nth-of-type(2){fill-opacity:0}
-.hero .logo svg circle:nth-of-type(3),.dark-screen .logo svg circle:nth-of-type(3),body.dark .logo svg circle:nth-of-type(3),.dn2 .logo svg circle:nth-of-type(3),.hero .logo svg path,.dark-screen .logo svg path,body.dark .logo svg path,.dn2 .logo svg path{fill:#000}
-.badge{background:#F3F3F3;color:#000}
-.hero .badge,.dark-screen .badge,body.dark .badge{background:rgba(255,255,255,.18);color:#fff}
-.st.demande{background:#F3F3F3;color:#000}
-.st.attente,.rvx-s.attente{background:#000;color:#fff}
-.ag .st.attente{background:none;color:#000}
-.legal .todo{background:#F3F3F3;color:#000}
-.rvx-s.demande{background:#F3F3F3;color:#000}
-.ph{background-color:#E2E2E2}
-.hi,.scn,#svmap{background-color:#F3F3F3}
-[style*="radial-gradient(circle at 30% 12%,#5B2A86"],[style*="radial-gradient(circle at 28% 18%,#8A4CC2"]{background:#111 !important}
-[fill="#5B2A86"],[fill="#8A4CC2"],[fill="#2A1340"]{fill:#000}
-[stroke="#5B2A86"]{stroke:#000}
-[fill="#D9A441"],[fill="#F1D48F"]{fill:#BDBDBD}
-[stroke="#D9A441"]{stroke:#BDBDBD}
+/* ===== v79 : le violet Perle revient en accent (logo, sélection, étiquettes, fonds de cartes teintés) ; les boutons principaux restent noirs ===== */
+:root{--vio:#5B2A86;--soft:#F7F4FA;--line:#E6E0EC;--mut:#5E546B;--ink2:#3A2F47}
+.badge{background:#EFE7F8;color:#5B2A86}
+.st.demande,.rvx-s.demande{background:#EFE7F8;color:#5B2A86}
+.st.attente,.rvx-s.attente{background:#5B2A86;color:#fff}
+.ag .st.attente{background:none;color:#5B2A86}
+.ph{background-color:#D9CDE8}
+.hi{background:#EFE7F8}
+.btn.ghost{background:#F7F4FA;color:#000}
+/* sélection : violet partout hors parcours de réservation (qui reste noir) */
+#app:not(.bkf) :is(.pill,.tab,.dayb,.time,.favb)[aria-pressed="true"],#app:not(.bkf) :is(.tabs2,.seg,.sortrow,.mvd,.mvt,.agwk,.dly,.pq,.u-tips,.u-tags) button[aria-pressed="true"]{background:#5B2A86;border-color:#5B2A86;color:#fff}
+/* corrections relevées à l'écran */
+.start-help{color:#fff}
+.svc .big{background:none;border-color:transparent;color:#000;border-radius:0}
+.mp .mp-name,.mp .mp-bio{border-radius:0}
+.mp .mp-name:focus,.mp .mp-bio:focus{border-radius:8px}
+.hdme .hdt{flex:0 1 auto}
+p.st{color:var(--mut)}
+.hoff{color:var(--mut)}
