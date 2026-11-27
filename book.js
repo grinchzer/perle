@@ -127,12 +127,15 @@
   function me() {
     var x = q(), d = dep(x.price), saved = {}; try { saved = JSON.parse(localStorage.getItem('perle-moi') || '{}'); } catch (e) { }
     var ask = st.pro.manual_accept !== false;   // par défaut la coiffeuse accepte d'abord chaque demande : rien à payer à cette étape
-    var h = top('slot') + '<h1>' + (ask ? 'Envoie ta demande à ' + esc(st.pro.name) : 'Tu verses ' + U.eur(d) + ' maintenant, le reste sur place') + '</h1>' + recap(false, lead(esc(U.day(st.time)), U.hm(st.time) + ' à ' + U.hm(new Date(st.time.getTime() + x.minutes * 6e4))) + lead('Prix de la coiffure', U.eur(x.price)) + lead('Acompte de ' + st.pro.deposit_pct + ' %, ' + (ask ? 'après son accord' : 'maintenant'), U.eur(d)) + ((window.PERLE || {}).PAIEMENT_APPLI ? lead('Frais de service Perle', U.eur(U.FRAIS)) : '') + lead('À régler sur place', U.eur(x.price - d), 't'));
+    var h = top('slot') + '<h1>' + (ask ? 'Envoie ta demande à ' + esc(st.pro.name) : 'Tu verses ' + U.eur(d) + ' maintenant, le reste sur place') + '</h1>' + recap(false, lead(esc(U.day(st.time)), U.hm(st.time) + ' à ' + U.hm(new Date(st.time.getTime() + x.minutes * 6e4))) + lead('Prix de la coiffure', U.eur(x.price)) + ((window.PERLE || {}).PAIEMENT_APPLI ? lead('Frais de service Perle', U.eur(U.FRAIS)) : ''));
     h += '<label for="fn">Ton prénom</label><input id="fn" type="text" autocomplete="given-name" maxlength="40" value="' + esc(saved.n || '') + '">';
     h += '<label for="ft">Ton numéro de téléphone</label><input id="ft" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" placeholder="06 12 34 56 78" value="' + esc(saved.t || '') + '">';
     h += '<label for="fe">Ton e-mail (facultatif)</label><input id="fe" type="email" autocomplete="email" inputmode="email" maxlength="120" placeholder="Pour recevoir ta confirmation" value="' + esc(saved.e || '') + '">';
     h += '<details class="more"><summary>Ajouter un mot pour ' + esc(st.pro.name) + '</summary><textarea id="fm" maxlength="300" aria-label="Un mot pour ' + esc(st.pro.name) + '"></textarea></details>';
-    h += '<div id="err"></div><p class="note ok" style="display:flex;gap:10px;align-items:flex-start">' + svg(I.shield, 20) + '<span>' + (ask ? 'Tu ne paies rien maintenant. Dès que ' + esc(st.pro.name) + ' accepte, tu lui envoies l’acompte et ta place est confirmée à réception.' : 'L’acompte se paie directement à ' + esc(st.pro.name) + ', à l’étape suivante. Ta place est confirmée à réception.') + ' Si tu annules, l’acompte n’est pas remboursé ; si c’est ' + esc(st.pro.name) + ' qui annule, il t’est rendu.</span></p><p class="mut" style="margin-top:10px;font-size:13px">Ton prénom et ton numéro servent seulement à ce rendez-vous.</p>';
+    // frise : quand la cliente paie quoi (aujourd'hui, à l'accord, le jour J)
+    var tl = ask ? [['Aujourd’hui', 'Tu envoies ta demande', 'Rien à payer maintenant.'], ['Dès que ' + esc(st.pro.name) + ' accepte', U.eur(d) + ' d’acompte', 'Tu les lui envoies, ta place est bloquée à réception.'], ['Le jour J', U.eur(x.price - d) + ' sur place', 'Le reste du prix, directement avec elle.']] : [['Aujourd’hui', U.eur(d) + ' d’acompte', 'Ta place est bloquée à réception.'], ['Le jour J', U.eur(x.price - d) + ' sur place', 'Le reste du prix, directement avec ' + esc(st.pro.name) + '.']];
+    h += '<h2>Ce que tu paies, et quand</h2><div class="tl">' + tl.map(function (r, i) { return '<div class="tl-r' + (i ? '' : ' on') + '"><i aria-hidden="true"></i><span><small>' + r[0] + '</small><b>' + r[1] + '</b><em>' + r[2] + '</em></span></div>'; }).join('') + '</div>';
+    h += '<div id="err"></div><p class="note ok" style="display:flex;gap:10px;align-items:flex-start">' + svg(I.shield, 20) + '<span>' + 'Si tu annules, l’acompte n’est pas remboursé ; si c’est ' + esc(st.pro.name) + ' qui annule, il t’est rendu.</span></p><p class="mut" style="margin-top:10px;font-size:13px">Ton prénom et ton numéro servent seulement à ce rendez-vous.</p>';
     app.innerHTML = h;
     setBar(U.eur(d), ask ? 'acompte après accord' : 'acompte', ask ? 'Envoyer ma demande' : 'Réserver', submit);
   }
@@ -291,7 +294,7 @@
     dir.ls = lstate();
     if (dir.ls === 'wait') { app.innerHTML = ''; return; }
     if (dir.ls === 'lock' && dir.view !== 'how') dir.view = 'open';
-    app.classList.remove('bkf');
+    app.classList.remove('bkf'); document.body.removeAttribute('data-step');
     if (dir.map) { try { dir.map.remove(); } catch (e) { } dir.map = null; dir.marks = null; }
     // dans l'appli, une coiffeuse qui a choisi « Je coiffe » rouvre directement son espace
     if (!slug && orole() === 'pro' && (dir.view === 'open' || (window.PERLE || {}).APP)) { location.replace('pro.html'); return; }
@@ -805,7 +808,7 @@
   function missing() { app.innerHTML = top() + '<h1>Cette page n’existe pas.</h1><p class="sub">Vérifie le lien que la coiffeuse t’a envoyé.</p>'; setBar(); }
 
   var SCREENS = { home: home, options: options, slot: slot, me: me, done: done };
-  function go(step) { var so = ['home', 'options', 'slot', 'me', 'done']; app.setAttribute('data-dir', so.indexOf(step) < so.indexOf(st.step || 'home') ? 'back' : 'fwd'); st.step = step; try { var own2 = localStorage.getItem('perle-own'), sk2 = 'perle-step-' + slug + '-' + step; if (S.step && slug && step !== 'home' && own2 !== slug && !sessionStorage.getItem(sk2)) { sessionStorage.setItem(sk2, '1'); S.step(slug, step).catch(function () { }); } } catch (e) { } app.classList.add('bkf'); app.setAttribute('data-step', step); document.body.classList.toggle('dark', step === 'done'); SCREENS[step](); anim(); window.scrollTo(0, 0); }
+  function go(step) { var so = ['home', 'options', 'slot', 'me', 'done']; app.setAttribute('data-dir', so.indexOf(step) < so.indexOf(st.step || 'home') ? 'back' : 'fwd'); st.step = step; try { var own2 = localStorage.getItem('perle-own'), sk2 = 'perle-step-' + slug + '-' + step; if (S.step && slug && step !== 'home' && own2 !== slug && !sessionStorage.getItem(sk2)) { sessionStorage.setItem(sk2, '1'); S.step(slug, step).catch(function () { }); } } catch (e) { } app.classList.add('bkf'); app.setAttribute('data-step', step); document.body.setAttribute('data-step', step); document.body.classList.toggle('dark', step === 'done'); SCREENS[step](); anim(); window.scrollTo(0, 0); }
   async function loadBusy() {
     try { st.busy = await S.busy(slug, new Date().toISOString(), new Date(Date.now() + 29 * 864e5).toISOString()) || []; } catch (e) { st.busy = []; }
     if (st.step === 'slot') slot();
