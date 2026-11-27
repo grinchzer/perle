@@ -45,6 +45,21 @@ body{color:#000}
 @keyframes lv{50%{opacity:.35}}
 .plive b{color:#000}
 .ptiles{display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px}
+.qz{animation:up .4s cubic-bezier(.2,.8,.2,1) both;min-height:72vh}
+#box.qzon>h1,#box.qzon>.plive{display:none}
+.qz-bar{display:flex;gap:6px;margin:12px 0 6px}.qz-bar i{flex:1;height:4px;border-radius:2px;background:#E6E6E6}.qz-bar i.on{background:#000}
+.qz-n{font-size:13px;color:#545454;margin:0 0 18px}
+.ps .qz h2{font-size:30px;line-height:1.06;letter-spacing:-.035em;margin:0 0 6px}
+.qz-o{display:flex;flex-direction:column;gap:10px;margin:18px 0 6px}
+.qz-o button{min-height:60px;display:flex;align-items:center;justify-content:space-between;text-align:left;padding:0 18px;border-radius:14px;border:0;background:#F3F3F3;color:#000;font-weight:600;font-size:17px;font-family:inherit}
+.qz-o button::after{content:'';width:9px;height:9px;border-right:2.4px solid #000;border-top:2.4px solid #000;transform:rotate(45deg);flex:0 0 auto}
+.qz-o button:active{background:#000;color:#fff}.qz-o button:active::after{border-color:#fff}
+.qz-skip{display:block;margin:14px auto 0;font-size:14px;color:#545454;text-decoration:underline;padding:10px}
+.qz-r{border-top:1px solid #000;border-bottom:1px solid #000;padding:18px 0;margin:18px 0 6px}
+.qz-r small{display:block;font-size:14px;color:#545454}
+.qz-r b{display:block;font-family:var(--hb);font-size:64px;line-height:1;letter-spacing:-.04em;color:#000;margin:6px 0}
+.qz .why{margin:0 0 18px}
+.qz-fine{font-size:13px;color:#545454;text-align:center;margin:10px 0 0}
 .pback{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:15px;color:#000;padding:4px 8px 4px 0;margin:0 0 4px}
 .ptile{position:relative;height:clamp(150px,24vh,210px);border-radius:14px;overflow:hidden;background:#F3F3F3 center/cover;text-align:left;border:3px solid transparent}
 .ptile:before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(0,0,0,.72))}
@@ -192,6 +207,25 @@ body{color:#000}
         <button type="button" class="ptile" id="rCli" aria-pressed="true" style="background-image:url(img/fKnotless.jpg)"><span>Je réserve<small>Je cherche une coiffeuse</small></span><em aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></em></button>
         <button type="button" class="ptile" id="rPro" aria-pressed="false" style="background-image:url(img/bgLocks.jpg)"><span>Je coiffe<small>Ma page de réservation</small></span><em aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></em></button>
       </div>
+      <div id="quiz" class="qz" hidden>
+        <button type="button" class="pback" id="qzBack"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Changer</button>
+        <div id="qzQ">
+          <div class="qz-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+          <p class="qz-n" id="qzN"></p>
+          <h2 id="qzT"></h2>
+          <p class="sub2" id="qzS"></p>
+          <div class="qz-o" id="qzO"></div>
+          <button type="button" class="qz-skip" id="qzSkip">Passer les questions</button>
+        </div>
+        <div id="qzR" hidden>
+          <p class="qz-n" style="margin-top:14px">D’après tes réponses</p>
+          <h2 id="qzH"></h2>
+          <div class="qz-r" id="qzBox"><small id="qzA"></small><b id="qzV"></b><small id="qzB"></small></div>
+          <ul class="why"><li><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></b>Tes prix affichés : plus de « c’est combien ? » en message</li><li><b style="font-weight:800;font-size:12px">0 %</b>De commission sur tes habituées</li><li><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></b>Gratuit pour commencer</li></ul>
+          <button type="button" class="ub-btn" id="qzGo">Préinscrire ma page gratuitement</button>
+          <p class="qz-fine">Tu ne paies que si Perle t’amène une nouvelle cliente.</p>
+        </div>
+      </div>
       <form id="f" novalidate hidden>
         <button type="button" class="pback" id="back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Changer</button>
         <div id="vCli">
@@ -291,19 +325,43 @@ body{color:#000}
   function picked(el) { return [].slice.call(el.querySelectorAll('[aria-pressed="true"]')).map(function (b) { return b.dataset.v; }); }
   cats($('chCli'), CATS_CLI); cats($('chPro'), CATS_PRO);
 
-  function pick() { $('rCli').setAttribute('aria-pressed', 'false'); $('rPro').setAttribute('aria-pressed', 'false'); $('pick').hidden = false; $('f').hidden = true; $('bar').hidden = true; $('msg').hidden = true; }
+  function pick() { $('quiz').hidden = true; $('box').classList.remove('qzon'); $('rCli').setAttribute('aria-pressed', 'false'); $('rPro').setAttribute('aria-pressed', 'false'); $('pick').hidden = false; $('f').hidden = true; $('bar').hidden = true; $('msg').hidden = true; }
   function setRole(r) {
     role = r; var pro = r === 'coiffeuse';
-    $('pick').hidden = true; $('f').hidden = false; $('bar').hidden = false;
+    $('quiz').hidden = true; $('box').classList.remove('qzon'); $('pick').hidden = true; $('f').hidden = false; $('bar').hidden = false;
     $('rCli').setAttribute('aria-pressed', !pro); $('rPro').setAttribute('aria-pressed', pro);
     $('vCli').hidden = pro; $('vPro').hidden = !pro; $('qWrap').hidden = !pro;
     $('go').textContent = pro ? 'Préinscrire ma page' : 'Je me préinscris';
     $('fine').textContent = pro ? 'Gratuit. On crée ta page avec toi avant l’ouverture.' : 'Gratuit, sans engagement.';
   }
-  $('rCli').onclick = function () { setRole('cliente'); window.scrollTo(0, 230); }; $('rPro').onclick = function () { setRole('coiffeuse'); window.scrollTo(0, 230); };
+
+  // trois questions avant le formulaire d'une coiffeuse : on lui montre ce que l'acompte change pour elle
+  var QZ = [
+    ['Tu coiffes combien de clientes par mois ?', 'Trois questions, et on te montre ce que Perle change pour toi.', [['Moins de 5', 3], ['5 à 10', 8], ['10 à 20', 15], ['Plus de 20', 25]]],
+    ['Combien te posent un lapin chaque mois ?', 'Celles qui ne viennent pas, ou qui annulent le matin même.', [['Aucune', 0], ['1 ou 2', 2], ['3 ou 4', 4], ['5 ou plus', 5]]],
+    ['Aujourd’hui, tu prends un acompte ?', 'Dernière question.', [['Non, jamais', 0], ['Parfois, par virement ou lien', 1], ['Toujours, et je cours après', 2]]]
+  ], qzA = [], PRIX = 120, ACOMPTE = 0.3;
+  function qzShow(i) {
+    $('quiz').hidden = false; $('box').classList.add('qzon'); $('pick').hidden = true; $('f').hidden = true; $('bar').hidden = true; $('qzQ').hidden = false; $('qzR').hidden = true;
+    [].forEach.call(document.querySelectorAll('.qz-bar i'), function (b, k) { b.className = k <= i ? 'on' : ''; });
+    $('qzN').textContent = 'Question ' + (i + 1) + ' sur 3'; $('qzT').textContent = QZ[i][0]; $('qzS').textContent = QZ[i][1];
+    $('qzO').innerHTML = QZ[i][2].map(function (o, k) { return '<button type="button" data-k="' + k + '">' + o[0] + '</button>'; }).join('');
+    $('qzO').onclick = function (e) { var b = e.target.closest('button'); if (!b) return; qzA[i] = QZ[i][2][+b.dataset.k][1]; if (i < 2) qzShow(i + 1); else qzRes(); window.scrollTo(0, 230); };
+  }
+  function qzRes() {
+    var lap = qzA[1] || 0, cli = qzA[0] || 0, dep = Math.round(PRIX * ACOMPTE);
+    $('qzQ').hidden = true; $('qzR').hidden = false;
+    $('qzH').textContent = 'Avec Perle, chaque cliente paie son acompte avant que tu bloques ta journée.';
+    if (lap > 0) { $('qzA').textContent = lap + (qzA[1] === 5 ? ' lapins ou plus' : ' lapins') + ' par mois, sur des tresses à ' + PRIX + ' €'; $('qzV').textContent = fmt(lap * dep) + ' €'; $('qzB').textContent = 'd’acomptes payés d’avance sur les rendez-vous qui, aujourd’hui, sautent sans prévenir.'; }
+    else { $('qzA').textContent = cli + ' clientes par mois, sur des tresses à ' + PRIX + ' €'; $('qzV').textContent = fmt(cli * dep) + ' €'; $('qzB').textContent = 'd’acomptes reçus dès la réservation, sans relancer personne.'; }
+  }
+  function startPro() { qzA = []; qzShow(0); }
+  $('qzSkip').onclick = $('qzGo').onclick = function () { setRole('coiffeuse'); window.scrollTo(0, 230); };
+  $('qzBack').onclick = function () { pick(); window.scrollTo(0, 0); };
+  $('rCli').onclick = function () { setRole('cliente'); window.scrollTo(0, 230); }; $('rPro').onclick = function () { startPro(); window.scrollTo(0, 230); };
   $('back').onclick = function () { pick(); window.scrollTo(0, 0); };
   var je = (q.match(/[?&]je=(coiffeuse|cliente)/) || [])[1];
-  if (je) setRole(je); else pick();
+  if (je === 'coiffeuse' && !/[?&]q=0/.test(q)) startPro(); else if (je) setRole(je); else pick();
 
 
   // une perle qui circule dans les rues de la carte, façon voiture Uber
