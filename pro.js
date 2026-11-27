@@ -437,6 +437,26 @@
     if (l.length) { h += '<p class="b" style="margin:16px 0 4px">' + l.length + ' cliente' + (l.length > 1 ? 's' : '') + '</p>'; l.slice(0, 60).forEach(function (n) { var nm = n.note.replace(/^Cliente : /, ''), m = encodeURIComponent('Bonjour ' + nm.split(' ')[0] + ', c’est ' + st.pro.name + '. Je prends maintenant mes rendez-vous en ligne : tu choisis ta coiffure et ton créneau ici ' + lk + ' À bientôt !'), ph = intl(n.phone); h += '<div class="tsr"><span class="grow"><b>' + esc(nm) + '</b><span class="mut">' + esc(n.phone.replace(/(\d{2})(?=\d)/g, '$1 ')) + '</span></span><a class="btn sm ghost" href="https://wa.me/' + esc(ph.replace('+', '')) + '?text=' + m + '" target="_blank" rel="noopener">WhatsApp</a><a class="btn sm ghost" href="sms:' + esc(ph) + '?&body=' + m + '">SMS</a></div>'; }); }
     return h + '</div>';
   }
+  // le chiffre du mois, quoi faire cette semaine, et le récap à partager
+  function weekStats() { var now = Date.now(), l = st.rdv.filter(function (b) { var e = new Date(b.ends_at).getTime(); return b.status === 'fait' && e <= now && e > now - 7 * 864e5; }); return { n: l.length, dep: l.reduce(function (a, b) { return a + Number(b.deposit || 0); }, 0) }; }
+  function pulse(up) {
+    var t = new Date(), m0 = new Date(t.getFullYear(), t.getMonth(), 1).getTime(), m1 = new Date(t.getFullYear(), t.getMonth() + 1, 1).getTime(), h = '';
+    var ok = st.rdv.filter(function (b) { var s = new Date(b.starts_at).getTime(); return (b.status === 'confirme' || b.status === 'fait') && s >= m0 && s < m1; });
+    var dep = ok.reduce(function (a, b) { return a + Number(b.deposit || 0); }, 0), done = ok.filter(function (b) { return b.status === 'fait'; }).length;
+    if (ok.length) h += '<section class="pls"><span class="grow"><span class="pls-k">Acomptes sécurisés ce mois</span><span class="pls-s">' + ok.length + ' rendez-vous confirmé' + (ok.length > 1 ? 's' : '') + (done ? ', dont ' + done + ' honoré' + (done > 1 ? 's' : '') : '') + '</span></span><b class="pls-n">' + U.eur(dep) + '</b></section>';
+    if (st.rdv.length && st.svcs.length && String(st.pro.pay_info || '').trim()) {
+      var free = [];
+      for (var i = 1; i < 8; i++) {
+        var d = new Date(t.getFullYear(), t.getMonth(), t.getDate() + i), hrs = (st.pro.hours || {})[String(d.getDay())] || [], ymd = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+        var off = (st.pro.closed || []).some(function (r) { return ymd >= r[0] && ymd <= r[1]; }), has = up.some(function (b) { return new Date(b.starts_at).toDateString() === d.toDateString(); });
+        if (hrs.length && !off && !has) free.push(d.toLocaleDateString('fr-FR', { weekday: 'long' }));
+      }
+      if (free.length) h += '<div class="pls-t"><span class="grow"><b>' + esc(free.length > 2 ? free[0].charAt(0).toUpperCase() + free[0].slice(1) + ', ' + free[1] + ' et ' + (free.length - 2) + ' autre' + (free.length > 3 ? 's' : '') + ' jour' + (free.length > 3 ? 's sont libres' : ' sont libres') : free.length === 2 ? free[0].charAt(0).toUpperCase() + free[0].slice(1) + ' et ' + free[1] + ' sont libres' : free[0].charAt(0).toUpperCase() + free[0].slice(1) + ' est libre') + '</b><span>Envoie ton lien à tes habituées : 0 % de commission.</span></span><button type="button" class="btn sm ghost" data-act="share">Envoyer</button></div>';
+      else if (up.length) h += '<div class="pls-t"><b>Tes 7 prochains jours ont tous un rendez-vous.</b></div>';
+    }
+    if (weekStats().n) h += '<button type="button" class="btn sm ghost pls-w" data-act="week">Partager ma semaine</button>';
+    return h;
+  }
   function bioOk() { try { return localStorage.getItem('perle-bio-' + st.pro.id) === '1'; } catch (e) { return false; } }
   function bioSet() { try { localStorage.setItem('perle-bio-' + st.pro.id, '1'); } catch (e) { } }
   var REPLY = 'Tout est dans mon lien, tu peux voir les prix et réserver directement : ';
@@ -457,6 +477,7 @@
     var wait = up.filter(function (b) { return b.status === 'attente'; }).length, sum = up.reduce(function (a, b) { return a + Number(b.price); }, 0);
     var nUp = up.filter(function (b) { return new Date(b.ends_at).getTime() >= now; }).length;
     h += hero(up, now);
+    h += pulse(up);
     h += '<div class="wkh"><span><b>Ta semaine</b><span class="mut">' + nUp + ' rendez-vous à venir</span></span><button type="button" class="wkb" data-act="full" aria-expanded="' + !!st.full + '">Je suis complète</button></div><div class="agwk" role="group" aria-label="Jour affiché">' + wk + '</div>' + fullBox();
     function agrow(b, open) {
       var s = new Date(b.starts_at), e = new Date(b.ends_at), sto = stOf(b, Date.now()), what = esc(b.service_name) + (b.options_text ? ', ' + esc(b.options_text) : '');
@@ -585,6 +606,7 @@
         var pc = base(); pc.closed = cl; st.pro = await S.savePro(pc); st.msg = ['ok', a === 'cldel' ? 'Ces jours sont de nouveau ouverts.' : 'C’est bloqué : aucun créneau ne sera proposé ces jours-là.']; return render();
       }
       if (a === 'note') { var bx = b.closest('.fiche'), ph = b.dataset.phone; await S.saveNote({ phone: ph, note: bx.querySelector('textarea').value, flag: bx.querySelector('input').checked }); st.msg = ['ok', 'Fiche cliente enregistrée.']; return refresh(); }
+      if (a === 'week') { var ws = weekStats(), wu = link(); if (!/^https?:/.test(wu)) wu = new URL(wu, location.href).href; var wt = 'Ma semaine sur Perle : ' + ws.n + ' cliente' + (ws.n > 1 ? 's' : '') + ' coiffée' + (ws.n > 1 ? 's' : '') + ', ' + ws.n + ' acompte' + (ws.n > 1 ? 's' : '') + ' reçu' + (ws.n > 1 ? 's' : '') + ' d’avance. Réserve chez ' + st.pro.name + ' : '; if (navigator.share) { try { await navigator.share({ title: st.pro.name, text: wt, url: wu }); } catch (x) { } } else { try { await navigator.clipboard.writeText(wt + wu); st.msg = ['ok', 'Texte copié, colle-le dans ta story.']; } catch (x) { st.msg = ['info', wt + wu]; } render(); } return; }
       if (a === 'share') { var su = link(); if (!/^https?:/.test(su)) su = new URL(su, location.href).href; if (navigator.share) { try { await navigator.share({ title: st.pro.name, text: 'Réserve ta coiffure avec ' + st.pro.name, url: su }); } catch (x) { } } else { try { await navigator.clipboard.writeText(su); st.msg = ['ok', 'Lien copié.']; } catch (x) { st.msg = ['info', 'Ton lien : ' + su]; } render(); } return; }
       if (a === 'qr') {
         var qb = document.getElementById('qrbox'); if (qb.innerHTML && qb.dataset.k !== 'story') { qb.innerHTML = ''; return; } qb.dataset.k = '';
